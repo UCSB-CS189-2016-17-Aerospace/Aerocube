@@ -27,3 +27,9 @@
 *.exe
 *.out
 *.app
+
+# Virtual Environment 
+/venv
+
+#Random ds store
+.DS_Store

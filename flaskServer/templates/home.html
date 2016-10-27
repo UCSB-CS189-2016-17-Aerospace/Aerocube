@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>File Upload Test</title>
+</head>
+<body>
+	<form method="POST" enctype="multipart/form-data" action=" {{ url_for('uploader') }} ">
+		<input type="file" name="photo">
+		<input type="submit">
+	</form>
+
+
+
+</body>
+</html>
