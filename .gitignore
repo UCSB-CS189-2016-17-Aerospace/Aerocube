@@ -33,3 +33,6 @@
 
 #Random ds store
 .DS_Store
+
+#random python 
+.pyc
