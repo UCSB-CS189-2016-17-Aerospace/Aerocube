@@ -41,6 +41,20 @@ pip install flask-restful
 ```
 
 All of the requirements are on the requirements.txt file so you can just pip install that.
+```shell
+pip install -r requirements.txt
+```
+
+### To Run the Flask server
+cd into the flask directory
+
+```shell
+# Sample run
+python restSample.py
+
+# Sample test run
+python testRest.py
+```
 
 ### Interacting with the uploadImage endpoint via commandline 
  You can interact with any endpoint by using CURL:
