@@ -38,7 +38,7 @@ def store(location, method, data_json):
     # TODO: move error message for Database not found to process().
     if method is None:
         raise ValueError('Database does not exist.')
-
+    method(location,data_json)
 
 def retrieve(location, method):
     """
@@ -50,7 +50,7 @@ def retrieve(location, method):
     # TODO: move error message for Database not found to process()
     if method is None:
         raise ValueError('Database does not exist.')
-
+    method(location)
 
 '''
 Command line args:

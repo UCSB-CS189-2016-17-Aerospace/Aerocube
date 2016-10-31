@@ -3,9 +3,9 @@ import requests
 # TODO: Define parameters
 
 
-def write(*args, **kwargs):
+def write(location,data_json,*args, **kwargs):
     pass
 
 
-def read(*args, **kwargs):
+def read(location,*args, **kwargs):
     pass

@@ -32,7 +32,15 @@ def generate_config(location, method, *args, **kwargs):
     pass
 
 
+def generate_data(data,*args,**kwargs):
+    """
 
+    :param data:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    pass
 """
 {
     image_process: {
