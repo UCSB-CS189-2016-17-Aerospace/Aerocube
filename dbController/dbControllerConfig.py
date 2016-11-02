@@ -17,7 +17,8 @@ def parse_config(config_json):
     :param config_json:
     :return: (location, method)
     """
-    pass
+    parsed_json = json.loads(config_json)
+    return (parsed_json['location'],parsed_json['method'])
 
 
 def generate_config(location, method, *args, **kwargs):
@@ -29,7 +30,7 @@ def generate_config(location, method, *args, **kwargs):
     :param kwargs:
     :return: a valid json object containing a dbController configuration
     """
-    pass
+    return json.dumps({'location': location, 'method': method})
 
 
 def generate_data(data,*args,**kwargs):
