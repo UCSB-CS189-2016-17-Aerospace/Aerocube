@@ -2,7 +2,7 @@ import sys
 from controller.tcpServer import TcpServer
 # this is how we do it if we were in the same repo
 from externalComm.externalComm import process
-from dataStorage.dataStrorage import *
+from dataStorage.dataStrorage import store,read
 sys.path.insert(1, 'home/ubuntu/Github/Aerocube-ImP')
 from fiducialMarkerModule.fiducialMarker import fiducialMarker, \
  IDOutOfDictionaryBoundError
@@ -29,16 +29,17 @@ class Controller:
 		return imp._find_fiducial_markers() #assuming this method returns the vectors and corners
 
 	def store_locally(self, path, data):
-		store(location=path,pickleable=data)
+        dataStorage.store(location=path,pickleable=data)
 
 	def store_data_externally(self, database, ID, data):
 		process(func='-w',database=database,scanID=ID,data=data)
 
-	def initiate_scan(self,scan_ID,payload):
-		results = self.scan_image(payload.string(0))
-		self.store_locally(path=scan_ID,data=results)
-		self.store_data_externally(database=payload.string(1),ID=scan_ID,data=results)
-		self.return_status()
+    def initiate_scan(self,scan_ID,payload):
+        results = self.scan_image(payload.string(0))##payload.string(0) should be the path to the image
+        self.store_locally(path=scan_ID,data=results)
+        self.store_data_externally(database=payload.string(1),ID=scan_ID,data=results)#payload.string(1) should be the database
+        self.return_status()
+
 
 	def run():
 		self.server.accept_connection()
