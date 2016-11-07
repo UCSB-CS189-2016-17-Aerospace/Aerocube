@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
-class Comm:
+from firebase import firebase
+class Comm():
     __metaclass__ = ABCMeta
 
     @abstractmethod
@@ -9,6 +10,19 @@ class Comm:
 
 
 class FirebaseComm(Comm):
-    def read(self): pass
+    firebase = firebase.FirebaseApplication()
+    def read(self, location, data):
+        '''
+        :param location: where it is stored
+        :param data: ID what you are looking fore
+        :return:
+        '''
+        pass
 
-    def write(self): pass
+    def write(self, location, data):
+        '''
+        :param location: where to store
+        :param data: all data
+        :return:
+        '''
+        pass
