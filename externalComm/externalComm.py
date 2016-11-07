@@ -1,25 +1,25 @@
 import json
-
+from commClass import FirebaseComm
 #TODO: data_json finalization
-def process(func, database, location, data=None):
+def process(func, database, location, data):
     """
     :param func: '-w'|'-r'
     :param database: 'firebase'
     :param location: path in database
-    :param data_json: optional
+    :param data_json: just ID or ID and data depending or read or write
     :return:
     """
-
-    if func == '-w':
-        if data is None:
-            raise ValueError('Data cannot be none with func flag -w set.')
-        method = firebase_write if database == 'firebase' else None
-        store(location=location, method=method, data_json=data_json)
-    elif func == '-r':
-        method = firebase_read if database == 'firebase' else None
-        retrieve(location=location, method=method)
+    comm=None
+    if(database=='firebase'):
+        comm=FirebaseComm()
     else:
-        raise SyntaxError('Usage: -w for write, -r for read.')
+        raise ValueError('database not found!')
+    if func == '-w':
+        comm.write(location=location,data=data)
+    elif func == '-r':
+        comm.read(location=location,data=data)
+    else:
+        raise SyntaxError('func not accepted, -w for write, -r for read.')
 
 
 def store(location, method, data_json):
