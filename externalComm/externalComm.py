@@ -1,17 +1,18 @@
 import json
 from commClass import FirebaseComm
 #TODO: data_json finalization
-def process(func, database, location, data):
+def process(func, database, location, data, testing=False):
     """
     :param func: '-w'|'-r'
     :param database: 'firebase'
     :param location: path in database
-    :param data_json: just ID or ID and data depending or read or write
+    :param data: just ID or ID and data depending or read or write
+    :param testing: if testing true else leave alone
     :return:
     """
     comm=None
     if(database=='firebase'):
-        comm=FirebaseComm()
+        comm=FirebaseComm(testing)
     else:
         raise ValueError('database not found!')
     if func == '-w':
