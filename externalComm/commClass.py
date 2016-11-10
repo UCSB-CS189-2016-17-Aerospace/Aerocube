@@ -15,7 +15,9 @@ class FirebaseComm(Comm):
             self.firebase = firebase.FirebaseApplication('https://yfn-aerospace-staging.firebaseio.com/', authentication=None)
         else:
             self.firebase = firebase.FirebaseApplication('https://yfn-aerospace.firebaseio.com/', authentication=None)
-        self.firebase.authentication=firebase.FirebaseAuthentication(secret='i have no idea',email='alexthielk@gmail.com')
+        self.firebase.authentication=firebase.FirebaseAuthentication(secret='_Fo-HOjBSJQzjv8-cocjpsPV',email='yourfirenation@gmail.com')
+        print(self.firebase.authentication.extra)
+
     def read(self, location, id):
         '''
         :param location: where it is stored
