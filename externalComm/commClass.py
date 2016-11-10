@@ -13,9 +13,10 @@ class FirebaseComm(Comm):
     def __init__(self,testing=False):
         if testing:
             self.firebase = firebase.FirebaseApplication('https://yfn-aerospace-staging.firebaseio.com/', authentication=None)
+            self.firebase.authentication=firebase.FirebaseAuthentication(secret='GHtobDkSPrtoOtVAcPR4OF7dBXzMBEPAH5UALw45',email='yourfirenation@gmail.com')
         else:
             self.firebase = firebase.FirebaseApplication('https://yfn-aerospace.firebaseio.com/', authentication=None)
-        self.firebase.authentication=firebase.FirebaseAuthentication(secret='_Fo-HOjBSJQzjv8-cocjpsPV',email='yourfirenation@gmail.com')
+            self.firebase.authentication=firebase.FirebaseAuthentication(secret='WaPfb7ZK3nFH1RDBUzL71sPIr0LJGp9JSGKE0u1B',email='yourfirenation@gmail.com')
         print(self.firebase.authentication.extra)
 
     def read(self, location, id):
