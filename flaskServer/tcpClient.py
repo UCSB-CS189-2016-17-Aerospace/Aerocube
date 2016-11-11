@@ -1,23 +1,24 @@
 import socket 
 import pickle 
 
+class TcpClient:
+	def __init__(self, ip, port, bufferSize):
+		self.TCP_IP = ip 
+		self.TCP_PORT = port
+		self.BUFFER_SIZE = bufferSize
+		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-TCP_IP = '127.0.0.1'
-TCP_PORT = 5005
-BUFFER_SIZE = 1024
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	def connect_to_controller(self):
+		self.s.connect((self.TCP_IP, self.TCP_PORT))
 
-def connect_to_controller():
-	s.connect((TCP_IP, TCP_PORT))
+	def send_to_controller(self,data):
+		x = pickle.dumps(data)
+		self.s.send(x)
 
-def close_connection():
-	s.close()
+	# only tested on receiving strings, not json
+	def receive_from_controller(self):
+		incoming_data = self.s.recv(self.BUFFER_SIZE)
+		return incoming_data.decode()
 
-def send_to_controller(data):
-	x = pickle.dumps(data)
-	s.send(x)
-
-def receive_from_controller():
-	incoming_data = s.recv(BUFFER_SIZE)
-	#this last line currently holds the assumption that it will receive a string back, not tested on Json object being returned 
-	return incoming_data.decode()
+	def close(self):
+		self.s.close()
