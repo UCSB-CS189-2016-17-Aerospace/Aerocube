@@ -8,22 +8,20 @@ api = Api(app)
 
 app.config['UPLOAD_FOLDER'] = 'static/img/'
 
-class uploadPhoto(Resource):
+class PhotoUpload(Resource):
 	
 	def get(self):
 		return {'server status': 'server is up and running'}
 		
 
 	def post(self):
-		self.reqparse = reqparse.RequestParser()
-		args = self.reqparse.parse_args()
-		f = request.files['photo']
-		filename = secure_filename(f.filename)
-		f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+		file = request.files['photo']
+		filename = secure_filename(file.filename)
+		file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 		return {'upload status' : 'file upload sucessful'}
 
 
-api.add_resource(uploadPhoto, '/api/uploadImage')
+api.add_resource(PhotoUpload, '/api/uploadImage')
 
 if __name__ == "__main__":
 	app.run(debug=True)
