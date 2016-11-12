@@ -1,5 +1,5 @@
-import socket 
-import pickle 
+import socket
+import pickle
 
 class TcpClient:
 	def __init__(self, ip, port, bufferSize):
@@ -12,13 +12,14 @@ class TcpClient:
 		self.s.connect((self.TCP_IP, self.TCP_PORT))
 
 	def send_to_controller(self,data):
-		x = pickle.dumps(data)
-		self.s.send(x)
+		message = pickle.dumps(data)
+		self.s.send(message)
 
-	# only tested on receiving strings, not json
 	def receive_from_controller(self):
 		incoming_data = self.s.recv(self.BUFFER_SIZE)
-		return incoming_data.decode()
+		return pickle.loads(incoming_data)
 
 	def close(self):
 		self.s.close()
+
+
