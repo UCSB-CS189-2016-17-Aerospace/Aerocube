@@ -1,39 +1,93 @@
 from abc import ABCMeta, abstractmethod
-from firebase import firebase
+import json
+#from firebase import firebase
+import pyrebase
 class Comm():
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def read(self): pass
+    def read(self, location, id): pass
 
-    def write(self): pass
+    @abstractmethod
+    def write(self, location, id, data): pass
+
+    @abstractmethod
+    def delete(self, location, id): pass
+
+    @abstractmethod
+    def imageStore(self, id, srcImage):pass
+
+    @abstractmethod
+    def imageDownload(self, id): pass
 
 
 class FirebaseComm(Comm):
     def __init__(self,testing=False):
         if testing:
-            self.firebase = firebase.FirebaseApplication('https://yfn-aerospace-staging.firebaseio.com/', authentication=None)
-            self.firebase.authentication=firebase.FirebaseAuthentication(secret='GHtobDkSPrtoOtVAcPR4OF7dBXzMBEPAH5UALw45',email='yourfirenation@gmail.com')
+            config = {
+                "apiKey": "AIzaSyC9IG_3k-6pISqS1HO82GPVqm4bOo_aVb0",
+                "authDomain": " yfn-aerospace-staging.firebaseapp.com",
+                "databaseURL": "https://yfn-aerospace-staging.firebaseio.com",
+                "storageBucket": "yfn-aerospace-staging.appspot.com"
+            }
+            self.token='WaPfb7ZK3nFH1RDBUzL71sPIr0LJGp9JSGKE0u1B'
         else:
-            self.firebase = firebase.FirebaseApplication('https://yfn-aerospace.firebaseio.com/', authentication=None)
-            self.firebase.authentication=firebase.FirebaseAuthentication(secret='WaPfb7ZK3nFH1RDBUzL71sPIr0LJGp9JSGKE0u1B',email='yourfirenation@gmail.com')
-        print(self.firebase.authentication.extra)
+            config = {
+                "apiKey": "AIzaSyDAzrKDM0Mjw20BiQKSyL3G09cUUTDXTjE",
+                "authDomain": " yfn-aerospace.firebaseapp.com",
+                "databaseURL": "https://yfn-aerospace.firebaseio.com",
+                "storageBucket": "yfn-aerospace.appspot.com"
+            }
+            self.token='GHtobDkSPrtoOtVAcPR4OF7dBXzMBEPAH5UALw45'
+        self.firebase = pyrebase.initialize_app(config)
+        self.db=self.firebase.database()
+        self.storage=self.firebase.storage()
 
     def read(self, location, id):
         '''
         :param location: where it is stored
         :param id: ID what you are looking for
-        :return:
+        :return: data at location or none
         '''
-        result = self.firebase.get(location,id)
-        return result
+        #user=self.auth.sign_in_with_email_and_password('yourfirenation@gmail.com','yourfirenation')
+        result = self.db.child(location).child(id).get(self.token)
+        print (result.val())
+        return result.val()
 
-    def write(self, location, data):
+    def write(self, location,id, data):
         '''
         :param location: where to store
+        :param id: name of scan
         :param data: all data
         :return:
         '''
-        result = self.firebase.post(url=location, data=data)
-        print(result)
-        return result
+        #user = self.auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
+        result = self.db.child(location).child(id).set(data=data,token=self.token)
+    def delete(self, location, id):
+        '''
+        :param location:
+        :param id:
+        :return:
+        '''
+        #user = self.auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
+        self.db.child(location).child(id).remove(token=self.token)
+    def imageStore(self,id,srcImage):
+        '''
+        :param id: id of scan
+        :param srcImage: location of source image
+        :return:
+        '''
+        auth=self.firebase.auth()
+        user = auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
+        #self.storage.child('image').child(id+'.jpg').put(srcImage,token=user['idToken'])
+
+
+    def imageDownload(self, id):
+        auth = self.firebase.auth()
+        user = auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
+        print(self.storage.child('images').get_url(user['idToken']))
+        #print(self.storage.child('images/test.jpg').get_url(self.token))
+        self.storage.child('image/test.jpg').download('downloaded.jpg', user['idToken'])
+
+        #self.storage.child('image').child(id + '.jpg').download(id+'.jpg',user['idToken'])
+        #print(self.storage.child('image').child(id+'.jpg').get_url(user['idToken']))
