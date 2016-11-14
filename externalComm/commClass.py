@@ -1,6 +1,4 @@
 from abc import ABCMeta, abstractmethod
-import json
-#from firebase import firebase
 import pyrebase
 class Comm():
     __metaclass__ = ABCMeta
@@ -83,6 +81,7 @@ class FirebaseComm(Comm):
 
 
     def imageDownload(self, id):
+
         auth = self.firebase.auth()
         user = auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
         print(self.storage.child('images').get_url(user['idToken']))

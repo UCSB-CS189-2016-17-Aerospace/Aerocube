@@ -3,7 +3,7 @@ from commClass import FirebaseComm
 #TODO: data_json finalization
 def process(func, database, scanID, location=None, data=None, testing=False):
     """
-    :param func: '-w'|'-r'|'-d'|'-iw'
+    :param func: '-w'|'-r'|'-d'|'-iw' |'-dl'
     :param database: 'firebase'
     :param location: path in database
     :param scanID: id of scan
