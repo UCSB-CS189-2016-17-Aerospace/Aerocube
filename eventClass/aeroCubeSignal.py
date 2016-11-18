@@ -9,3 +9,6 @@ class AeroCubeSignal():
 
     class ResultEventSignal(Enum):
         IMP_OPERATION_OK   = 0x00020001
+
+    def is_valid_signal():
+        pass
