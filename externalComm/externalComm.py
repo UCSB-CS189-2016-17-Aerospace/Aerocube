@@ -1,12 +1,13 @@
 import json
 from commClass import FirebaseComm
 #TODO: data_json finalization
-def process(func, database, location, data, testing=False):
+def process(func, database, scanID, location=None, data=None, testing=False):
     """
-    :param func: '-w'|'-r'
+    :param func: '-w'|'-r'|'-d'|'-iw' |'-dl'
     :param database: 'firebase'
     :param location: path in database
-    :param data: just ID or ID and data depending or read or write
+    :param scanID: id of scan
+    :param data:  data
     :param testing: if testing true else leave alone
     :return:
     """
@@ -16,33 +17,16 @@ def process(func, database, location, data, testing=False):
     else:
         raise ValueError('database not found!')
     if func == '-w':
-        comm.write(location=location,data=data)
+        comm.write(location=location, id=scanID, data=data)
     elif func == '-r':
-        comm.read(location=location,data=data)
+        return comm.read(location=location, id=scanID)
+    elif func == '-d':
+        comm.delete(location=location, id=scanID)
+    elif func == '-iw':
+        comm.imageStore(id=scanID, srcImage=data)
+    elif func == '-dl':
+        comm.imageDownload(id=scanID)
     else:
         raise SyntaxError('func not accepted, -w for write, -r for read.')
 
 
-def store(location, method, data_json):
-    """
-    :param location:
-    :param method:
-    :param data_json:
-    :return:
-    """
-    # TODO: move error message for Database not found to process().
-    if method is None:
-        raise ValueError('Database does not exist.')
-    method(location,data_json)
-
-def retrieve(location, method):
-    """
-
-    :param location:
-    :param method:
-    :return:
-    """
-    # TODO: move error message for Database not found to process()
-    if method is None:
-        raise ValueError('Database does not exist.')
-    method(location)
