@@ -20,6 +20,8 @@ class Comm():
 
 
 class FirebaseComm(Comm):
+    # using secrete token as authentication but if we want to change to using login use this instead
+    # user=self.auth.sign_in_with_email_and_password('yourfirenation@gmail.com','yourfirenation')
     def __init__(self,testing=False):
         if testing:
             config = {
@@ -47,7 +49,6 @@ class FirebaseComm(Comm):
         :param id: ID what you are looking for
         :return: data at location or none
         '''
-        #user=self.auth.sign_in_with_email_and_password('yourfirenation@gmail.com','yourfirenation')
         result = self.db.child(location).child(id).get(self.token)
         print (result.val())
         return result.val()
@@ -59,7 +60,6 @@ class FirebaseComm(Comm):
         :param data: all data
         :return:
         '''
-        #user = self.auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
         result = self.db.child(location).child(id).set(data=data,token=self.token)
     def delete(self, location, id):
         '''
@@ -67,7 +67,6 @@ class FirebaseComm(Comm):
         :param id:
         :return:
         '''
-        #user = self.auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
         self.db.child(location).child(id).remove(token=self.token)
     def imageStore(self,id,srcImage):
         '''
@@ -77,7 +76,7 @@ class FirebaseComm(Comm):
         '''
         auth=self.firebase.auth()
         user = auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
-        #self.storage.child('image').child(id+'.jpg').put(srcImage,token=user['idToken'])
+        self.storage.child('image').child(id+'.jpg').put(srcImage,token=user['idToken'])
 
 
     def imageDownload(self, id):
@@ -85,8 +84,7 @@ class FirebaseComm(Comm):
         auth = self.firebase.auth()
         user = auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
         print(self.storage.child('images').get_url(user['idToken']))
+        #prints out url to image
         #print(self.storage.child('images/test.jpg').get_url(self.token))
         self.storage.child('image/test.jpg').download('downloaded.jpg', user['idToken'])
 
-        #self.storage.child('image').child(id + '.jpg').download(id+'.jpg',user['idToken'])
-        #print(self.storage.child('image').child(id+'.jpg').get_url(user['idToken']))
