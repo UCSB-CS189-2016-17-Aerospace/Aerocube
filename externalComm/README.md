@@ -1,6 +1,17 @@
-need to pip install pyrebase.
+# External Commmunication Module
+## Setup
+Need to
+```
+pip install pyrebase.
+```
 
-to use import process from externalComm.
+## Usage
+To use, must import first:
+```
+import process from externalComm.
+```
+Function Signature
+```
 process(func, database, scanID, location=None, data=None, testing=False)
     func: '-w'|'-r'|'-d'|'-iw'|'-dl'
     database: 'firebase'
@@ -8,11 +19,14 @@ process(func, database, scanID, location=None, data=None, testing=False)
     scanID: id of scan
     data:  data
     testing: if testing true else leave alone
+```
 and will carry out command.  
--dl does not work
-getting `{
+Note that flag '-dl' does not work. The following error is returned:
+```
+`{
   "error": {
     "code": 403,
     "message": "Permission denied. Could not perform this operation"
   }
 }`
+```
