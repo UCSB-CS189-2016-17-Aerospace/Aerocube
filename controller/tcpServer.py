@@ -18,7 +18,11 @@ class TcpServer:
 
 	def send_response(self, response):
 		encoded_response = pickle.dumps(response)
-		conn.send(encoded_response)
+		try:
+			conn.send(encoded_response)	
+		except socket.error as e:
+			print('Cant send response to client: %s' % e)
+		
 
 	def receive_data(self):
 		data = conn.recv(self.BUFFER_SIZE)
