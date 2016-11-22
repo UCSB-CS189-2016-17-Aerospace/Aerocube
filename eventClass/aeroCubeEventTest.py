@@ -10,6 +10,12 @@ class AeroCubeEventTest(unittest.TestCase):
         self.assertIsNotNone(event.signal)
         self.assertIsNotNone(event.created_at)
 
+    def test_image_event_failed_init(self):
+        self.assertRaises(AttributeError,
+                          ImageEvent,
+                          AeroCubeSignal.ResultEventSignal.IMP_OPERATION_OK)
+
+
 class AeroCubeSignalTest(unittest.TestCase):
 
     def test_get_image_event_signal(self):
