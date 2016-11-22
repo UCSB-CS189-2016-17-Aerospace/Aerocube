@@ -22,7 +22,16 @@ class EventHandler(object):
         return self._event_deque.popleft()
 
     def peek_current_event(self):
-        return self._event_deque[0]
+        if self.any_events():
+            return self._event_deque[0]
+        else:
+            return None
+
+    def peek_last_added_event(self):
+        if self.any_events():
+            return self._event_deque[-1]
+        else:
+            return None
 
     def any_events(self):
         return len(self._event_deque) > 0
