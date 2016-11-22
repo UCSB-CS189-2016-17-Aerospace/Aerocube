@@ -1,5 +1,6 @@
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 import time
+from aeroCubeSignal import AeroCubeSignal
 
 
 class AeroCubeEvent(metaclass=ABCMeta):
@@ -18,6 +19,25 @@ class AeroCubeEvent(metaclass=ABCMeta):
     def created_at(self):
         return self._created_at
 
+    @property
+    def signal(self):
+        return self._signal
+
+    @signal.setter
+    def signal(self, other_signal):
+        if self.is_valid_signal(other_signal):
+            self._signal = other_signal
+        else:
+            raise AttributeError("Invalid signal for event")
+
+    @abstractmethod
+    def is_valid_signal(self, signal):
+        """
+        Abstract method that should be implemented for classes inheriting from
+        AeroCubeEvent, which defines what signals are acceptable for the event
+        """
+        raise NotImplementedError
+
 
 class ImageEvent(AeroCubeEvent):
     """
@@ -25,9 +45,11 @@ class ImageEvent(AeroCubeEvent):
     * path to image
     """
     def __init__(self, image_signal):
-        super.__init__(self)
-        self._signal = image_signal
+        super().__init__()
+        self.signal = image_signal
 
+    def is_valid_signal(self, signal):
+        return signal in AeroCubeSignal.ImageEventSignal
 """
 Payload examples for ResultEvent or variants:
 * Error message
@@ -37,11 +59,14 @@ Payload examples for ResultEvent or variants:
 
 class ResultEvent(AeroCubeEvent):
     def __init__(self, result_signal):
-        super.__init__(self)
+        super().__init__()
         self._signal = result_signal
+
+    def is_valid_signal(self, signal):
+        return signal in AeroCubeSignal.ResultEventSignal
 
 
 class SystemEvent(AeroCubeEvent):
     def __init__(self, system_signal):
-        super.__init__(self)
+        super().__init__()
         self._signal = system_signal
