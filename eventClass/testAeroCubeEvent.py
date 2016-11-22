@@ -3,7 +3,7 @@ from aeroCubeSignal import AeroCubeSignal
 import unittest
 
 
-class AeroCubeEventTest(unittest.TestCase):
+class TestAeroCubeEvent(unittest.TestCase):
     def test_image_event_init(self):
         event = ImageEvent(AeroCubeSignal.ImageEventSignal.IDENTIFY_AEROCUBES)
         self.assertIsNotNone(event)
@@ -16,7 +16,7 @@ class AeroCubeEventTest(unittest.TestCase):
                           AeroCubeSignal.ResultEventSignal.IMP_OPERATION_OK)
 
 
-class AeroCubeSignalTest(unittest.TestCase):
+class TestAeroCubeSignal(unittest.TestCase):
 
     def test_get_image_event_signal(self):
         self.assertIsNotNone(AeroCubeSignal.ImageEventSignal.IDENTIFY_AEROCUBES)
