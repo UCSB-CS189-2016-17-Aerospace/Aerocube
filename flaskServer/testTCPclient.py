@@ -1,8 +1,9 @@
 import unittest 
-from tcpClient import *
+from tcpClient import TcpClient 
 import socket
-from testClass import TestClass
+from testClassTcpClient import TestClassTcpClient 
 import random 
+import pickle 
 
 class TcpClientTestCase(unittest.TestCase):
 	def setUp(self):
@@ -22,7 +23,7 @@ class TcpClientTestCase(unittest.TestCase):
 
 	#sometimes gives weird resource warning of an unclosed socket, but tearDown states otherwise. (Does work though.)
 	def test_sending_message(self):
-		RAW_MESSAGE = TestClass('John','pizza man')
+		RAW_MESSAGE = TestClassTcpClient('John','pizza man')
 		self.client.send_to_controller(RAW_MESSAGE)
 		data = pickle.loads(self.conn.recv(1024))
 		self.assertEqual(data.name, RAW_MESSAGE.name)
@@ -32,7 +33,7 @@ class TcpClientTestCase(unittest.TestCase):
 
 	#sometimes gives weird resource warning of an unclosed socket, but tearDown states otherwise. (Does work though.)
 	def test_receiving_message(self):
-		RAW_MESSAGE = TestClass('John', 'Pizza man')
+		RAW_MESSAGE = TestClassTcpClient('John', 'Pizza man')
 		encoded_message = pickle.dumps(RAW_MESSAGE)
 		self.conn.send(encoded_message)
 		received_message = self.client.receive_from_controller()
