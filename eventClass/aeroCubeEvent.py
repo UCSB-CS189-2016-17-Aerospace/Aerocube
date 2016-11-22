@@ -25,6 +25,9 @@ class AeroCubeEvent(metaclass=ABCMeta):
 
     @signal.setter
     def signal(self, other_signal):
+        """
+        Call class-implemented is_valid_signal method to determine if valid
+        """
         if self.is_valid_signal(other_signal):
             self._signal = other_signal
         else:
