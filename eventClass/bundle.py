@@ -29,7 +29,6 @@ class Bundle(object):
         _INCORRECT_TYPE_RAW_IS_STRING
     )
     
-
     def __getitem__(self, item):
         return self.__dict__[item]
 
