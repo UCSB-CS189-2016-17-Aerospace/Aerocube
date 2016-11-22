@@ -32,6 +32,16 @@ class Bundle(object):
     def __getitem__(self, item):
         return self.__dict__[item]
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and \
+               self._strings == other.strings() and \
+               self._numbers == other.numbers() and \
+               self._raws == other.raws() and \
+               self._iterables == other.iterables()
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     @staticmethod
     def is_valid_key(key):
         """
@@ -44,13 +54,23 @@ class Bundle(object):
                 return False
         return key.isupper()
 
+    def merge_from_bundle(self, other_bundle):
+        """
+        Merges another bundle into this bundle, replacing duplicate key-value pairs with values from other_bundle
+        :param other_bundle: an instance of Bundle
+        """
+        self._strings.update(other_bundle.strings())
+        self._numbers.update(other_bundle.numbers())
+        self._raws.update(other_bundle.raws())
+        self._iterables.update(other_bundle.iterables())
+
     def strings(self, key=None):
         """
         Accessor for the string dictionary or a specific key of the dictionary
         :param key:
         :return:
         """
-        if not Bundle.is_valid_key(key):
+        if key is not None and not Bundle.is_valid_key(key):
             raise AttributeError(self._IMPROPER_KEY_FORMAT_STRING.format(key))
 
         if key is not None:
@@ -62,29 +82,38 @@ class Bundle(object):
             return self._strings
 
     def numbers(self, key=None):
-        if not Bundle.is_valid_key(key):
+        if key is not None and not Bundle.is_valid_key(key):
             raise AttributeError(self._IMPROPER_KEY_FORMAT_STRING.format(key))
 
         if key is not None:
-            return self._numbers[key]
+            try:
+                return self._numbers[key]
+            except KeyError as err:
+                raise BundleKeyError(str(err))
         else:
             return self._numbers
 
     def raws(self, key=None):
-        if not Bundle.is_valid_key(key):
+        if key is not None and not Bundle.is_valid_key(key):
             raise AttributeError(self._IMPROPER_KEY_FORMAT_STRING.format(key))
 
         if key is not None:
-            return self._raws[key]
+            try:
+                return self._raws[key]
+            except KeyError as err:
+                raise BundleKeyError(str(err))
         else:
             return self._raws
 
-    def iterables(self, key):
-        if not Bundle.is_valid_key(key):
+    def iterables(self, key=None):
+        if key is not None and not Bundle.is_valid_key(key):
             raise AttributeError(self._IMPROPER_KEY_FORMAT_STRING.format(key))
 
         if key is not None:
-            return self._iterables[key]
+            try:
+                return self._iterables[key]
+            except KeyError as err:
+                raise BundleKeyError(str(err))
         else:
             return self._iterables
 

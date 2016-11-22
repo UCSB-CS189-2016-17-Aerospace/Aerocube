@@ -1,5 +1,6 @@
 from aeroCubeEvent import AeroCubeEvent, ImageEvent, ResultEvent, SystemEvent
 from aeroCubeSignal import AeroCubeSignal
+from bundle import Bundle, BundleKeyError
 import unittest
 
 
@@ -42,6 +43,28 @@ class TestAeroCubeSignal(unittest.TestCase):
 
     def test_get_image_event_signal(self):
         self.assertIsNotNone(AeroCubeSignal.ImageEventSignal.IDENTIFY_AEROCUBES)
+
+
+class TestAeroCubePayload(unittest.TestCase):
+
+    def setUp(self):
+        self._event = ImageEvent(AeroCubeSignal.ImageEventSignal.GET_AEROCUBE_POSE)
+        self._VALID_KEY = 'VALID_KEY'
+        self._VALID_NUM = 42
+        self._VALID_STRING = 'a string'
+
+    def tearDown(self):
+        self._event = None
+
+    def test_init_payload(self):
+        self.assertEqual(self._event._payload, Bundle())
+
+    def test_retrieve_from_empty_payload(self):
+        self.assertRaises(BundleKeyError, self._event._payload.strings, self._VALID_KEY)
+
+    def test_add_to_payload(self):
+        self._event._payload.insert_number(self._VALID_KEY, self._VALID_NUM)
+        self.assertEqual(self._event._payload.numbers(self._VALID_KEY), self._VALID_NUM)
 
 if __name__ == '__main__':
     unittest.main()
