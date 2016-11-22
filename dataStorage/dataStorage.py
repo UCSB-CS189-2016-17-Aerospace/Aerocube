@@ -1,21 +1,50 @@
 import pickle
+from settings import *
 
-def store(location,pickled):
-    pickle.dump(pickled, open(location, "wb"))
+
+def store(location, pickleable, use_relative_location=True):
+    """
+    Public abstraction of storage
+    :param location: string path
+    :param pickleable: data that can be pickled
+    :param use_relative_location: bool
+    :return: An event containing a signal that describes success or failure
+    """
+    _store_json(settings.get_storage_directory() + location, pickleable)
+
 
 def retrieve(location):
-    return pickle.load(open(location,"rb"))
-## below is random stuff
-def _pickle_json(json):
-    pass
+    """
+    Public abstraction of retrieval
+    :param location: relative location
+    :return:
+    """
+    return _retrieve_json(settings.get_storage_directory() + location)
 
-def _unpickle_json(pickled):
-    pass
 
-def store_from_json(location, json):
-    pickled=_pickle_json(json=json)
-    _store(location=location,pickled=pickled)
+# below is random stuff
+def _store_json(location, json):
+    """
+    'Private' method to store json data
+    :param location: the location of the file
+    :param json:
+    :return:
+    """
+    try:
+        pickle.dump(json, open(location, "wb"), pickle.HIGHEST_PROTOCOL)
+    except OSError as err:
+        pass
+        # TODO: Handle err
 
-def retrieve_as_json(location):
-    pickled=_retrieve(location=location)
-    return _unpickle_json(pickled)
+
+def _retrieve_json(location):
+    """
+    'Private' method to retrieve json data
+    :param location:
+    :return:
+    """
+    try:
+        return pickle.load(open(location,"rb"))
+    except OSError as err:
+        pass
+        # TODO: Handle err
