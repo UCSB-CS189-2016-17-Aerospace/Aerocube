@@ -4,6 +4,13 @@ import pickle
 
 
 class TestBundle(unittest.TestCase):
+
+    def setUp(self):
+        self._bundle = Bundle()
+
+    def tearDown(self):
+        self._bundle = None
+
     @classmethod
     def setUpClass(cls):
         cls._bundle = Bundle()
@@ -27,7 +34,7 @@ class TestBundle(unittest.TestCase):
         cls._valid_raw = pickle.dumps('valid raw')
         cls._invalid_raw_string = 'invalid raw'
         cls._invalid_raw_number = 0
-    
+
     @classmethod
     def tearDownClass(cls):
         cls._bundle = None
