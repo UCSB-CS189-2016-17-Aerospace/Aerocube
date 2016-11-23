@@ -13,7 +13,7 @@ class EventHandler(object):
         self._event_deque = deque()
 
     def enqueue_event(self, event):
-        if self.is_valid_element(event):
+        if EventHandler.is_valid_element(event):
             self._event_deque.append(event)
         else:
             raise TypeError("Attempted to queue invalid object to EventHandler")
