@@ -4,6 +4,9 @@ sys.path.insert(1, 'home/ubuntu/Github/Aerocube-ImP')
 from fiducialMarkerModule.fiducialMarker import fiducialMarker, \
  IDOutOfDictionaryBoundError
 # DEAL WITH IMPORTS
+# look into 
+# import os
+# os.chdir(default_path)
 
 class Controller:
 	def __init__(self):
