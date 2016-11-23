@@ -28,11 +28,13 @@ class Bundle(object):
         _INCORRECT_TYPE_RAW_IS_NUMBER,
         _INCORRECT_TYPE_RAW_IS_STRING
     )
-    
-    def __getitem__(self, item):
-        return self.__dict__[item]
 
     def __eq__(self, other):
+        """
+        Enables use of == comparison, comparing instance type and all dicts for equality
+        :param other: the other Bundle
+        :return: True if equal, False if inequal
+        """
         return isinstance(other, self.__class__) and \
                self._strings == other.strings() and \
                self._numbers == other.numbers() and \
@@ -40,6 +42,11 @@ class Bundle(object):
                self._iterables == other.iterables()
 
     def __ne__(self, other):
+        """
+        Enables use of != comparison, comparing instance type and all dicts for equality
+        :param other: the other Bundle
+        :return: False if equal, True if inequal
+        """
         return not self.__eq__(other)
 
     @staticmethod
@@ -66,9 +73,11 @@ class Bundle(object):
 
     def strings(self, key=None):
         """
-        Accessor for the string dictionary or a specific key of the dictionary
-        :param key:
-        :return:
+        Accessor for a specific key or the entire strings dict
+        :raises BundleKeyError if the key is not none, is valid, and no key-value pair is found
+        :raises AttributeError if the key is invalid
+        :param key: optional
+        :return: the value in the key-value pair for a given key if not None, or the entire strings dict
         """
         if key is not None and not Bundle.is_valid_key(key):
             raise AttributeError(self._IMPROPER_KEY_FORMAT_STRING.format(key))
@@ -82,6 +91,13 @@ class Bundle(object):
             return self._strings
 
     def numbers(self, key=None):
+        """
+        Accessor for a specific key or the entire numbers dict
+        :raises BundleKeyError if the key is not none, is valid, and no key-value pair is found
+        :raises AttributeError if the key is invalid
+        :param key: optional
+        :return: the value in the key-value pair for a given key if not None, or the entire numbers dict
+        """
         if key is not None and not Bundle.is_valid_key(key):
             raise AttributeError(self._IMPROPER_KEY_FORMAT_STRING.format(key))
 
@@ -94,6 +110,13 @@ class Bundle(object):
             return self._numbers
 
     def raws(self, key=None):
+        """
+        Accessor for a specific key or the entire raws dict
+        :raises BundleKeyError if the key is not none, is valid, and no key-value pair is found
+        :raises AttributeError if the key is invalid
+        :param key: optional
+        :return: the value in the key-value pair for a given key if not None, or the entire raws dict
+        """
         if key is not None and not Bundle.is_valid_key(key):
             raise AttributeError(self._IMPROPER_KEY_FORMAT_STRING.format(key))
 
@@ -106,6 +129,13 @@ class Bundle(object):
             return self._raws
 
     def iterables(self, key=None):
+        """
+        Accessor for a specific key or the entire iterables dict
+        :raises BundleKeyError if the key is not none, is valid, and no key-value pair is found
+        :raises AttributeError if the key is invalid
+        :param key: optional
+        :return: the value in the key-value pair for a given key if not None, or the entire iterables dict
+        """
         if key is not None and not Bundle.is_valid_key(key):
             raise AttributeError(self._IMPROPER_KEY_FORMAT_STRING.format(key))
 
@@ -117,40 +147,68 @@ class Bundle(object):
         else:
             return self._iterables
 
-    def insert_string(self, key, s):
+    def insert_string(self, key, value):
+        """
+        Insert a string value with a given key
+        :raises AttributeError: if the key is invalid
+        :raises AttributeError: if the value is not a string
+        :param key: a valid key
+        :param value: a string
+        """
         if not Bundle.is_valid_key(key):
             raise AttributeError(self._IMPROPER_KEY_FORMAT_STRING.format(key))
 
-        if isinstance(s, str):
-            self._strings[key] = s
+        if isinstance(value, str):
+            self._strings[key] = value
         else:
             raise AttributeError(self._INCORRECT_TYPE_STRING)
 
-    def insert_number(self, key, num):
+    def insert_number(self, key, value):
+        """
+        Insert a string value with a given key
+        :raises AttributeError: if the key is invalid
+        :raises AttributeError: if the value is not a number
+        :param key: a valid key
+        :param value: a number
+        """
         if not Bundle.is_valid_key(key):
             raise AttributeError(self._IMPROPER_KEY_FORMAT_STRING.format(key))
 
-        if isinstance(num, Number):
-            self._numbers[key] = num
+        if isinstance(value, Number):
+            self._numbers[key] = value
         else:
             raise AttributeError(self._INCORRECT_TYPE_NUMBER)
 
-    def insert_raw(self, key, data):
+    def insert_raw(self, key, value):
+        """
+        Insert a string value with a given key
+        :raises AttributeError: if the key is invalid
+        :raises AttributeError: if the value is not a raw
+        :param key: a valid key
+        :param value: a raw
+        """
         if not Bundle.is_valid_key(key):
             raise AttributeError(self._IMPROPER_KEY_FORMAT_STRING.format(key))
 
-        if isinstance(data, str):
+        if isinstance(value, str):
             raise AttributeError(self._INCORRECT_TYPE_RAW_IS_STRING)
-        elif isinstance(data, Number):
+        elif isinstance(value, Number):
             raise AttributeError(self._INCORRECT_TYPE_RAW_IS_NUMBER)
         else:
-            self._raws[key] = data
+            self._raws[key] = value
 
-    def insert_iterable(self, key, iter):
+    def insert_iterable(self, key, value):
+        """
+        Insert a string value with a given key
+        :raises AttributeError: if the key is invalid
+        :raises AttributeError: if the value is not an iterable
+        :param key: a valid key
+        :param value: an iterable
+        """
         if not Bundle.is_valid_key(key):
             raise AttributeError(self._IMPROPER_KEY_FORMAT_STRING.format(key))
 
-        if isinstance(iter, collections.Iterable):
-            self._iterables[key] = iter
+        if isinstance(value, collections.Iterable):
+            self._iterables[key] = value
         else:
             raise AttributeError(self._INCORRECT_TYPE_ITERABLE)
