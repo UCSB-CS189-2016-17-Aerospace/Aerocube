@@ -6,6 +6,11 @@ class EventHandler(object):
     """
     Handles incoming events in a queue, providing methods to peek at events and
     properly resolve/dequeue them.
+    Raises a TypeError if an object that is not an AeroCubeEvent is Attempted
+    to be enqueued.
+    For all other operations, EventHandler will return None if an operation is
+    improperly used (e.g., if dequeue_event is called on an EventHandler with
+    no events).
     """
     _event_deque = None
 
