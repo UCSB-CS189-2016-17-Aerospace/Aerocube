@@ -44,6 +44,12 @@ class TestAeroCubeSignal(unittest.TestCase):
     def test_get_image_event_signal(self):
         self.assertIsNotNone(AeroCubeSignal.ImageEventSignal.IDENTIFY_AEROCUBES)
 
+    def test_all_enum_values_unique(self):
+        s1 = set([e.value for e in AeroCubeSignal.ImageEventSignal])
+        s2 = set([e.value for e in AeroCubeSignal.ResultEventSignal])
+        s3 = set([e.value for e in AeroCubeSignal.SystemEventSignal])
+        self.assertSetEqual(s1.intersection(s2).intersection(s3), set())
+
 
 class TestAeroCubePayload(unittest.TestCase):
 
