@@ -4,12 +4,19 @@ from enum import Enum
 class AeroCubeSignal():
 
     class ImageEventSignal(Enum):
-        IDENTIFY_AEROCUBES = 0x00010001
-        GET_AEROCUBE_POSE  = 0x00010002
+        IDENTIFY_AEROCUBES     = 0x00010001
+        GET_AEROCUBE_POSE      = 0x00010002
 
     class ResultEventSignal(Enum):
-        IMP_OPERATION_OK   = 0x00020001
-        OPERATION_FAILED   = 0x00020002
+        # ImP Operations
+        IMP_OPERATION_OK       = 0x00020001
+        IMP_OP_FAILED          = 0x00020002
+        # Internal Storage Operations
+        INTERN_STORE_OP_OK     = 0x00020003
+        INTERN_STORE_OP_FAILED = 0x00020004
+        # External Communication Operations
+        EXT_COMM_OP_OK         = 0x00020005
+        EXT_COMM_OP_FAILED     = 0x00020006
 
     class SystemEventSignal(Enum):
-        POWERING_OFF       = 0x00030001
+        POWERING_OFF           = 0x00030001
