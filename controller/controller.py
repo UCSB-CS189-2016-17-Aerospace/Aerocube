@@ -1,5 +1,8 @@
 import sys
-from tcpServer import TcpServer
+from controller.tcpServer import TcpServer
+# this is how we do it if we were in the same repo
+from externalComm.externalComm import process
+from dataStorage.dataStrorage import *
 sys.path.insert(1, 'home/ubuntu/Github/Aerocube-ImP')
 from fiducialMarkerModule.fiducialMarker import fiducialMarker, \
  IDOutOfDictionaryBoundError
@@ -13,7 +16,12 @@ class Controller:
 		self.server = TcpServer('127.0.0.1',5005,1024)
 
 	def return_status(self, status):
-		#either already recieve a type signal status or make it here
+		'''
+		returns status back to event handler
+		:param status: status signal
+		:return: void
+		'''
+		result_event_status=ResultEvent(result_signal=status)
 		self.server.send_response(result_event_status)
 
 	def scan_image(self, file_path):
@@ -21,15 +29,15 @@ class Controller:
 		return imp._find_fiducial_markers() #assuming this method returns the vectors and corners
 
 	def store_locally(self, path, data):
-		pass
+		store(location=path,pickleable=data)
 
-	def store_externally(self, database, data):
-		pass
+	def store_data_externally(self, database, ID, data):
+		process(func='-w',database=database,scanID=ID,data=data)
 
-	def initiate_scan():
-		results = self.scan_image()
-		self.store_locally('path',results)
-		self.store_externally('database',results)
+	def initiate_scan(self,scan_ID,payload):
+		results = self.scan_image(payload.string(0))
+		self.store_locally(path=scan_ID,data=results)
+		self.store_data_externally(database=payload.string(1),ID=scan_ID,data=results)
 		self.return_status()
 
 	def run():
@@ -38,7 +46,7 @@ class Controller:
 			data = self.server.receive_data()
 			if data != False:
 				if data.signal() == ImageEventSignal.IDENTIFY_AEROCUBES:
-					self.initiate_scan()
+					self.initiate_scan(scan_ID=data.created_at, payload=data.payload())
 				else:
 					pass
 					#IM CONFUSED AF
