@@ -9,6 +9,7 @@ class AeroCubeSignal():
 
     class ResultEventSignal(Enum):
         IMP_OPERATION_OK   = 0x00020001
+        OPERATION_FAILED   = 0x00020002
 
     class SystemEventSignal(Enum):
         POWERING_OFF       = 0x00030001
