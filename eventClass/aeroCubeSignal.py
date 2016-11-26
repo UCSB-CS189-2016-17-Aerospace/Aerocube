@@ -17,6 +17,9 @@ class AeroCubeSignal():
         # External Communication Operations
         EXT_COMM_OP_OK         = 0x00020005
         EXT_COMM_OP_FAILED     = 0x00020006
+        # Job completed
+        IDENT_AEROCUBES_FIN     = 0x00020007
+
 
     class SystemEventSignal(Enum):
         POWERING_OFF           = 0x00030001

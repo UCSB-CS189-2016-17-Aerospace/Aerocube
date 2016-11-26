@@ -20,23 +20,31 @@ class Controller:
         self.server.send_response(result_event_status)
 
     def scan_image(self, file_path):
-        imp = ImageProcessor(file_path)
-        return imp._find_fiducial_markers()  # assuming this method returns the vectors and corners
+        try:
+            imp = ImageProcessor(file_path)
+            (corners, marker_ids, _) = imp._find_fiducial_markers()
+            self.return_status(AeroCubeSignal.ResultEventSignal.IMP_OPERATION_OK)
+            return corners, marker_ids
+        except:
+            self.return_status(AeroCubeSignal.ResultEventSignal.IMP_OP_FAILED)
 
     def store_locally(self, path, data):
         self.return_status(store(location=path, pickleable=data))
 
     def store_data_externally(self, database, scan_id, data, img_path):
-        self.return_status(process(func='-w', database=database, scanID=scan_id, data=data))
-        self.return_status(process(func='-iw', database=database, scanID=scan_id, data=img_path))
-
+        try:
+            process(func='-w', database=database, scanID=scan_id, data=data)
+            process(func='-iw', database=database, scanID=scan_id, data=img_path)
+            self.return_status(AeroCubeSignal.ResultEventSignal.EXT_COMM_OP_OK)
+        except ValueError:
+            self.return_status(AeroCubeSignal.ResultEventSignal.EXT_COMM_OP_FAILED)
     def initiate_scan(self, scan_id, payload):
         results = self.scan_image(payload.string(0))
         # payload.string(0) should be the path to the image
         self.store_locally(path=scan_id, data=results)
         self.store_data_externally(database=payload.string(1), ID=scan_id, data=results, img_path=payload.string(0))
         # payload.string(1) should be the database
-        self.return_status()
+        self.return_status(AeroCubeSignal.ResultEventSignal.IDENT_AEROCUBES_FIN)
 
     def run(self):
         self.server.accept_connection()

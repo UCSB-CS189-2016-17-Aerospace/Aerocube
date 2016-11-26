@@ -1,4 +1,4 @@
-from aerocubeMarker import AeroCubeMarker, AeroCubeFace, AeroCube
+from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker, AeroCubeFace, AeroCube
 import cv2
 from cv2 import aruco
 import os
