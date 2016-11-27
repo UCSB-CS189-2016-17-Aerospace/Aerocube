@@ -32,7 +32,7 @@ def _store_json(location, json):
     """
     try:
         pickle.dump(json, open(location, "wb"), pickle.HIGHEST_PROTOCOL)
-        #return AeroCubeSignal.ResultEventSignal.INTERN_STORE_OP_OK
+        # return AeroCubeSignal.ResultEventSignal.INTERN_STORE_OP_OK
     except OSError as err:
         return AeroCubeSignal.ResultEventSignal.INTERN_STORE_OP_FAILED
 

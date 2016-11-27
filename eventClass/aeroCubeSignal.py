@@ -20,6 +20,5 @@ class AeroCubeSignal():
         # Job completed
         IDENT_AEROCUBES_FIN     = 0x00020007
 
-
     class SystemEventSignal(Enum):
         POWERING_OFF           = 0x00030001
