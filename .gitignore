@@ -36,3 +36,6 @@
 
 #random python 
 *.pyc
+
+# ImP Directory
+ImP/
