@@ -1,3 +1,4 @@
+import logging
 from controller.tcpServer import TcpServer
 # import packages from Aerocube directory
 from eventClass.aeroCubeSignal import AeroCubeSignal
@@ -40,14 +41,19 @@ class Controller:
             self.return_status(AeroCubeSignal.ResultEventSignal.EXT_COMM_OP_OK)
         except ValueError:
             self.return_status(AeroCubeSignal.ResultEventSignal.EXT_COMM_OP_FAILED)
+
     def initiate_scan(self, scan_id, payload):
+        logging.info("scan "+scan_id+ " initiated")
         results = self.scan_image(payload.string(0))
+        logging.info("scan "+scan_id+" image complete")
         # payload.string(0) should be the path to the image
         self.store_locally(path=scan_id, data=results)
+        logging.info(str(scan_id)+" stored locally")
         self.store_data_externally(database=payload.string(1), ID=scan_id, data=results, img_path=payload.string(0))
         # payload.string(1) should be the database
+        logging.info(str(scan_id) + " stored on firebase")
         self.return_status(AeroCubeSignal.ResultEventSignal.IDENT_AEROCUBES_FIN)
-
+        logging.info(str(scan_id)+ "complete")
     def run(self):
         self.server.accept_connection()
         while 1:
