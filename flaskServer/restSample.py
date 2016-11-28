@@ -1,10 +1,12 @@
 from flask import Flask, render_template, url_for,request, redirect 
 from flask_restful import Resource, Api, reqparse
 from werkzeug import secure_filename
+from flask_cors import CORS, cross_origin
 import os
 
 app = Flask(__name__)
 api = Api(app)
+CORS(app)
 
 app.config['UPLOAD_FOLDER'] = 'static/img/'
 
@@ -24,4 +26,4 @@ class PhotoUpload(Resource):
 api.add_resource(PhotoUpload, '/api/uploadImage')
 
 if __name__ == "__main__":
-	app.run(debug=True)
+	app.run(debug=True, port=5000, ssl_context='adhoc')

@@ -45,6 +45,8 @@ All of the requirements are on the requirements.txt file so you can just pip ins
 pip install -r requirements.txt
 ```
 
+You may need to install [Microsoft Visual C++ Express 2010](https://lmgtfy.com/?q=Microsoft+Visual+C%2B%2B+2010+Express+Download)
+
 ### To Run the Flask server
 cd into the flask directory
 
