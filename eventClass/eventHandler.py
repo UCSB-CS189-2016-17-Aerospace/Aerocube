@@ -1,5 +1,5 @@
 from collections import deque
-from aeroCubeEvent import AeroCubeEvent
+from .aeroCubeEvent import AeroCubeEvent
 
 
 class EventHandler(object):
