@@ -1,15 +1,13 @@
-import sys
 from controller.tcpServer import TcpServer
 # import packages from Aerocube directory
-# sys.path.insert(1, '/home/ubuntu/GitHub/Aerocube')
 from eventClass.aeroCubeSignal import AeroCubeSignal
+from eventClass.aeroCubeEvent import *
 from externalComm.externalComm import process
 from dataStorage.dataStorage import store
-from eventClass.aeroCubeEvent import *
-# import pacakges from Aerocube-ImP directory
-# sys.path.insert(1, '/home/ubuntu/GitHub/Aerocube-ImP')
-# from imageProcessing.imageProcessingInterface import ImageProcessor
-from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
+# import packages from Aerocube-ImP directory
+import sys
+sys.path.insert(1, '/home/ubuntu/GitHub/Aerocube-ImP')
+from imageProcessing.imageProcessingInterface import ImageProcessor
 
 
 class Controller:
