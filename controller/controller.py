@@ -5,9 +5,7 @@ from eventClass.aeroCubeEvent import *
 from externalComm.externalComm import process
 from dataStorage.dataStorage import store
 # import packages from Aerocube-ImP directory
-import sys
-sys.path.insert(1, '/home/ubuntu/GitHub/Aerocube-ImP')
-from imageProcessing.imageProcessingInterface import ImageProcessor
+from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 
 
 class Controller:
