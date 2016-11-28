@@ -1,5 +1,5 @@
 import pickle
-from settings import *
+from .settings import *
 from eventClass.aeroCubeSignal import AeroCubeSignal
 
 def store(location, pickleable, use_relative_location=True):

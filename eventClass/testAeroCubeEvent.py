@@ -1,6 +1,6 @@
-from aeroCubeEvent import AeroCubeEvent, ImageEvent, ResultEvent, SystemEvent
-from aeroCubeSignal import AeroCubeSignal
-from bundle import Bundle, BundleKeyError
+from .aeroCubeEvent import AeroCubeEvent, ImageEvent, ResultEvent, SystemEvent
+from .aeroCubeSignal import AeroCubeSignal
+from .bundle import Bundle, BundleKeyError
 import unittest
 
 

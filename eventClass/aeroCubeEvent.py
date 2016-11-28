@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 import time
-from aeroCubeSignal import AeroCubeSignal
-from bundle import Bundle
+from .aeroCubeSignal import AeroCubeSignal
+from .bundle import Bundle
 
 
 class AeroCubeEvent(metaclass=ABCMeta):
@@ -122,3 +122,6 @@ class SystemEvent(AeroCubeEvent):
 
     def is_valid_signal(self, signal):
         return signal in AeroCubeSignal.SystemEventSignal
+
+if __name__ == '__main__':
+    print("I'm in aeroCubeEvent main!")

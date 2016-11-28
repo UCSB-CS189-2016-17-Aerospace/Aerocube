@@ -1,8 +1,14 @@
+import sys
 from controller.tcpServer import TcpServer
+# import packages from Aerocube directory
+# sys.path.insert(1, '/home/ubuntu/GitHub/Aerocube')
 from eventClass.aeroCubeSignal import AeroCubeSignal
 from externalComm.externalComm import process
 from dataStorage.dataStorage import store
 from eventClass.aeroCubeEvent import *
+# import pacakges from Aerocube-ImP directory
+# sys.path.insert(1, '/home/ubuntu/GitHub/Aerocube-ImP')
+# from imageProcessing.imageProcessingInterface import ImageProcessor
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 
 
@@ -60,4 +66,5 @@ class Controller:
 
 if __name__ == '__main__':
     controller = Controller()
+    print("ysysysysysys")
     controller.run()

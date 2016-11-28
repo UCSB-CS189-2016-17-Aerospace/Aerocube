@@ -1,5 +1,5 @@
 import json
-from commClass import FirebaseComm
+from .commClass import FirebaseComm
 #TODO: data_json finalization
 def process(func, database, scanID, location=None, data=None, testing=False):
     """
@@ -28,5 +28,3 @@ def process(func, database, scanID, location=None, data=None, testing=False):
         comm.imageDownload(id=scanID)
     else:
         raise SyntaxError('func not accepted, -w for write, -r for read.')
-
-
