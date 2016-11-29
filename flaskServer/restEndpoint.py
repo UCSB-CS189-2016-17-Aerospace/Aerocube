@@ -31,7 +31,6 @@ def on_send_event(event):
         print(e)
 
 
-
 def on_enqueue_event():
     # Do we need anything here?
     pass
