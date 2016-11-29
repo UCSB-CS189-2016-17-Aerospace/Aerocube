@@ -1,3 +1,4 @@
+import dill
 from controller.tcpServer import TcpServer
 # import packages from Aerocube directory
 from eventClass.aeroCubeSignal import *

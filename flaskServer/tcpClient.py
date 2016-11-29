@@ -19,8 +19,12 @@ class TcpClient:
 
     def send_to_controller(self, data):
         message = dill.dumps(data)
+        test_de_dill = dill.loads(message)
+        print('Test re/de dill on tcpClient:\r\n')
+        print(test_de_dill)
+        re_dill = dill.dumps(test_de_dill)
         try:
-            self.s.send(message)
+            self.s.send(re_dill)
             print('TcpClient: Sent data to controller')
         except socket.error as e:
             print('TcpClient: Cant send message to TCP server: %s' % e)
