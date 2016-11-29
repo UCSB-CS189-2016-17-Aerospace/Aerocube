@@ -69,5 +69,4 @@ api.add_resource(PhotoUpload, '/api/uploadImage')
 if __name__ == "__main__":
     # NOTE: cannot run with debug=True, as it will cause the module to re-run
     # and mess up imported files
-    app.run(debug=False, port=5000, ssl_context='adhoc')
-
+    app.run(debug=False, port=80, ssl_context='adhoc')
