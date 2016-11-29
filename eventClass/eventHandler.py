@@ -73,7 +73,7 @@ class EventHandler(object):
         :param event: the new event to be added
         :return:
         """
-        print('EventHandler: Enqueued event: {}').format(event)
+        print('EventHandler: Enqueued event: {}'.format(event))
         if EventHandler.is_valid_element(event):
             self._event_deque.append(event)
         else:
