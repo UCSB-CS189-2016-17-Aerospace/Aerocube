@@ -1,8 +1,9 @@
 import dill
+from eventClass.bundle import Bundle
 from controller.tcpServer import TcpServer
 # import packages from Aerocube directory
-from eventClass.aeroCubeSignal import *
-from eventClass.aeroCubeEvent import *
+from eventClass.aeroCubeSignal import ImageEventSignal, ResultEventSignal, SystemEventSignal
+from eventClass.aeroCubeEvent import ImageEvent, ResultEvent
 from externalComm.externalComm import process
 from dataStorage.dataStorage import store
 # import packages from Aerocube-ImP directory
