@@ -110,7 +110,7 @@ Payload examples for ResultEvent or variants:
 
 
 class ResultEvent(AeroCubeEvent):
-    def __init__(self, result_signal, bundle=None):
+    def __init__(self, result_signal, bundle=Bundle()):
         super().__init__(bundle)
         self.signal = result_signal
 
@@ -119,7 +119,7 @@ class ResultEvent(AeroCubeEvent):
 
 
 class SystemEvent(AeroCubeEvent):
-    def __init__(self, system_signal, bundle=None):
+    def __init__(self, system_signal, bundle=Bundle()):
         super().__init__(bundle)
         self.signal = system_signal
 
