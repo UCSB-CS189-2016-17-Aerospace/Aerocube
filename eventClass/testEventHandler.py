@@ -1,8 +1,8 @@
 import unittest
 from collections import deque
-from eventHandler import EventHandler
-from aeroCubeEvent import ImageEvent, ResultEvent
-from aeroCubeSignal import *
+from eventClass.eventHandler import EventHandler
+from eventClass.aeroCubeEvent import ImageEvent, ResultEvent
+from eventClass.aeroCubeSignal import *
 
 
 class TestEventHandler(unittest.TestCase):
@@ -11,6 +11,10 @@ class TestEventHandler(unittest.TestCase):
 
     def setUp(self):
         self._handler = EventHandler()
+        self._handler.set_start_event_observer(self.event_observer)
+
+    def event_observer(self, event):
+        pass
 
     def tearDown(self):
         self._handler = None

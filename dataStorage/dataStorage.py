@@ -2,6 +2,7 @@ import pickle
 from .settings import *
 from eventClass.aeroCubeSignal import *
 
+
 def store(location, pickleable, use_relative_location=True):
     """
     Public abstraction of storage
@@ -10,7 +11,7 @@ def store(location, pickleable, use_relative_location=True):
     :param use_relative_location: bool
     :return: An event containing a signal that describes success or failure
     """
-    return _store_json(settings.get_storage_directory() + location, pickleable)
+    return _store_json(get_storage_directory() + location, pickleable)
 
 
 def retrieve(location):
@@ -19,7 +20,7 @@ def retrieve(location):
     :param location: relative location
     :return:
     """
-    return _retrieve_json(settings.get_storage_directory() + location)
+    return _retrieve_json(get_storage_directory() + location)
 
 
 # below is random stuff
