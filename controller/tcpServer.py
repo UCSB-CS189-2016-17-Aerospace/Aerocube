@@ -1,5 +1,5 @@
 import socket
-import pickle
+import dill
 from eventClass.aeroCubeEvent import AeroCubeEvent
 
 
@@ -18,7 +18,7 @@ class TcpServer:
         print('TcpServer: Connection accepted')
 
     def send_response(self, response):
-        encoded_response = pickle.dumps(response)
+        encoded_response = dill.dumps(response)
         try:
             conn.send(encoded_response)
             print('TcpServer: Response sent')
@@ -27,12 +27,12 @@ class TcpServer:
 
     def receive_data(self):
         data = conn.recv(self.BUFFER_SIZE)
-        message = pickle.loads(data)
+        message = dill.loads(data)
         if isinstance(message, AeroCubeEvent):
             print('TcpServer: Data Received')
             return message
         else:
-            raise AttributeError('ERROR: Data must be a pickled Event')
+            raise AttributeError('ERROR: Data must be a dilld Event')
 
     def close_connection(self):
         conn.close()

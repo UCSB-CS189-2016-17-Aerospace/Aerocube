@@ -1,5 +1,5 @@
 import socket
-import pickle
+import dill
 from eventClass.aeroCubeEvent import AeroCubeEvent
 
 
@@ -18,7 +18,7 @@ class TcpClient:
             print('TcpClient: Cant connect to TCP server: %s' % e)
 
     def send_to_controller(self, data):
-        message = pickle.dumps(data)
+        message = dill.dumps(data)
         try:
             self.s.send(message)
             print('TcpClient: Sent data to controller')
@@ -27,7 +27,7 @@ class TcpClient:
 
     def receive_from_controller(self):
         incoming_data = self.s.recv(self.BUFFER_SIZE)
-        message = pickle.loads(incoming_data)
+        message = dill.loads(incoming_data)
         if isinstance(message, AeroCubeEvent):
             print('TcpClient: Received message: {}'.format(message))
         else:
