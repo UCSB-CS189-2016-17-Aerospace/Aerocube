@@ -50,10 +50,10 @@ class Bundle(object):
         return not self.__eq__(other)
 
     def __str__(self):
-        return 'Strings: {}\r\n Numbers: {}\r\n Raws: {}\r\n Iterables: {}\r\n'.format(self._strings.keys(),
-                                                                          self._numbers.keys(),
-                                                                          self._raws.keys(),
-                                                                          self._iterables.keys())
+        return 'Strings: {}\r\n Numbers: {}\r\n Raws: {}\r\n Iterables: {}\r\n'.format(self._strings,
+                                                                          self._numbers,
+                                                                          self._raws,
+                                                                          self._iterables)
 
     @staticmethod
     def is_valid_key(key):
