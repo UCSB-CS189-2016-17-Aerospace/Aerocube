@@ -212,7 +212,7 @@ class EventHandler(object):
         if self._state != self.EventHandlerState.STARTED:
             raise EventHandler.NotAllowedInStateException('ERROR: Attempted to start event while not in STARTED state')
         if self._on_start_event is not None:
-            print('EventHandler: Starting event {}'.format(self._peek_current_event()))
+            print('EventHandler: Starting event: \r\n{}'.format(self._peek_current_event()))
             self._on_start_event(self._peek_current_event())
             self._state = self.EventHandlerState.PENDING
             print('EventHandler: State changed to {}'.format(self._state))
