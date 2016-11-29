@@ -3,10 +3,6 @@ from flask_restful import Resource, Api, reqparse
 from werkzeug import secure_filename
 from flask_cors import CORS, cross_origin
 import os
-import sys
-print("rS: " + str(sys.path))
-import inspect
-print(inspect.getframeinfo(inspect.getouterframes(inspect.currentframe())[1][0])[0])
 from eventClass.eventHandler import EventHandler
 
 app = Flask(__name__)
@@ -33,4 +29,4 @@ class PhotoUpload(Resource):
 api.add_resource(PhotoUpload, '/api/uploadImage')
 
 if __name__ == "__main__":
-	app.run(debug=True, port=5000, ssl_context='adhoc')
+	app.run(debug=False, port=5000, ssl_context='adhoc')
