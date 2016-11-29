@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import time
-from .aeroCubeSignal import AeroCubeSignal
+from .aeroCubeSignal import *
 from .bundle import Bundle
 
 
@@ -101,7 +101,7 @@ class ImageEvent(AeroCubeEvent):
         self.signal = image_signal
 
     def is_valid_signal(self, signal):
-        return signal in AeroCubeSignal.ImageEventSignal
+        return signal in ImageEventSignal
 """
 Payload examples for ResultEvent or variants:
 * Error message
@@ -115,7 +115,7 @@ class ResultEvent(AeroCubeEvent):
         self.signal = result_signal
 
     def is_valid_signal(self, signal):
-        return signal in AeroCubeSignal.ResultEventSignal
+        return signal in ResultEventSignal
 
 
 class SystemEvent(AeroCubeEvent):
@@ -124,7 +124,7 @@ class SystemEvent(AeroCubeEvent):
         self.signal = system_signal
 
     def is_valid_signal(self, signal):
-        return signal in AeroCubeSignal.SystemEventSignal
+        return signal in SystemEventSignal
 
 if __name__ == '__main__':
     print("I'm in aeroCubeEvent main!")

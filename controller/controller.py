@@ -1,6 +1,6 @@
 from controller.tcpServer import TcpServer
 # import packages from Aerocube directory
-from eventClass.aeroCubeSignal import AeroCubeSignal
+from eventClass.aeroCubeSignal import *
 from eventClass.aeroCubeEvent import *
 from externalComm.externalComm import process
 from dataStorage.dataStorage import store
@@ -29,11 +29,11 @@ class Controller:
             print('Controller: Finding fiducial markers')
             (corners, marker_ids) = imp._find_fiducial_markers()
             print('Controller: Results Received, sending ResultEvent')
-            self.return_status(AeroCubeSignal.ResultEventSignal.IMP_OPERATION_OK)
+            self.return_status(ResultEventSignal.IMP_OPERATION_OK)
             return corners, marker_ids
         except:
             print('Controller: ImP Failed')
-            self.return_status(AeroCubeSignal.ResultEventSignal.IMP_OP_FAILED)
+            self.return_status(ResultEventSignal.IMP_OP_FAILED)
 
     def store_locally(self, path, data):
         print('Controller: Storing data locally')
@@ -46,10 +46,10 @@ class Controller:
             print('Controller: Storing image externally')
             process(func='-iw', database=database, scanID=scan_id, data=img_path)
             print('Controller: Successfully stored externally, sending ResultEvent')
-            self.return_status(AeroCubeSignal.ResultEventSignal.EXT_COMM_OP_OK)
+            self.return_status(ResultEventSignal.EXT_COMM_OP_OK)
         except ValueError:
             print('Controller: External storage failed')
-            self.return_status(AeroCubeSignal.ResultEventSignal.EXT_COMM_OP_FAILED)
+            self.return_status(ResultEventSignal.EXT_COMM_OP_FAILED)
 
     def initiate_scan(self, scan_id, payload):
         print('Controller: Initiate Scan')
@@ -70,7 +70,7 @@ class Controller:
                                    img_path=file_path)
         # payload.string('EXT_STORAGE_TARGET') should be the database
         # logging.info("{} stored on firebase".format(scan_id))
-        self.return_status(AeroCubeSignal.ResultEventSignal.IDENT_AEROCUBES_FIN)
+        self.return_status(ResultEventSignal.IDENT_AEROCUBES_FIN)
         # logging.info(str(scan_id)+ "complete")
 
     def run(self):
@@ -78,7 +78,7 @@ class Controller:
         print('Controller: Connection accepted')
         while 1:
             event = self.server.receive_data()
-            if event.signal() == AeroCubeSignal.ImageEventSignal.IDENTIFY_AEROCUBES:
+            if event.signal() == ImageEventSignal.IDENTIFY_AEROCUBES:
                 self.initiate_scan(scan_id=event.created_at, payload=event.payload())
             else:
                 pass

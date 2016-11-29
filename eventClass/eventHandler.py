@@ -1,6 +1,6 @@
 from collections import deque
 from .aeroCubeEvent import AeroCubeEvent, ResultEvent
-from .aeroCubeSignal import AeroCubeSignal
+from .aeroCubeSignal import *
 from enum import Enum
 
 
@@ -178,7 +178,7 @@ class EventHandler(object):
             raise AttributeError('ERROR: resolve_event requires a ResultEvent')
 
         # TODO: Check if the ResultEvent corresponds to an Event in the Queue
-        if event.signal != AeroCubeSignal.ResultEventSignal.IDENT_AEROCUBES_FIN:
+        if event.signal != ResultEventSignal.IDENT_AEROCUBES_FIN:
             print(event.signal)
             return
         # Check State
