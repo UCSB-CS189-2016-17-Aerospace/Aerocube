@@ -53,22 +53,22 @@ class Controller:
 
     def initiate_scan(self, scan_id, payload):
         print('Controller: Initiate Scan')
-        file_path = payload.string('FILE_PATH')
+        file_path = payload.strings('FILE_PATH')
         print('Controller: Payload FILE_PATH is {}'.format(file_path))
         # logging.info("scan {} initiated".format(scan_id))
         results = self.scan_image(file_path=file_path)
         print('Controller: Scanning results received')
         print(results)
         # logging.info("scan {} image complete".format(scan_id))
-        # payload.string('FILE_PATH') should be the path to the image
+        # payload.strings('FILE_PATH') should be the path to the image
         self.store_locally(path=scan_id, data=results)
         # logging.info("{} stored locally".format(scan_id))
 
-        self.store_data_externally(database=payload.string('EXT_STORAGE_TARGET'),
+        self.store_data_externally(database=payload.strings('EXT_STORAGE_TARGET'),
                                    scan_id=scan_id,
                                    data=results,
                                    img_path=file_path)
-        # payload.string('EXT_STORAGE_TARGET') should be the database
+        # payload.strings('EXT_STORAGE_TARGET') should be the database
         # logging.info("{} stored on firebase".format(scan_id))
         self.return_status(ResultEventSignal.IDENT_AEROCUBES_FIN)
         # logging.info(str(scan_id)+ "complete")
