@@ -42,27 +42,30 @@ class Controller:
             self.return_status(AeroCubeSignal.ResultEventSignal.EXT_COMM_OP_FAILED)
 
     def initiate_scan(self, scan_id, payload):
-        logging.info("scan "+scan_id+ " initiated")
-        results = self.scan_image(payload.string(0))
-        logging.info("scan "+scan_id+" image complete")
-        # payload.string(0) should be the path to the image
+        file_path = payload.string('FILE_PATH')
+        # logging.info("scan {} initiated".format(scan_id))
+        results = self.scan_image(file_path=file_path)
+        # logging.info("scan {} image complete".format(scan_id))
+        # payload.string('FILE_PATH') should be the path to the image
         self.store_locally(path=scan_id, data=results)
-        logging.info(str(scan_id)+" stored locally")
-        self.store_data_externally(database=payload.string(1), ID=scan_id, data=results, img_path=payload.string(0))
-        # payload.string(1) should be the database
-        logging.info(str(scan_id) + " stored on firebase")
+        # logging.info("{} stored locally".format(scan_id))
+        self.store_data_externally(database=payload.string('EXT_STORAGE_TARGET'),
+                                   scan_id=scan_id,
+                                   data=results, 
+                                   img_path=file_path)
+        # payload.string('EXT_STORAGE_TARGET') should be the database
+        # logging.info("{} stored on firebase".format(scan_id))
         self.return_status(AeroCubeSignal.ResultEventSignal.IDENT_AEROCUBES_FIN)
-        logging.info(str(scan_id)+ "complete")
+        # logging.info(str(scan_id)+ "complete")
+
     def run(self):
         self.server.accept_connection()
         while 1:
-            data = self.server.receive_data()
-            if data != False:
-                if data.signal() == AeroCubeSignal.ImageEventSignal.IDENTIFY_AEROCUBES:
-                    self.initiate_scan(scan_ID=data.created_at, payload=data.payload())
-                else:
-                    pass
-                    # IM CONFUSED AF
+            event = self.server.receive_data()
+            if event.signal() == AeroCubeSignal.ImageEventSignal.IDENTIFY_AEROCUBES:
+                self.initiate_scan(scan_id=event.created_at, payload=event.payload())
+            else:
+                pass
 
 
 if __name__ == '__main__':
