@@ -12,7 +12,7 @@ app = Flask(__name__)
 api = Api(app)
 CORS(app)
 
-app.config['UPLOAD_FOLDER'] = 'static/img/'
+app.config['UPLOAD_FOLDER'] = 'flaskServer/static/img/'
 
 handler = EventHandler()
 client = TcpClient('127.0.0.1',5005,1024)
@@ -55,8 +55,8 @@ class PhotoUpload(Resource):
     def post(self):
         file = request.files['photo']
         filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'])
-        file.save(filepath, filename)
+        filepath = os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER'])
+        file.save(filepath + filename)
         # Create Event
         bundle = Bundle()
         bundle.insert_string('FILE_PATH', filepath)
