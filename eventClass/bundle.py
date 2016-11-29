@@ -1,5 +1,6 @@
 from numbers import Number
 import collections
+import json
 
 
 class BundleKeyError(Exception):
@@ -12,7 +13,7 @@ class Bundle(object):
     _numbers = {}
     _raws = {}
     _iterables = {}
-    
+
     _IMPROPER_KEY_FORMAT_STRING = "{} is not properly formatted"
     _INCORRECT_TYPE_STRING = 'Not a string'
     _INCORRECT_TYPE_NUMBER = 'Not a number'
@@ -50,10 +51,25 @@ class Bundle(object):
         return not self.__eq__(other)
 
     def __str__(self):
+        strings = json.dumps(self._strings)
+        numbers = json.dumps(self._numbers)
+        raws = json.dumps(self._raws)
+        iterables = json.dumps(self._iterables)
+        return json.dumps(self._strings)
         return 'Strings: {}\r\n Numbers: {}\r\n Raws: {}\r\n Iterables: {}\r\n'.format(self._strings,
                                                                           self._numbers,
                                                                           self._raws,
                                                                           self._iterables)
+
+    @staticmethod
+    def construct_from_str(str_bundle):
+        """
+        Take a string JSON representation of a Bundle instance and construct a
+        new Bundle
+        :param str_bundle: string JSON representation
+        :return: JSON
+        """
+        pass
 
     @staticmethod
     def is_valid_key(key):
