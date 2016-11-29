@@ -2,7 +2,7 @@ import unittest
 from collections import deque
 from eventHandler import EventHandler
 from aeroCubeEvent import ImageEvent, ResultEvent
-from aeroCubeSignal import AeroCubeSignal
+from aeroCubeSignal import *
 
 
 class TestEventHandler(unittest.TestCase):
@@ -17,8 +17,8 @@ class TestEventHandler(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls._VALID_IMAGE_EVENT = ImageEvent(AeroCubeSignal.ImageEventSignal.IDENTIFY_AEROCUBES)
-        cls._VALID_RESULT_EVENT = ResultEvent(AeroCubeSignal.ResultEventSignal.IMP_OPERATION_OK)
+        cls._VALID_IMAGE_EVENT = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
+        cls._VALID_RESULT_EVENT = ResultEvent(ResultEventSignal.IMP_OPERATION_OK)
 
     @classmethod
     def tearDownClass(cls):

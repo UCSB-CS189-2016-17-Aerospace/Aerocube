@@ -1,6 +1,6 @@
 import pickle
 from .settings import *
-from eventClass.aeroCubeSignal import AeroCubeSignal
+from eventClass.aeroCubeSignal import *
 
 def store(location, pickleable, use_relative_location=True):
     """
@@ -32,9 +32,9 @@ def _store_json(location, json):
     """
     try:
         pickle.dump(json, open(location, "wb"), pickle.HIGHEST_PROTOCOL)
-        # return AeroCubeSignal.ResultEventSignal.INTERN_STORE_OP_OK
+        # return ResultEventSignal.INTERN_STORE_OP_OK
     except OSError as err:
-        return AeroCubeSignal.ResultEventSignal.INTERN_STORE_OP_FAILED
+        return ResultEventSignal.INTERN_STORE_OP_FAILED
 
 
 def _retrieve_json(location):

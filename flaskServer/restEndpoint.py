@@ -5,7 +5,7 @@ from flask_cors import CORS, cross_origin
 import os
 from eventClass.eventHandler import EventHandler
 from eventClass.aeroCubeEvent import ImageEvent, SystemEvent
-from eventClass.aeroCubeSignal import AeroCubeSignal
+from eventClass.aeroCubeSignal import *
 from eventClass.bundle import Bundle
 from .tcpClient import TcpClient
 app = Flask(__name__)
@@ -60,7 +60,7 @@ class PhotoUpload(Resource):
         bundle = Bundle()
         bundle.insert_string('FILE_PATH', filepath)
         bundle.insert_string('EXT_STORAGE_TARGET', 'FIREBASE')
-        new_event = ImageEvent(AeroCubeSignal.ImageEventSignal.IDENTIFY_AEROCUBES, bundle)
+        new_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, bundle)
         # Enqueue Event
         handler.enqueue_event(new_event)
         return {'upload status' : 'file upload sucessful'}
