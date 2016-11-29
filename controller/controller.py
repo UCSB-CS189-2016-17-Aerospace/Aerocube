@@ -79,6 +79,9 @@ class Controller:
         print('Controller: Connection accepted')
         while 1:
             event = self.server.receive_data()
+            print('Received Event: \r\n')
+            print(event)
+            print(event.payload)
             if event.signal == ImageEventSignal.IDENTIFY_AEROCUBES:
                 self.initiate_scan(scan_id=event.created_at, payload=event.payload)
             else:
