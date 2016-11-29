@@ -34,6 +34,9 @@ class AeroCubeEvent(metaclass=ABCMeta):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __str__(self):
+        return 'Signal: {}\r\n Created at: {}\r\n Payload: {}\r\n'.format(self._signal, self._created_at, self._payload)
+
     @property
     def created_at(self):
         return self._created_at

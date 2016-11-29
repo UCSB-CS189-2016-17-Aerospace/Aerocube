@@ -19,39 +19,54 @@ class Controller:
         :return: void
         """
         result_event_status = ResultEvent(result_signal=status)
+        print('Controller: Sending ResultEvent: {}'.format(result_event_status))
         self.server.send_response(result_event_status)
 
     def scan_image(self, file_path):
         try:
+            print('Controller: Instantiating ImP')
             imp = ImageProcessor(file_path)
+            print('Controller: Finding fiducial markers')
             (corners, marker_ids, _) = imp._find_fiducial_markers()
+            print('Controller: Results Received, sending ResultEvent')
             self.return_status(AeroCubeSignal.ResultEventSignal.IMP_OPERATION_OK)
             return corners, marker_ids
         except:
+            print('Controller: ImP Failed')
             self.return_status(AeroCubeSignal.ResultEventSignal.IMP_OP_FAILED)
 
     def store_locally(self, path, data):
+        print('Controller: Storing data locally')
         self.return_status(store(location=path, pickleable=data))
 
     def store_data_externally(self, database, scan_id, data, img_path):
         try:
+            print('Controller: Storing data externally')
             process(func='-w', database=database, scanID=scan_id, data=data)
+            print('Controller: Storing image externally')
             process(func='-iw', database=database, scanID=scan_id, data=img_path)
+            print('Controller: Successfully stored externally, sending ResultEvent')
             self.return_status(AeroCubeSignal.ResultEventSignal.EXT_COMM_OP_OK)
         except ValueError:
+            print('Controller: External storage failed')
             self.return_status(AeroCubeSignal.ResultEventSignal.EXT_COMM_OP_FAILED)
 
     def initiate_scan(self, scan_id, payload):
+        print('Controller: Initiate Scan')
         file_path = payload.string('FILE_PATH')
+        print('Controller: Payload FILE_PATH is {}'.format(file_path))
         # logging.info("scan {} initiated".format(scan_id))
         results = self.scan_image(file_path=file_path)
+        print('Controller: Scanning results received')
+        print(results)
         # logging.info("scan {} image complete".format(scan_id))
         # payload.string('FILE_PATH') should be the path to the image
         self.store_locally(path=scan_id, data=results)
         # logging.info("{} stored locally".format(scan_id))
+
         self.store_data_externally(database=payload.string('EXT_STORAGE_TARGET'),
                                    scan_id=scan_id,
-                                   data=results, 
+                                   data=results,
                                    img_path=file_path)
         # payload.string('EXT_STORAGE_TARGET') should be the database
         # logging.info("{} stored on firebase".format(scan_id))
@@ -60,6 +75,7 @@ class Controller:
 
     def run(self):
         self.server.accept_connection()
+        print('Controller: Connection accepted')
         while 1:
             event = self.server.receive_data()
             if event.signal() == AeroCubeSignal.ImageEventSignal.IDENTIFY_AEROCUBES:

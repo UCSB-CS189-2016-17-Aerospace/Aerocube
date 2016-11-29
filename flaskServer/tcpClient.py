@@ -1,5 +1,6 @@
 import socket
-import pickle 
+import pickle
+from eventClass.aeroCubeEvent import AeroCubeEvent
 
 
 class TcpClient:
@@ -12,19 +13,25 @@ class TcpClient:
     def connect_to_controller(self):
         try:
             self.s.connect((self.TCP_IP, self.TCP_PORT))
+            print('TcpClient: Connected')
         except socket.error as e:
-            print('Cant connect to TCP server: %s' % e)
+            print('TcpClient: Cant connect to TCP server: %s' % e)
 
-    def send_to_controller(self,data):
+    def send_to_controller(self, data):
         message = pickle.dumps(data)
         try:
             self.s.send(message)
+            print('TcpClient: Sent data to controller')
         except socket.error as e:
-            print('Cant send message to TCP server: %s' % e)
+            print('TcpClient: Cant send message to TCP server: %s' % e)
 
     def receive_from_controller(self):
         incoming_data = self.s.recv(self.BUFFER_SIZE)
         message = pickle.loads(incoming_data)
+        if isinstance(message, AeroCubeEvent):
+            print('TcpClient: Received message: {}'.format(message))
+        else:
+            print('TcpClient: Warning: Received message that is not instance of ResultEvent')
         return message
 
     def close(self):

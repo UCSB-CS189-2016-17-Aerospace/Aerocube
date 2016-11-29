@@ -1,5 +1,6 @@
 from collections import deque
 from .aeroCubeEvent import AeroCubeEvent, ResultEvent
+from .aeroCubeSignal import AeroCubeSignal
 from enum import Enum
 
 
@@ -48,6 +49,7 @@ class EventHandler(object):
         :param observer: a function with parameter event, the event that is started
         """
         self._on_start_event = observer
+        print('EventHandler: Set on_start_event')
 
     def set_enqueue_observer(self, observer):
         """
@@ -55,6 +57,7 @@ class EventHandler(object):
         :param observer: a function with parameter event, the event that is enqueued
         """
         self._on_enqueue = observer
+        print('EventHandler: Set on_enqueue')
 
     def set_dequeue_observer(self, observer):
         """
@@ -62,13 +65,15 @@ class EventHandler(object):
         :param observer: a function with parameter event, the event that is dequeued
         """
         self._on_dequeue = observer
+        print('EventHandler: Set on_dequeue')
 
     def enqueue_event(self, event):
         """
         Adds a new event
-        :param event: the new eevnt to be added
+        :param event: the new event to be added
         :return:
         """
+        print('EventHandler: {}').format(event)
         if EventHandler.is_valid_element(event):
             self._event_deque.append(event)
         else:
@@ -84,12 +89,14 @@ class EventHandler(object):
             return True
         return False
 
-    def restart(self):
+    def restart_sending_events(self):
         """
-        Attempts to restart an EventHandler from a STOPPED state and send the first event in the queue
-        Precondition: State changed from STOPPED to STARTED
+        Attempts to send the first event in the queue
+        Precondition: State is STARTED
         """
-        if self.start() and self.any_events():
+        if self._state != self.EventHandlerState.STARTED:
+            raise EventHandler.NotAllowedInStateException('ERROR: EventHandler must be in STARTED state to send events')
+        if self.any_events():
             self._start_event()
 
     def stop(self):
@@ -112,6 +119,7 @@ class EventHandler(object):
         EventHandler is in a STOPPED state. If an attempt to resolve the event is dropped, upon re-starting
         :return:
         """
+        print('EventHandler: Force Stop Triggered')
         self._state = self.EventHandlerState.STOPPED
 
     def get_state(self):
@@ -165,10 +173,13 @@ class EventHandler(object):
             raise AttributeError('ERROR: resolve_event requires a ResultEvent')
 
         # TODO: Check if the ResultEvent corresponds to an Event in the Queue
-
+        if event.signal != AeroCubeSignal.ResultEventSignal.IDENT_AEROCUBES_FIN:
+            print(event.signal)
+            return
         # Check State
         if self._state in (self.EventHandlerState.PENDING, self.EventHandlerState.PENDING_STOP_ON_RESOLVE):
             resolved_event = self._dequeue_event()
+            print('EventHandler: Resolved Event: {}'.format(resolved_event))
             # TODO: Further resolution handling
         elif self._state == self.EventHandlerState.STARTED:
             # Raise Error
@@ -182,7 +193,7 @@ class EventHandler(object):
             self._state = self.EventHandlerState.STOPPED
         elif self._state == self.EventHandlerState.PENDING:
             self._state = self.EventHandlerState.STARTED
-
+        print('EventHandler: State changed to {}'.format(self._state))
         # Attempt to send next event
         if self._state == self.EventHandlerState.STARTED:
             self._start_event()
@@ -193,9 +204,13 @@ class EventHandler(object):
         This action puts the EventHandler in a PENDING state.
         :raises NotImplementedError if on_start_event is not defined
         """
+        if self._state != self.EventHandlerState.STARTED:
+            raise EventHandler.NotAllowedInStateException('ERROR: Attempted to start event while not in STARTED state')
         if self._on_start_event is not None:
+            print('EventHandler: Starting event {}'.format(self._peek_current_event()))
             self._on_start_event(self._peek_current_event())
             self._state = self.EventHandlerState.PENDING
+            print('EventHandler: State changed to {}'.format(self._state))
         else:
             raise NotImplementedError('ERROR: Must call set_start_event_observer before an event can be sent')
 
