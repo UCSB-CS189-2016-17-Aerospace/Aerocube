@@ -20,7 +20,7 @@ client.connect_to_controller()
 
 
 def on_send_event(event):
-    print('Event about to send: \r\n')
+    print('Started event about to send: \r\n')
     print(event)
     # Send through TCP Client
     client.send_to_controller(event)
