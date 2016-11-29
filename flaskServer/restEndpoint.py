@@ -1,8 +1,12 @@
-from flask import Flask, render_template, url_for,request, redirect
+from flask import Flask, render_template, url_for, request, redirect
 from flask_restful import Resource, Api, reqparse
 from werkzeug import secure_filename
 from flask_cors import CORS, cross_origin
 import os
+import sys
+print("rS: " + str(sys.path))
+import inspect
+print(inspect.getframeinfo(inspect.getouterframes(inspect.currentframe())[1][0])[0])
 from eventClass.eventHandler import EventHandler
 
 app = Flask(__name__)
