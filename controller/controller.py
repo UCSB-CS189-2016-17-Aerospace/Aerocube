@@ -27,7 +27,7 @@ class Controller:
             print('Controller: Instantiating ImP')
             imp = ImageProcessor(file_path)
             print('Controller: Finding fiducial markers')
-            (corners, marker_ids, _) = imp._find_fiducial_markers()
+            (corners, marker_ids) = imp._find_fiducial_markers()
             print('Controller: Results Received, sending ResultEvent')
             self.return_status(AeroCubeSignal.ResultEventSignal.IMP_OPERATION_OK)
             return corners, marker_ids
