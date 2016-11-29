@@ -73,11 +73,16 @@ class EventHandler(object):
         :param event: the new event to be added
         :return:
         """
-        print('EventHandler: {}').format(event)
+        print('EventHandler: Enqueued event: {}').format(event)
         if EventHandler.is_valid_element(event):
             self._event_deque.append(event)
         else:
             raise TypeError("Attempted to queue invalid object to EventHandler")
+        # Try to restart the sending process on enqueue
+        try:
+            self.restart_sending_events()
+        except EventHandler.NotAllowedInStateException as e:
+            print(e)
 
     def start(self):
         """
