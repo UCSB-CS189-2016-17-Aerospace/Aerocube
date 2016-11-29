@@ -53,6 +53,7 @@ class Controller:
 
     def initiate_scan(self, scan_id, payload):
         print('Controller: Initiate Scan')
+        print(payload)
         file_path = payload.strings('FILE_PATH')
         print('Controller: Payload FILE_PATH is {}'.format(file_path))
         # logging.info("scan {} initiated".format(scan_id))

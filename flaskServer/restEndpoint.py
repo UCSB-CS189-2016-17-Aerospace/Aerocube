@@ -45,8 +45,6 @@ handler.set_enqueue_observer(on_enqueue_event)
 handler.set_dequeue_observer(on_dequeue_event)
 
 
-
-
 class PhotoUpload(Resource):
     def get(self):
         return {'server status': 'server is up and running'}
