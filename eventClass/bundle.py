@@ -49,7 +49,7 @@ class Bundle(object):
         """
         return not self.__eq__(other)
 
-    def __str__(self, instance, value):
+    def __str__(self):
         return 'Strings: {}\r\n Numbers: {}\r\n Raws: {}\r\n Iterables: {}\r\n'.format(self._strings.keys(),
                                                                           self._numbers.keys(),
                                                                           self._raws.keys(),
