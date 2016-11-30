@@ -26,7 +26,7 @@ class TcpClient:
 
     def receive_from_controller(self):
         incoming_data = self.s.recv(self.BUFFER_SIZE)
-        message = incoming_data.decode()
+        message = AeroCubeEvent.construct_from_json(incoming_data.decode())
         if isinstance(message, AeroCubeEvent):
             print('TcpClient: Received message: {}'.format(message))
         else:
