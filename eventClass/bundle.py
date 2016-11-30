@@ -73,7 +73,7 @@ class Bundle(object):
         """
         bundle = Bundle()
         print('Constructing bundle from json: {}'.format(bundle_json_string))
-        loaded = bundle_json_string
+        loaded = json.loads(bundle_json_string)
 
         new_strings = loaded['strings']
         for key in new_strings.keys():
