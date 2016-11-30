@@ -19,14 +19,14 @@ class TcpClient:
 
     def send_to_controller(self, data):
         try:
-            bytes_sent = self.s.send(data)
+            bytes_sent = self.s.send(data.encode())
             print('TcpClient: {} bytes sent data to controller'.format(bytes_sent))
         except socket.error as e:
             print('TcpClient: Cant send message to TCP server: %s' % e)
 
     def receive_from_controller(self):
         incoming_data = self.s.recv(self.BUFFER_SIZE)
-        message = json.loads(incoming_data)
+        message = json.loads(incoming_data.decode())
         if isinstance(message, AeroCubeEvent):
             print('TcpClient: Received message: {}'.format(message))
         else:
