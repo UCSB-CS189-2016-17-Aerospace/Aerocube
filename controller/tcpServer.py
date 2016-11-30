@@ -1,6 +1,7 @@
 import socket
 import dill
 from eventClass.aeroCubeEvent import AeroCubeEvent
+import json
 
 
 class TcpServer:
@@ -19,7 +20,7 @@ class TcpServer:
         print('TcpServer: Connection accepted')
 
     def send_response(self, response):
-        encoded_response = dill.dumps(response)
+        encoded_response = json.dumps(response)
         try:
             self.conn.send(encoded_response)
             print('TcpServer: Response sent')
@@ -28,12 +29,12 @@ class TcpServer:
 
     def receive_data(self):
         data = self.conn.recv(self.BUFFER_SIZE)
-        message = dill.loads(data)
+        message = AeroCubeEvent.construct_from_json(json.loads(data))
         if isinstance(message, AeroCubeEvent):
             print('TcpServer: Data Received')
             return message
         else:
-            raise AttributeError('ERROR: Data must be a dilld Event')
+            raise AttributeError('ERROR: Data must be an Event')
 
     def close_connection(self):
         self.conn.close()
