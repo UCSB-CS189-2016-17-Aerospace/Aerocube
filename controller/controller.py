@@ -45,9 +45,9 @@ class Controller:
     def store_data_externally(self, database, scan_id, data, img_path):
         try:
             print('Controller: Storing data externally')
-            process(func='-w', database=database, scanID=scan_id, data=data)
+            process(func='-w', database=database, location='scans', scanID=scan_id, data=data, testing=True)
             print('Controller: Storing image externally')
-            process(func='-iw', database=database, scanID=scan_id, data=img_path)
+            process(func='-iw', database=database, location='scans', scanID=scan_id, data=img_path)
             print('Controller: Successfully stored externally, sending ResultEvent')
             self.return_status(ResultEventSignal.EXT_COMM_OP_OK)
         except ValueError:
@@ -70,7 +70,7 @@ class Controller:
         serializable_results = (list(map((lambda c: c.tolist()), results[0])),
                                 results[1].tolist())
         self.store_data_externally(database=payload.strings('EXT_STORAGE_TARGET'),
-                                   scan_id=scan_id,
+                                   scan_id=str(scan_id).split('.')[0],
                                    data=serializable_results,
                                    img_path=file_path)
         # payload.strings('EXT_STORAGE_TARGET') should be the database
@@ -95,11 +95,14 @@ class Controller:
 if __name__ == '__main__':
     controller = Controller()
     print("ysysysysysys")
-    # controller.run()
+    testing = False
     # Create event to mock event coming in
-    bundle = Bundle()
-    filepath = "/home/ubuntu/GitHub/Aerocube/ImP/imageProcessing/test_files/jetson_test1.jpg"
-    bundle.insert_string('FILE_PATH', filepath)
-    bundle.insert_string('EXT_STORAGE_TARGET', 'FIREBASE')
-    event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, bundle)
-    controller.initiate_scan(scan_id=event.created_at, payload=event.payload)
+    if testing:
+        bundle = Bundle()
+        filepath = "/home/ubuntu/GitHub/Aerocube/ImP/imageProcessing/test_files/jetson_test1.jpg"
+        bundle.insert_string('FILE_PATH', filepath)
+        bundle.insert_string('EXT_STORAGE_TARGET', 'FIREBASE')
+        event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, bundle)
+        controller.initiate_scan(scan_id=event.created_at, payload=event.payload)
+    else:
+        controller.run()
