@@ -4,7 +4,7 @@ from tcpService.tcpServer import TcpServer
 from eventClass.aeroCubeSignal import ImageEventSignal, ResultEventSignal, SystemEventSignal
 from eventClass.aeroCubeEvent import AeroCubeEvent, ImageEvent, ResultEvent
 from externalComm.externalComm import process
-from dataStorage.dataStorage import store
+from dataStorage.dataStorage import store, store_image
 # import packages from Aerocube-ImP directory
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 
@@ -38,6 +38,13 @@ class Controller:
             print('Controller.scan_image: ImP Failed')
             self.return_status(ResultEventSignal.IMP_OP_FAILED)
 
+    def draw_and_store_image_with_detected_markers(self, database, scan_id, img_path, output_path, scan_results):
+        img = ImageProcessor(img_path).draw_fiducial_markers(*scan_results)
+        store_image(output_path, img)
+        # print("draw_and_store_image_with_detected_markers: scan_id + _w_marker: {}".format(scan_id + '_w_marker'))
+        # print("draw_and_store_image_with_detected_markers: output_path: {}".format(output_path))
+        process(func='-iw', database=database, location='scans', scanID=(scan_id + '_w_marker'), data=output_path, testing=True)
+
     def store_locally(self, path, data):
         print('Controller.store_locally: Storing data locally')
         store(location=path, pickleable=data)
@@ -70,6 +77,12 @@ class Controller:
         self.store_locally(path=str(scan_id), data=results)
         serializable_results = (list(map((lambda c: c.tolist()), results[0])),
                                 results[1].tolist())
+        output_path = "/home/ubuntu/GitHub/Aerocube/ImP/output_files/scan_with_markers.jpg"
+        self.draw_and_store_image_with_detected_markers(database=payload.strings('EXT_STORAGE_TARGET'),
+                                                        scan_id=str(scan_id).split('.')[0],
+                                                        img_path=file_path,
+                                                        output_path=output_path,
+                                                        scan_results=results)
         self.store_data_externally(database=payload.strings('EXT_STORAGE_TARGET'),
                                    scan_id=str(scan_id).split('.')[0],
                                    data=serializable_results,
