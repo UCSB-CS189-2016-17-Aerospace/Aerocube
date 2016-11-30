@@ -25,6 +25,7 @@ class AeroCubeEvent(metaclass=ABCMeta):
         """
         self._created_at = created_at if created_at is not None else time.time()
         self._payload = bundle if bundle is not None else Bundle()
+        print('AeroCubeEvent.init: {}'.format(bundle))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \
@@ -142,6 +143,7 @@ Payload examples for ResultEvent or variants:
 
 class ResultEvent(AeroCubeEvent):
     def __init__(self, result_signal, bundle=Bundle(), created_at=time.time()):
+        print('ResultEvent.init: {}'.format(bundle))
         super().__init__(bundle, created_at)
         self.signal = result_signal
 

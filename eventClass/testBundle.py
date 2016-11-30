@@ -1,5 +1,5 @@
 import unittest
-from bundle import Bundle, BundleKeyError
+from .bundle import Bundle, BundleKeyError
 import pickle
 
 

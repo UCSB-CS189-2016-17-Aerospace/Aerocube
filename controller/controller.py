@@ -1,4 +1,3 @@
-import dill
 from eventClass.bundle import Bundle
 from controller.tcpServer import TcpServer
 # import packages from Aerocube directory
@@ -20,53 +19,54 @@ class Controller:
         :param status: status signal
         :return: void
         """
+        # return
+        print('Controller.return_status: status is {}'.format(status))
         result_event_status = ResultEvent(result_signal=status)
-        print('Controller: Sending ResultEvent: {}'.format(result_event_status))
+        print('Controller.return_status: Sending ResultEvent: {}'.format(result_event_status))
         self.server.send_response(str(result_event_status))
 
     def scan_image(self, file_path):
         try:
-            print('Controller: Instantiating ImP')
+            print('Controller.scan_image: Instantiating ImP at {}'.format(file_path))
             imp = ImageProcessor(file_path)
-            print('Controller: Finding fiducial markers')
+            print('Controller.scan_image: Finding fiducial markers')
             (corners, marker_ids) = imp._find_fiducial_markers()
-            print('Controller: Results Received, sending ResultEvent')
+            print('Controller.scan_image: Results Received, sending ResultEvent')
             self.return_status(ResultEventSignal.IMP_OPERATION_OK)
             store_image('test_output.png', imp.draw_fiducial_markers(corners, marker_ids))
             return corners, marker_ids
         except:
-            print('Controller: ImP Failed')
+            print('Controller.scan_image: ImP Failed')
             self.return_status(ResultEventSignal.IMP_OP_FAILED)
 
     def store_locally(self, path, data):
-        print('Controller: Storing data locally')
-        self.return_status(store(location=path, pickleable=data))
+        print('Controller.store_locally: Storing data locally')
+        store(location=path, pickleable=data)
+        # self.return_status(store(location=path, pickleable=data))
+
 
     def store_data_externally(self, database, scan_id, data, img_path):
         try:
-            print('Controller: Storing data externally')
+            print('Controller.store_data_externally: Storing data externally')
             process(func='-w', database=database, location='scans', scanID=scan_id, data=data, testing=True)
-            print('Controller: Storing image externally')
+            print('Controller.store_data_externally: Storing image externally')
             process(func='-iw', database=database, location='scans', scanID=scan_id, data=img_path, testing=True)
-            print('Controller: Successfully stored externally, sending ResultEvent')
+            print('Controller.store_data_externally: Successfully stored externally, sending ResultEvent')
             self.return_status(ResultEventSignal.EXT_COMM_OP_OK)
         except ValueError:
-            print('Controller: External storage failed')
+            print('Controller.store_data_externally: External storage failed')
             self.return_status(ResultEventSignal.EXT_COMM_OP_FAILED)
 
     def initiate_scan(self, scan_id, payload):
-        print('Controller: Initiate Scan')
-        print(payload)
+        print('Controller.initiate_scan: Initiate Scan')
+        # print(payload)
         file_path = payload.strings('FILE_PATH')
-        print('Controller: Payload FILE_PATH is {}'.format(file_path))
-        # logging.info("scan {} initiated".format(scan_id))
+        print('Controller.initiate_scan: Payload FILE_PATH is {}'.format(file_path))
         results = self.scan_image(file_path=file_path)
-        print('Controller: Scanning results received')
-        print(results)
-        # logging.info("scan {} image complete".format(scan_id))
+        print('Controller.initiate_scan: Scanning results received')
+        print('Controller.initiate_scan: {}'.format(results))
         # payload.strings('FILE_PATH') should be the path to the image
         self.store_locally(path=str(scan_id), data=results)
-        # logging.info("{} stored locally".format(scan_id))
         serializable_results = (list(map((lambda c: c.tolist()), results[0])),
                                 results[1].tolist())
         self.store_data_externally(database=payload.strings('EXT_STORAGE_TARGET'),
@@ -74,18 +74,14 @@ class Controller:
                                    data=serializable_results,
                                    img_path=file_path)
         # payload.strings('EXT_STORAGE_TARGET') should be the database
-        # logging.info("{} stored on firebase".format(scan_id))
         self.return_status(ResultEventSignal.IDENT_AEROCUBES_FIN)
-        # logging.info(str(scan_id)+ "complete")
 
     def run(self):
         self.server.accept_connection()
-        print('Controller: Connection accepted')
+        print('Controller.run: Connection accepted')
         while 1:
             event = self.server.receive_data()
-            print('Received Event: \r\n')
-            print(event)
-            print(event.payload)
+            print('Controller.run: Received Event: \r\n{}'.format(event))
             if event.signal == ImageEventSignal.IDENTIFY_AEROCUBES:
                 self.initiate_scan(scan_id=event.created_at, payload=event.payload)
             else:
@@ -94,7 +90,7 @@ class Controller:
 
 if __name__ == '__main__':
     controller = Controller()
-    print("ysysysysysys")
+    print("Controller: Controller is instantiated")
     testing = False
     # Create event to mock event coming in
     if testing:
