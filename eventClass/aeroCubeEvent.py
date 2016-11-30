@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import time
+import uuid
 from .aeroCubeSignal import *
 from .bundle import Bundle
 import json
@@ -9,6 +10,7 @@ class AeroCubeEvent(metaclass=ABCMeta):
     _payload = None
     _signal = None
     _created_at = None
+    _uuid = None
 
     _INVALID_SIGNAL_FOR_EVENT = 'Invalid signal for event'
     _INVALID_PAYLOAD_NOT_BUNDLE = 'Invalid payload, must be instance of Bundle'
@@ -18,20 +20,21 @@ class AeroCubeEvent(metaclass=ABCMeta):
         _INVALID_PAYLOAD_NOT_BUNDLE
     )
 
-    def __init__(self, bundle, created_at=None):
+    def __init__(self, bundle, signal, created_at=None, id=None):
         """
         set created_at timestamp to time.time(), e.g., the time
         since the "Epoch" (see https://en.wikipedia.org/wiki/Unix_time)
         """
         self._created_at = created_at if created_at is not None else time.time()
         self._payload = bundle if bundle is not None else Bundle()
-        print('AeroCubeEvent.init: {}'.format(bundle))
+        # Check if is_valid_signal
+        self.signal = signal
+        # Hex string of deterministic uuid
+        self._uuid = id if id is not None else \
+            uuid.uuid5(uuid.NAMESPACE_OID, "{}-{}-{}".format(self.__class__.__name__, self._signal, self._created_at)).hex
 
     def __eq__(self, other):
-        return isinstance(other, self.__class__) and \
-               self._payload == other.payload and \
-               self._signal == other.signal and \
-               self._created_at == other.created_at
+        return isinstance(other, self.__class__) and self._uuid == other.uuid
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -41,32 +44,33 @@ class AeroCubeEvent(metaclass=ABCMeta):
             'signal': str(self._signal),
             'created_at': self._created_at,
             'payload': str(self._payload),
-            'class': str(self.__class__.__name__)
+            'class': str(self.__class__.__name__),
+            'uuid': self._uuid
         }
         return json.dumps(dict)
 
     @staticmethod
     def construct_from_json(event_json_str):
-        print('Constructing from json: {}'.format(event_json_str))
+        print('Constructing from json: \r\n{}\r\n'.format(event_json_str))
         loaded = json.loads(event_json_str)
         signal_int = int(loaded['signal'])
         created_at = float(loaded['created_at'])
         payload = loaded['payload']
         bundle = Bundle.construct_from_json(payload)
         class_name = loaded['class']
+        uuid = loaded['uuid']
         event = None
         if class_name == ImageEvent.__name__:
             signal = ImageEventSignal(signal_int)
-            event = ImageEvent(image_signal=signal, bundle=bundle, created_at=created_at)
+            event = ImageEvent(image_signal=signal, bundle=bundle, created_at=created_at, id=uuid)
         elif class_name == ResultEvent.__name__:
             signal = ResultEventSignal(signal_int)
-            event = ResultEvent(result_signal=signal, bundle=bundle, created_at=created_at)
+            event = ResultEvent(result_signal=signal, calling_event=bundle.strings(ResultEvent.CALLING_EVENT_UUID), bundle=bundle, created_at=created_at, id=uuid)
         elif class_name == SystemEvent.__name__:
             signal = SystemEventSignal(signal_int)
-            event = SystemEvent(system_signal=signal, bundle=bundle, created_at=created_at)
+            event = SystemEvent(system_signal=signal, bundle=bundle, created_at=created_at, id=uuid)
         else:
-            pass
-            # TODO: Throw err
+            raise TypeError('AeroCubeEvent.construct_from_json: ERROR: {} is not a valid subclass of AeroCubeEvent'.format(class_name))
         return event
 
     @property
@@ -103,6 +107,10 @@ class AeroCubeEvent(metaclass=ABCMeta):
         else:
             raise AttributeError(self._INVALID_PAYLOAD_NOT_BUNDLE)
 
+    @property
+    def uuid(self):
+        return self._uuid
+
     def merge_payload(self, other_payload):
         """
         Merges another payload, replacing duplicate key-value pairs with values from
@@ -128,9 +136,8 @@ class ImageEvent(AeroCubeEvent):
     Payload includes:
     * path to image
     """
-    def __init__(self, image_signal, bundle=Bundle(), created_at=time.time()):
-        super().__init__(bundle, created_at)
-        self.signal = image_signal
+    def __init__(self, image_signal, bundle=Bundle(), created_at=time.time(), id=None):
+        super().__init__(bundle, image_signal, created_at, id)
 
     def is_valid_signal(self, signal):
         return signal in ImageEventSignal
@@ -142,19 +149,20 @@ Payload examples for ResultEvent or variants:
 
 
 class ResultEvent(AeroCubeEvent):
-    def __init__(self, result_signal, bundle=Bundle(), created_at=time.time()):
-        print('ResultEvent.init: {}'.format(bundle))
-        super().__init__(bundle, created_at)
-        self.signal = result_signal
+    CALLING_EVENT_UUID = 'CALLING_EVENT'
+
+    def __init__(self, result_signal, calling_event, bundle=Bundle(), created_at=time.time(), id=None):
+        # print('ResultEvent.init: \r\n{}\r\n'.format(bundle))
+        super().__init__(bundle, result_signal, created_at, id)
+        self.payload.insert_string(ResultEvent.CALLING_EVENT_UUID, calling_event)
 
     def is_valid_signal(self, signal):
         return signal in ResultEventSignal
 
 
 class SystemEvent(AeroCubeEvent):
-    def __init__(self, system_signal, bundle=Bundle(), created_at=time.time()):
-        super().__init__(bundle, created_at)
-        self.signal = system_signal
+    def __init__(self, system_signal, bundle=Bundle(), created_at=time.time(), id=None):
+        super().__init__(bundle, system_signal, created_at, id)
 
     def is_valid_signal(self, signal):
         return signal in SystemEventSignal

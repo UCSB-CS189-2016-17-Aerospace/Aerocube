@@ -1,8 +1,8 @@
 from eventClass.bundle import Bundle
-from controller.tcpServer import TcpServer
+from tcpService.tcpServer import TcpServer
 # import packages from Aerocube directory
 from eventClass.aeroCubeSignal import ImageEventSignal, ResultEventSignal, SystemEventSignal
-from eventClass.aeroCubeEvent import ImageEvent, ResultEvent
+from eventClass.aeroCubeEvent import AeroCubeEvent, ImageEvent, ResultEvent
 from externalComm.externalComm import process
 from dataStorage.dataStorage import store
 # import packages from Aerocube-ImP directory
@@ -12,6 +12,7 @@ from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 class Controller:
     def __init__(self):
         self.server = TcpServer('127.0.0.1', 5005, 1024)
+        self.calling_event = None
 
     def return_status(self, status):
         """
@@ -20,9 +21,9 @@ class Controller:
         :return: void
         """
         # return
-        print('Controller.return_status: status is {}'.format(status))
-        result_event_status = ResultEvent(result_signal=status)
-        print('Controller.return_status: Sending ResultEvent: {}'.format(result_event_status))
+        print('Controller.return_status: Status is {}'.format(status))
+        result_event_status = ResultEvent(result_signal=status, calling_event=self.calling_event.uuid)
+        print('Controller.return_status: Sending ResultEvent: \r\n{}\r\n'.format(result_event_status))
         self.server.send_response(str(result_event_status))
 
     def scan_image(self, file_path):
@@ -31,9 +32,7 @@ class Controller:
             imp = ImageProcessor(file_path)
             print('Controller.scan_image: Finding fiducial markers')
             (corners, marker_ids) = imp._find_fiducial_markers()
-            print('Controller.scan_image: Results Received, sending ResultEvent')
-            self.return_status(ResultEventSignal.IMP_OPERATION_OK)
-            store_image('test_output.png', imp.draw_fiducial_markers(corners, marker_ids))
+            # store_image('test_output.png', imp.draw_fiducial_markers(corners, marker_ids))
             return corners, marker_ids
         except:
             print('Controller.scan_image: ImP Failed')
@@ -63,8 +62,10 @@ class Controller:
         file_path = payload.strings('FILE_PATH')
         print('Controller.initiate_scan: Payload FILE_PATH is {}'.format(file_path))
         results = self.scan_image(file_path=file_path)
+        print('Controller.initiate_scan: Results Received, sending ResultEvent')
+        self.return_status(ResultEventSignal.IMP_OPERATION_OK)
         print('Controller.initiate_scan: Scanning results received')
-        print('Controller.initiate_scan: {}'.format(results))
+        print('Controller.initiate_scan: \r\n{}\r\n'.format(results))
         # payload.strings('FILE_PATH') should be the path to the image
         self.store_locally(path=str(scan_id), data=results)
         serializable_results = (list(map((lambda c: c.tolist()), results[0])),
@@ -80,8 +81,10 @@ class Controller:
         self.server.accept_connection()
         print('Controller.run: Connection accepted')
         while 1:
-            event = self.server.receive_data()
-            print('Controller.run: Received Event: \r\n{}'.format(event))
+            json_string = self.server.receive_data()
+            event = AeroCubeEvent.construct_from_json(json_string)
+            self.calling_event = event
+            print('Controller.run: Received Event: \r\n{}\r\n'.format(event))
             if event.signal == ImageEventSignal.IDENTIFY_AEROCUBES:
                 self.initiate_scan(scan_id=event.created_at, payload=event.payload)
             else:
@@ -90,7 +93,7 @@ class Controller:
 
 if __name__ == '__main__':
     controller = Controller()
-    print("Controller: Controller is instantiated")
+    print("Controller.main: Controller is instantiated")
     testing = False
     # Create event to mock event coming in
     if testing:
