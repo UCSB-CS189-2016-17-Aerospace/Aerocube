@@ -66,10 +66,11 @@ class Controller:
         # payload.strings('FILE_PATH') should be the path to the image
         self.store_locally(path=str(scan_id), data=results)
         # logging.info("{} stored locally".format(scan_id))
-
+        serializable_results = (list(map((lambda c: c.tolist()), results[0])),
+                                results[1].tolist())
         self.store_data_externally(database=payload.strings('EXT_STORAGE_TARGET'),
                                    scan_id=scan_id,
-                                   data=results,
+                                   data=serializable_results,
                                    img_path=file_path)
         # payload.strings('EXT_STORAGE_TARGET') should be the database
         # logging.info("{} stored on firebase".format(scan_id))

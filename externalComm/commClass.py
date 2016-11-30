@@ -87,4 +87,3 @@ class FirebaseComm(Comm):
         #prints out url to image
         #print(self.storage.child('images/test.jpg').get_url(self.token))
         self.storage.child('image/test.jpg').download('downloaded.jpg', user['idToken'])
-
