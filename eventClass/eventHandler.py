@@ -26,7 +26,7 @@ class EventHandler(object):
         def __init__(self, message):
             super(EventHandler.NotAllowedInStateException, self).__init__(message)
 
-    class EventHandlerState(Enum):
+    class State(Enum):
         # Ready to receive
         STARTED                     = 0x0000aaaa
         # Waiting for results
@@ -41,7 +41,7 @@ class EventHandler(object):
         self._on_start_event = start_event_observer
         self._on_enqueue = enqueue_observer
         self._on_dequeue = dequeue_observer
-        self._state = self.EventHandlerState.STARTED
+        self._state = EventHandler.State.STARTED
 
     def set_start_event_observer(self, observer):
         """
@@ -80,29 +80,54 @@ class EventHandler(object):
             raise TypeError("Attempted to queue invalid object to EventHandler")
         # Try to restart the sending process on enqueue
         try:
-            self.restart_sending_events()
+            self._start_sending_events()
         except EventHandler.NotAllowedInStateException as e:
             print(e)
 
-    def start(self):
+    def restart(self):
         """
-        Attempts to put the EventHandler in a STARTED state
+        Attempts to put the EventHandler in a STARTED state from STOPPED
+        Precondition: State is STOPPED
         :return: True if successful, False if not
         """
-        if self._state == self.EventHandlerState.STOPPED:
-            self._state = self.EventHandlerState.STARTED
+        if self._state == EventHandler.State.STOPPED:
+            self._state = EventHandler.State.STARTED
+            self._start_sending_events()
             return True
         return False
 
-    def restart_sending_events(self):
+    def _start_sending_events(self):
         """
         Attempts to send the first event in the queue
         Precondition: State is STARTED
         """
-        if self._state != self.EventHandlerState.STARTED:
+        if self._state != EventHandler.State.STARTED:
             raise EventHandler.NotAllowedInStateException('ERROR: EventHandler must be in STARTED state to send events')
         if self.any_events():
             self._start_event()
+
+    def _continue_sending_events(self):
+        """
+        Attempts
+        Precondition: State is PENDING
+        """
+        if self._state != EventHandler.State.PENDING:
+            raise EventHandler.NotAllowedInStateException('ERROR: EventHandler must be in PENDING state to continue sending events')
+        self._state == EventHandler.State.STARTED
+        print('EventHandler._continue_sending_events: State changed to {}'.format(self._state))
+        self._start_sending_events()
+
+    def _resolve_state(self):
+        """
+        Precondition: State is PENDING or PENDING_STOP_ON_RESOLVE
+        """
+        if self._state == EventHandler.State.PENDING:
+            self._continue_sending_events()
+        elif self._state == EventHandler.State.PENDING_STOP_ON_RESOLVE:
+            self._state == EventHandler.State.STOPPED
+            print('EventHandler._resolve_state: State changed to {}'.format(self._state))
+        else:
+            raise EventHandler.NotAllowedInStateException('ERROR: EventHandler must be in PENDING or PENDING_STOP_ON_RESOLVE to resolve current event')
 
     def stop(self):
         """
@@ -110,10 +135,12 @@ class EventHandler(object):
         :return: True if successfully directs the EventHandler to switch to a STOPPED state, either then or
         after the current event is resolved. False otherwise.
         """
-        if self._state == self.EventHandlerState.PENDING:
-            self._state = self.EventHandlerState.PENDING_STOP_ON_RESOLVE
-        elif self._state == self.EventHandlerState.STARTED:
-            self._state = self.EventHandlerState.STOPPED
+        if self._state == EventHandler.State.PENDING:
+            self._state = EventHandler.State.PENDING_STOP_ON_RESOLVE
+            print('EventHandler.stop: State changed to {}'.format(self._state))
+        elif self._state == EventHandler.State.STARTED:
+            self._state = EventHandler.State.STOPPED
+            print('EventHandler.stop: State changed to {}'.format(self._state))
         else:
             return False
         return True
@@ -125,7 +152,8 @@ class EventHandler(object):
         :return:
         """
         print('EventHandler: Force Stop Triggered')
-        self._state = self.EventHandlerState.STOPPED
+        self._state = EventHandler.State.STOPPED
+        print('EventHandler.force_stop: State changed to {}'.format(self._state))
 
     def get_state(self):
         """
@@ -173,49 +201,54 @@ class EventHandler(object):
         Logic to resolve "finished" events/jobs in the EventHandler deque could
         either be handled within this class, or lie in the calling class.
         Needs to be determined.
+        :return: if event is resolved/finished, return true; else, return false
         """
-        if not isinstance(event, ResultEvent):
-            raise AttributeError('ERROR: resolve_event requires a ResultEvent')
-
-        # TODO: Check if the ResultEvent corresponds to an Event in the Queue
-        if event.signal != ResultEventSignal.IDENT_AEROCUBES_FIN:
-            print(event.signal)
-            return
-        # Check State
-        if self._state in (self.EventHandlerState.PENDING, self.EventHandlerState.PENDING_STOP_ON_RESOLVE):
+        if self._should_event_resolve(event):
+            # Modify EventHandler queue (assuming state is valid)
             resolved_event = self._dequeue_event()
-            print('EventHandler: Resolved Event: {}'.format(resolved_event))
-            # TODO: Further resolution handling
-        elif self._state == self.EventHandlerState.STARTED:
+            print('EventHandler.resolve_event: Resolved Event: \r\n{}\r\n'.format(resolved_event))
+            # Update state
+            self._resolve_state()
+            print('EventHandler.resolve_event: State changed to {}'.format(self._state))
+            return True
+        else:
+            # Do not modify EventHandler state or queue, but log ResultEvent
+            print('EventHandler.resolve_event: ResultEvent (not resolved): \r\n{}\r\n'.format(event))
+            # Return False to indicate calling_event not finished
+            return False
+
+
+    def _should_event_resolve(self, event):
+        # Check if event is a proper event (ResultEvent)
+        if not isinstance(event, ResultEvent):
+            raise AttributeError('EventHandler._should_event_resolve: ERROR: resolve_event requires a ResultEvent')
+        # Check if state is valid
+        if self._state == EventHandler.State.STARTED:
             # Raise Error
-            raise EventHandler.NotAllowedInStateException('ERROR: Attempted to resolve event while not pending a result')
-        elif self._state == self.EventHandlerState.STOPPED:
+            raise EventHandler.NotAllowedInStateException('ERROR: Attempted to resolve event while not pending for a result')
+        elif self._state == EventHandler.State.STOPPED:
             # Raise Error
             raise EventHandler.NotAllowedInStateException('ERROR: Attempted to resolve event while stopped')
-
-        # Upon Resolution Update State
-        if self._state == self.EventHandlerState.PENDING_STOP_ON_RESOLVE:
-            self._state = self.EventHandlerState.STOPPED
-        elif self._state == self.EventHandlerState.PENDING:
-            self._state = self.EventHandlerState.STARTED
-        print('EventHandler: State changed to {}'.format(self._state))
-        # Attempt to send next event
-        if self._state == self.EventHandlerState.STARTED:
-            self._start_event()
+        # Check if ResultEvent is for the current calling event
+        if self._peek_current_event().uuid != event.payload.strings(ResultEvent.CALLING_EVENT_UUID):
+            raise AttributeError('EventHandler._should_event_resolve: ERROR: result event with CALLING_EVENT_UUID:{} received not for current calling event:{}', \
+                                 event.payload.strings(ResultEvent.CALLING_EVENT_UUID), self._peek_current_event().uuid)
+        return event.signal == ResultEventSignal.IDENT_AEROCUBES_FIN
 
     def _start_event(self):
         """
         Start an event by calling the on_start_event function and passing it the first event in the queue.
         This action puts the EventHandler in a PENDING state.
+        Preconditions: state must be STARTED; on_start_event must be not None
         :raises NotImplementedError if on_start_event is not defined
         """
-        if self._state != self.EventHandlerState.STARTED:
+        if self._state != EventHandler.State.STARTED:
             raise EventHandler.NotAllowedInStateException('ERROR: Attempted to start event while not in STARTED state')
         if self._on_start_event is not None:
-            print('EventHandler: Starting event: \r\n{}'.format(self._peek_current_event()))
+            print('EventHandler._start_event: Starting event: \r\n{}\r\n'.format(self._peek_current_event()))
+            self._state = EventHandler.State.PENDING
             self._on_start_event(self._peek_current_event())
-            self._state = self.EventHandlerState.PENDING
-            print('EventHandler: State changed to {}'.format(self._state))
+            print('EventHandler._start_event: State changed to {}'.format(self._state))
         else:
             raise NotImplementedError('ERROR: Must call set_start_event_observer before an event can be sent')
 

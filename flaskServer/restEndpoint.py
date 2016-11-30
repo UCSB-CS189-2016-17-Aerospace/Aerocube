@@ -4,10 +4,10 @@ from werkzeug import secure_filename
 from flask_cors import CORS, cross_origin
 import os
 from eventClass.eventHandler import EventHandler
-from eventClass.aeroCubeEvent import ImageEvent, SystemEvent
+from eventClass.aeroCubeEvent import ImageEvent, ResultEvent, AeroCubeEvent
 from eventClass.aeroCubeSignal import *
 from eventClass.bundle import Bundle
-from .tcpClient import TcpClient
+from tcpService.tcpClient import TcpClient
 app = Flask(__name__)
 api = Api(app)
 CORS(app)
@@ -15,22 +15,30 @@ CORS(app)
 app.config['UPLOAD_FOLDER'] = 'flaskServer/static/img/'
 
 handler = EventHandler()
-client = TcpClient('127.0.0.1',5005,1024)
+client = TcpClient('127.0.0.1', 5005, 1024)
 client.connect_to_controller()
 
 
 def on_send_event(event):
-    print('Started event about to send: \r\n')
-    print(event)
+    print('RestEndpoint.on_send_event: Started event about to send: \r\n{}\r\n'.format(event))
     # Send through TCP Client
     client.send_to_controller(str(event))
-    # Receive Event
-    result_event = client.receive_from_controller()
     # Check State
-    try:
-        handler.resolve_event(result_event)
-    except EventHandler.NotAllowedInStateException as e:
-        print(e)
+    # Receive Events until EventHandler.resolve_event() returns true
+    while True:
+        decoded_response = client.receive_from_controller()
+        result_event = AeroCubeEvent.construct_from_json(decoded_response)
+        if not isinstance(result_event, ResultEvent):
+            print('RestEndpoint.on_send_event: Warning: Received message that is not instance of ResultEvent')
+        else:
+            try:
+                event_resolved = handler.resolve_event(result_event)
+                if event_resolved:
+                    break
+                else:
+                    continue
+            except EventHandler.NotAllowedInStateException as e:
+                print(e)
 
 
 def on_enqueue_event():
@@ -63,7 +71,7 @@ class PhotoUpload(Resource):
         new_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, bundle)
         # Enqueue Event
         handler.enqueue_event(new_event)
-        return {'upload status' : 'file upload sucessful'}
+        return {'upload status': 'file upload sucessful'}
 
 
 api.add_resource(PhotoUpload, '/api/uploadImage')
