@@ -20,10 +20,9 @@ class Controller:
         :param status: status signal
         :return: void
         """
-        return
-        # result_event_status = ResultEvent(result_signal=status)
-        # print('Controller: Sending ResultEvent: {}'.format(result_event_status))
-        # self.server.send_response(result_event_status)
+        result_event_status = ResultEvent(result_signal=status)
+        print('Controller: Sending ResultEvent: {}'.format(result_event_status))
+        self.server.send_response(str(result_event_status))
 
     def scan_image(self, file_path):
         try:
@@ -33,6 +32,7 @@ class Controller:
             (corners, marker_ids) = imp._find_fiducial_markers()
             print('Controller: Results Received, sending ResultEvent')
             self.return_status(ResultEventSignal.IMP_OPERATION_OK)
+            store_image('test_output.png', imp.draw_fiducial_markers(corners, marker_ids))
             return corners, marker_ids
         except:
             print('Controller: ImP Failed')
@@ -47,7 +47,7 @@ class Controller:
             print('Controller: Storing data externally')
             process(func='-w', database=database, location='scans', scanID=scan_id, data=data, testing=True)
             print('Controller: Storing image externally')
-            process(func='-iw', database=database, location='scans', scanID=scan_id, data=img_path)
+            process(func='-iw', database=database, location='scans', scanID=scan_id, data=img_path, testing=True)
             print('Controller: Successfully stored externally, sending ResultEvent')
             self.return_status(ResultEventSignal.EXT_COMM_OP_OK)
         except ValueError:
