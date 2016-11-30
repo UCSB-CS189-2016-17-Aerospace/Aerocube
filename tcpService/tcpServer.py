@@ -9,6 +9,7 @@ class TcpServer:
         self.TCP_PORT = port
         self.BUFFER_SIZE = bufferSize
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.conn = None
         self.addr = None
         self.s.bind((self.TCP_IP, self.TCP_PORT))
