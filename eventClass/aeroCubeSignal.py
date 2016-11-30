@@ -3,12 +3,15 @@ from abc import ABCMeta, abstractmethod
 
 
 class AeroCubeSignal():
-    __metaclass__ = ABCMeta
+    pass
 
 
 class ImageEventSignal(Enum):
     IDENTIFY_AEROCUBES     = 0x00010001
     GET_AEROCUBE_POSE      = 0x00010002
+
+    def __str__(self):
+        return str(self.value)
 
 
 class ResultEventSignal(Enum):
@@ -24,6 +27,12 @@ class ResultEventSignal(Enum):
     # Job completed
     IDENT_AEROCUBES_FIN     = 0x00020007
 
+    def __str__(self):
+        return str(self.value)
+
 
 class SystemEventSignal(Enum):
     POWERING_OFF           = 0x00030001
+
+    def __str__(self):
+        return str(self.value)
