@@ -47,7 +47,7 @@ class AeroCubeEvent(metaclass=ABCMeta):
     @staticmethod
     def construct_from_json(event_json_str):
         print('Constructing from json: {}'.format(event_json_str))
-        loaded = event_json_str
+        loaded = json.loads(event_json_str)
         signal_int = int(loaded['signal'])
         created_at = float(loaded['created_at'])
         payload = loaded['payload']
