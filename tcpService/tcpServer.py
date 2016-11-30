@@ -20,7 +20,7 @@ class TcpServer:
 
     def send_response(self, response_string):
         encoded_response = TcpUtil.encode_string(response_string)
-        print('TcpServer.send_response: Sending message: \r\n{}\r\n'.format(encoded_response))
+        # print('TcpServer.send_response: Sending message: \r\n{}\r\n'.format(encoded_response))
         try:
             self.conn.send(encoded_response)
             print('TcpServer.send_response: Response sent')
@@ -30,7 +30,7 @@ class TcpServer:
     def receive_data(self):
         encoded_message = self.conn.recv(self.BUFFER_SIZE)
         decoded_string = TcpUtil.decode_string(encoded_message)
-        print('TcpServer.receive_data: Received message: \r\n{}\r\n'.format(decoded_string))
+        # print('TcpServer.receive_data: Received message: \r\n{}\r\n'.format(decoded_string))
         return decoded_string
 
     def close_connection(self):
