@@ -12,7 +12,7 @@ def process(func, database, scanID, location=None, data=None, testing=False):
     :return:
     """
     comm=None
-    if(database=='firebase'):
+    if(database=='FIREBASE'):
         comm=FirebaseComm(testing)
     else:
         raise ValueError('database not found!')
