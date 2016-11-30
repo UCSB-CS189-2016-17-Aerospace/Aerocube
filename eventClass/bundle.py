@@ -51,25 +51,46 @@ class Bundle(object):
         return not self.__eq__(other)
 
     def __str__(self):
+        dict = {
+            'strings': self._strings,
+            'numbers': self._numbers,
+            'raws': self._raws,
+            'iterables': self._iterables
+        }
         strings = json.dumps(self._strings)
         numbers = json.dumps(self._numbers)
         raws = json.dumps(self._raws)
         iterables = json.dumps(self._iterables)
-        return json.dumps(self._strings)
-        return 'Strings: {}\r\n Numbers: {}\r\n Raws: {}\r\n Iterables: {}\r\n'.format(self._strings,
-                                                                          self._numbers,
-                                                                          self._raws,
-                                                                          self._iterables)
+        return json.dumps(dict)
 
     @staticmethod
-    def construct_from_str(str_bundle):
+    def construct_from_json(bundle_json_string):
         """
         Take a string JSON representation of a Bundle instance and construct a
         new Bundle
-        :param str_bundle: string JSON representation
-        :return: JSON
+        :param bundle_json_string: string JSON representation
+        :return: instance of Bundle()
         """
-        pass
+        bundle = Bundle()
+        loaded = json.loads(bundle_json_string)
+
+        new_strings = loaded['strings']
+        for key in new_strings.keys():
+            bundle.insert_string(key, new_strings[key])
+
+        new_numbers = loaded['numbers']
+        for key in new_numbers.keys():
+            bundle.insert_number(key, new_numbers[key])
+
+        new_raws = loaded['raws']
+        for key in new_raws.keys():
+            bundle.insert_raw(key, new_raws[key])
+
+        new_iterables = loaded['iterables']
+        for key in new_iterables.keys():
+            bundle.insert_iterable(key, new_iterables[key])
+
+        return bundle
 
     @staticmethod
     def is_valid_key(key):
