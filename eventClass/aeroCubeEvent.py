@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 import time
 from .aeroCubeSignal import *
 from .bundle import Bundle
+import json
 
 
 class AeroCubeEvent(metaclass=ABCMeta):
@@ -17,12 +18,12 @@ class AeroCubeEvent(metaclass=ABCMeta):
         _INVALID_PAYLOAD_NOT_BUNDLE
     )
 
-    def __init__(self, bundle):
+    def __init__(self, bundle, created_at=None):
         """
         set created_at timestamp to time.time(), e.g., the time
         since the "Epoch" (see https://en.wikipedia.org/wiki/Unix_time)
         """
-        self._created_at = time.time()
+        self._created_at = created_at if created_at is not None else time.time()
         self._payload = bundle if bundle is not None else Bundle()
 
     def __eq__(self, other):
@@ -35,7 +36,36 @@ class AeroCubeEvent(metaclass=ABCMeta):
         return not self.__eq__(other)
 
     def __str__(self):
-        return 'Signal: {}\r\n Created at: {}\r\n Payload: {}\r\n'.format(self._signal, self._created_at, self._payload)
+        dict = {
+            'signal': str(self._signal),
+            'created_at': self._created_at,
+            'payload': str(self._payload),
+            'class': str(self.__class__.__name__)
+        }
+        return json.dumps(dict)
+
+    @staticmethod
+    def construct_from_json(event_json_str):
+        loaded = json.loads(event_json_str)
+        signal_int = int(loaded['signal'])
+        created_at = float(loaded['created_at'])
+        payload = loaded['payload']
+        bundle = Bundle.construct_from_json(payload)
+        class_name = loaded['class']
+        event = None
+        if class_name == ImageEvent.__name__:
+            signal = ImageEventSignal(signal_int)
+            event = ImageEvent(image_signal=signal, bundle=bundle, created_at=created_at)
+        elif class_name == ResultEvent.__name__:
+            signal = ResultEventSignal(signal_int)
+            event = ResultEvent(result_signal=signal, bundle=bundle, created_at=created_at)
+        elif class_name == SystemEvent.__name__:
+            signal = SystemEventSignal(signal_int)
+            event = SystemEvent(system_signal=signal, bundle=bundle, created_at=created_at)
+        else:
+            pass
+            # TODO: Throw err
+        return event
 
     @property
     def created_at(self):
@@ -96,8 +126,8 @@ class ImageEvent(AeroCubeEvent):
     Payload includes:
     * path to image
     """
-    def __init__(self, image_signal, bundle=None):
-        super().__init__(bundle)
+    def __init__(self, image_signal, bundle=Bundle(), created_at=time.time()):
+        super().__init__(bundle, created_at)
         self.signal = image_signal
 
     def is_valid_signal(self, signal):
@@ -110,8 +140,8 @@ Payload examples for ResultEvent or variants:
 
 
 class ResultEvent(AeroCubeEvent):
-    def __init__(self, result_signal, bundle=Bundle()):
-        super().__init__(bundle)
+    def __init__(self, result_signal, bundle=Bundle(), created_at=time.time()):
+        super().__init__(bundle, created_at)
         self.signal = result_signal
 
     def is_valid_signal(self, signal):
@@ -119,8 +149,8 @@ class ResultEvent(AeroCubeEvent):
 
 
 class SystemEvent(AeroCubeEvent):
-    def __init__(self, system_signal, bundle=Bundle()):
-        super().__init__(bundle)
+    def __init__(self, system_signal, bundle=Bundle(), created_at=time.time()):
+        super().__init__(bundle, created_at)
         self.signal = system_signal
 
     def is_valid_signal(self, signal):
