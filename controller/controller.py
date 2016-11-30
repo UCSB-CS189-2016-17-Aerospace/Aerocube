@@ -22,7 +22,7 @@ class Controller:
         """
         result_event_status = ResultEvent(result_signal=status)
         print('Controller: Sending ResultEvent: {}'.format(result_event_status))
-        self.server.send_response(result_event_status)
+        self.server.send_response(str(result_event_status))
 
     def scan_image(self, file_path):
         try:
