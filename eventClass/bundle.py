@@ -72,7 +72,8 @@ class Bundle(object):
         :return: instance of Bundle()
         """
         bundle = Bundle()
-        loaded = json.loads(bundle_json_string)
+        print('Constructing bundle from json: {}'.format(bundle_json_string))
+        loaded = bundle_json_string
 
         new_strings = loaded['strings']
         for key in new_strings.keys():
