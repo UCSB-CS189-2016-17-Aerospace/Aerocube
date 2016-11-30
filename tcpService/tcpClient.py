@@ -29,7 +29,7 @@ class TcpClient:
     def receive_from_controller(self):
         encoded_message = self.s.recv(self.BUFFER_SIZE)
         decoded_message = TcpUtil.decode_string(encoded_message)
-        print('TcpClient.receive_from_controller: Received response: \r\n{}\r\n'.format(decoded_message))
+        # print('TcpClient.receive_from_controller: Received response: \r\n{}\r\n'.format(decoded_message))
         return decoded_message
 
     def close(self):
