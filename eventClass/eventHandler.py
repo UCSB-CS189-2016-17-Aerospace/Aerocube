@@ -73,7 +73,7 @@ class EventHandler(object):
         :param event: the new event to be added
         :return:
         """
-        print('EventHandler: Enqueued event: {}'.format(event))
+        print('EventHandler: Enqueued event: \r\n{}\r\n'.format(event))
         if EventHandler.is_valid_element(event):
             self._event_deque.append(event)
         else:
@@ -113,7 +113,7 @@ class EventHandler(object):
         """
         if self._state != EventHandler.State.PENDING:
             raise EventHandler.NotAllowedInStateException('ERROR: EventHandler must be in PENDING state to continue sending events')
-        self._state == EventHandler.State.STARTED
+        self._state = EventHandler.State.STARTED
         print('EventHandler._continue_sending_events: State changed to {}'.format(self._state))
         self._start_sending_events()
 
@@ -124,7 +124,7 @@ class EventHandler(object):
         if self._state == EventHandler.State.PENDING:
             self._continue_sending_events()
         elif self._state == EventHandler.State.PENDING_STOP_ON_RESOLVE:
-            self._state == EventHandler.State.STOPPED
+            self._state = EventHandler.State.STOPPED
             print('EventHandler._resolve_state: State changed to {}'.format(self._state))
         else:
             raise EventHandler.NotAllowedInStateException('ERROR: EventHandler must be in PENDING or PENDING_STOP_ON_RESOLVE to resolve current event')
