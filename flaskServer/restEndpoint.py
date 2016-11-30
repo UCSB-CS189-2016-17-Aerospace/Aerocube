@@ -58,7 +58,7 @@ class PhotoUpload(Resource):
         file.save(filepath + filename)
         # Create Event
         bundle = Bundle()
-        bundle.insert_string('FILE_PATH', filepath)
+        bundle.insert_string('FILE_PATH', filepath + filename)
         bundle.insert_string('EXT_STORAGE_TARGET', 'FIREBASE')
         new_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, bundle)
         # Enqueue Event

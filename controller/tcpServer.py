@@ -21,7 +21,7 @@ class TcpServer:
 
     def send_response(self, response):
         encoded_response = response.encode()
-        print('Sending message: {}'.format(response.encode()))
+        print('TcpServer.send_response: Sending message: {}'.format(response.encode()))
         try:
             self.conn.send(encoded_response)
             print('TcpServer: Response sent')

@@ -9,10 +9,10 @@ class BundleKeyError(Exception):
 
 
 class Bundle(object):
-    _strings = {}
-    _numbers = {}
-    _raws = {}
-    _iterables = {}
+    _strings = None
+    _numbers = None
+    _raws = None
+    _iterables = None
 
     _IMPROPER_KEY_FORMAT_STRING = "{} is not properly formatted"
     _INCORRECT_TYPE_STRING = 'Not a string'
@@ -29,6 +29,12 @@ class Bundle(object):
         _INCORRECT_TYPE_RAW_IS_NUMBER,
         _INCORRECT_TYPE_RAW_IS_STRING
     )
+
+    def __init__(self):
+        self._strings = {}
+        self._numbers = {}
+        self._raws = {}
+        self._iterables = {}
 
     def __eq__(self, other):
         """
