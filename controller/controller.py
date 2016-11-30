@@ -20,9 +20,10 @@ class Controller:
         :param status: status signal
         :return: void
         """
-        result_event_status = ResultEvent(result_signal=status)
-        print('Controller: Sending ResultEvent: {}'.format(result_event_status))
-        self.server.send_response(result_event_status)
+        return
+        # result_event_status = ResultEvent(result_signal=status)
+        # print('Controller: Sending ResultEvent: {}'.format(result_event_status))
+        # self.server.send_response(result_event_status)
 
     def scan_image(self, file_path):
         try:
@@ -64,12 +65,13 @@ class Controller:
         print(results)
         # logging.info("scan {} image complete".format(scan_id))
         # payload.strings('FILE_PATH') should be the path to the image
-        self.store_locally(path=scan_id, data=results)
+        self.store_locally(path=str(scan_id), data=results)
         # logging.info("{} stored locally".format(scan_id))
-
+        serializable_results = (list(map((lambda c: c.tolist()), results[0])),
+                                results[1].tolist())
         self.store_data_externally(database=payload.strings('EXT_STORAGE_TARGET'),
                                    scan_id=scan_id,
-                                   data=results,
+                                   data=serializable_results,
                                    img_path=file_path)
         # payload.strings('EXT_STORAGE_TARGET') should be the database
         # logging.info("{} stored on firebase".format(scan_id))
@@ -93,4 +95,11 @@ class Controller:
 if __name__ == '__main__':
     controller = Controller()
     print("ysysysysysys")
-    controller.run()
+    # controller.run()
+    # Create event to mock event coming in
+    bundle = Bundle()
+    filepath = "/home/ubuntu/GitHub/Aerocube/ImP/imageProcessing/test_files/jetson_test1.jpg"
+    bundle.insert_string('FILE_PATH', filepath)
+    bundle.insert_string('EXT_STORAGE_TARGET', 'FIREBASE')
+    event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, bundle)
+    controller.initiate_scan(scan_id=event.created_at, payload=event.payload)
