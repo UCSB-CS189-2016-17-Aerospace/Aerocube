@@ -1,1 +1,1 @@
-sudo fuser -k 8000/tcp
+sudo fuser -k 5005/tcp
