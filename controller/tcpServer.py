@@ -20,7 +20,7 @@ class TcpServer:
         print('TcpServer: Connection accepted')
 
     def send_response(self, response):
-        encoded_response = json.dumps(response)
+        encoded_response = json.dumps(response).encode()
         try:
             self.conn.send(encoded_response)
             print('TcpServer: Response sent')
@@ -29,7 +29,7 @@ class TcpServer:
 
     def receive_data(self):
         data = self.conn.recv(self.BUFFER_SIZE)
-        message = AeroCubeEvent.construct_from_json(json.loads(data))
+        message = AeroCubeEvent.construct_from_json(json.loads(data.decode()))
         if isinstance(message, AeroCubeEvent):
             print('TcpServer: Data Received')
             return message
