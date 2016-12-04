@@ -14,11 +14,13 @@ def store(location, pickleable, use_relative_location=True):
     """
     return _store_json(get_storage_directory() + location, pickleable)
 
+
 # TODO: need test
 def store_image(location, img):
     """
     """
     cv2.imwrite(location, img)
+
 
 def retrieve(location):
     """
