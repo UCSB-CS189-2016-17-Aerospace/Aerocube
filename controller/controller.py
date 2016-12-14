@@ -69,12 +69,6 @@ class Controller:
         self.store_locally(path=str(scan_id), data=results)
         serializable_results = (list(map((lambda c: c.tolist()), results[0])),
                                 results[1].tolist())
-        output_path = "/home/ubuntu/GitHub/Aerocube/ImP/output_files/scan_with_markers.jpg"
-        self.draw_and_store_image_with_detected_markers(database=payload.strings('EXT_STORAGE_TARGET'),
-                                                        scan_id=str(scan_id).split('.')[0],
-                                                        img_path=file_path,
-                                                        output_path=output_path,
-                                                        scan_results=results)
         self.store_data_externally(database=payload.strings('EXT_STORAGE_TARGET'),
                                    scan_id=str(scan_id).split('.')[0],
                                    data=serializable_results,
