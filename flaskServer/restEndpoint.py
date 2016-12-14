@@ -22,7 +22,7 @@ client.connect_to_controller()
 def on_send_event(event):
     print('RestEndpoint.on_send_event: Started event about to send: \r\n{}\r\n'.format(event))
     # Send through TCP Client
-    client.send_to_controller(str(event))
+    client.send_to_controller(event.to_json())
     # Check State
     # Receive Events until EventHandler.resolve_event() returns true
     while True:

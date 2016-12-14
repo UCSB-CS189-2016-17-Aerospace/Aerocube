@@ -57,7 +57,7 @@ class Bundle(object):
         return not self.__eq__(other)
 
     def __str__(self):
-        dict = {
+        structure = {
             'strings': self._strings,
             'numbers': self._numbers,
             'raws': self._raws,
@@ -67,7 +67,20 @@ class Bundle(object):
         numbers = json.dumps(self._numbers)
         raws = json.dumps(self._raws)
         iterables = json.dumps(self._iterables)
-        return json.dumps(dict)
+        return str(structure)
+
+    def to_json(self):
+        json_dict = {
+            'strings': self._strings,
+            'numbers': self._numbers,
+            'raws': self._raws,
+            'iterables': self._iterables
+        }
+        strings = json.dumps(self._strings)
+        numbers = json.dumps(self._numbers)
+        raws = json.dumps(self._raws)
+        iterables = json.dumps(self._iterables)
+        return json.dumps(json_dict)
 
     @staticmethod
     def construct_from_json(bundle_json_string):

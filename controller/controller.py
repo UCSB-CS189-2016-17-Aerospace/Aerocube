@@ -22,9 +22,9 @@ class Controller:
         """
         # return
         print('Controller.return_status: Status is {}'.format(status))
-        result_event_status = ResultEvent(result_signal=status, calling_event=self.calling_event.uuid)
-        print('Controller.return_status: Sending ResultEvent: \r\n{}\r\n'.format(result_event_status))
-        self.server.send_response(str(result_event_status))
+        result_event = ResultEvent(result_signal=status, calling_event=self.calling_event.uuid)
+        print('Controller.return_status: Sending ResultEvent: \r\n{}\r\n'.format(result_event))
+        self.server.send_response(result_event.to_json())
 
     def scan_image(self, file_path):
         try:

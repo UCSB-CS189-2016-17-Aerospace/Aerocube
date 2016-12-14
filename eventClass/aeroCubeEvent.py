@@ -40,14 +40,24 @@ class AeroCubeEvent(metaclass=ABCMeta):
         return not self.__eq__(other)
 
     def __str__(self):
-        dict = {
+        structure = {
             'signal': str(self._signal),
             'created_at': self._created_at,
             'payload': str(self._payload),
             'class': str(self.__class__.__name__),
             'uuid': self._uuid
         }
-        return json.dumps(dict)
+        return str(structure)
+
+    def to_json(self):
+        json_dict = {
+            'signal': str(self._signal),
+            'created_at': self._created_at,
+            'payload': self._payload.to_json(),
+            'class': str(self.__class__.__name__),
+            'uuid': self._uuid
+        }
+        return json.dumps(json_dict)
 
     @staticmethod
     def construct_from_json(event_json_str):
