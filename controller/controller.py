@@ -2,7 +2,7 @@ from controller.tcpServer import TcpServer
 # import packages from Aerocube directory
 from eventClass.aeroCubeSignal import *
 from eventClass.aeroCubeEvent import *
-from externalComm.externalComm import process
+from externalComm.externalComm import *
 from dataStorage.dataStorage import store
 # import packages from Aerocube-ImP directory
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
@@ -42,9 +42,9 @@ class Controller:
     def store_data_externally(self, database, scan_id, data, img_path):
         try:
             print('Controller: Storing data externally')
-            process(func='-w', database=database, scanID=scan_id, data=data)
+            external_write(database=database, scanID=scan_id, data=data)
             print('Controller: Storing image externally')
-            process(func='-iw', database=database, scanID=scan_id, data=img_path)
+            external_store_img( database=database, scanID=scan_id, data=img_path)
             print('Controller: Successfully stored externally, sending ResultEvent')
             self.return_status(ResultEventSignal.EXT_COMM_OP_OK)
         except ValueError:

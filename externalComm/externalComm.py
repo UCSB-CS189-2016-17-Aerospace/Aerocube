@@ -1,30 +1,31 @@
 import json
-from .commClass import FirebaseComm
+from commClass import FirebaseComm
 #TODO: data_json finalization
-def process(func, database, scanID, location=None, data=None, testing=False):
-    """
-    :param func: '-w'|'-r'|'-d'|'-iw' |'-dl'
-    :param database: 'firebase'
-    :param location: path in database
-    :param scanID: id of scan
-    :param data:  data
-    :param testing: if testing true else leave alone
-    :return:
-    """
+def __selectDatabase__(database,testing):
     comm=None
     if(database=='firebase'):
         comm=FirebaseComm(testing)
     else:
         raise ValueError('database not found!')
-    if func == '-w':
-        comm.write(location=location, id=scanID, data=data)
-    elif func == '-r':
-        return comm.read(location=location, id=scanID)
-    elif func == '-d':
-        comm.delete(location=location, id=scanID)
-    elif func == '-iw':
-        comm.imageStore(id=scanID, srcImage=data)
-    elif func == '-dl':
-        comm.imageDownload(id=scanID)
-    else:
-        raise SyntaxError('func not accepted, -w for write, -r for read.')
+    return comm
+
+def external_write(database, scanID, location=None, data=None, testing=False):
+    comm=__selectDatabase__(database=database,testing=testing)
+    return comm.write(location=location, id=scanID, data=data)
+
+def external_store_img(database, scanID, srcImage=None, testing=False):
+    comm = __selectDatabase__(database=database,testing=testing)
+    return comm.imageStore( id=scanID, srcImage=srcImage)
+
+def external_read(database, scanID, location=None, testing=False):
+    comm = __selectDatabase__(database=database,testing=testing)
+    return comm.read(location=location,id=scanID)
+
+def external_delete(database, scanID, location=None, testing=False):
+    comm = __selectDatabase__(database=database,testing=testing)
+    return comm.delete(location=location,id=scanID)
+
+def external_download_image(database, scanID, testing=False):
+    comm = __selectDatabase__(database=database,testing=testing)
+    return comm.imageDownload(scanID)
+
