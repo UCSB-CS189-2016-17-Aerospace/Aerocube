@@ -6,10 +6,12 @@ import os
 import flaskServer.restEndpoint as restEndpoint
 from .settings import FlaskServerSettings
 
-# Make sure to have an image named sampleImage.png on the flaskServer directory in order to run these tests
-
 
 class TestRestEndpoint(unittest.TestCase):
+    """
+    Make sure _test_img has the name (as a str) of an existing file
+    in the designated test_file dir.
+    """
     _test_img = 'ucsb_logo.jpg'
     _static_img_dir = FlaskServerSettings.get_static_img_dir()
     _test_img_path = os.path.join(FlaskServerSettings.get_test_files_dir(), _test_img)
@@ -21,7 +23,6 @@ class TestRestEndpoint(unittest.TestCase):
 
     def tearDown(self):
         subprocess.call(['rm', self._static_img_path])
-        pass
 
     def test_successful_upload(self):
         files = {'photo': open(self._test_img_path, 'rb')}
