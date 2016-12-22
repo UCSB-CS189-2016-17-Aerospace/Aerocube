@@ -1,3 +1,9 @@
+"""
+# TODO: handler (EventHandler instance) is referenced nowhere but w/in PhotoUpload;
+    should it be moved inside of PhotoUpload, or be passed as a parameter?
+# TODO: client (TcpClient instance) is referenced nowhere but in on_send_event, and
+    seems it should be passed as a parameter instead of referenced as a global
+"""
 from flask import Flask, render_template, url_for, request, redirect
 from flask_restful import Resource, Api, reqparse
 from werkzeug import secure_filename
