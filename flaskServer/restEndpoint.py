@@ -3,23 +3,36 @@ from flask_restful import Resource, Api, reqparse
 from werkzeug import secure_filename
 from flask_cors import CORS, cross_origin
 import os
+from .settings import FlaskServerSettings
+from controller.settings import ControllerSettings
 from eventClass.eventHandler import EventHandler
 from eventClass.aeroCubeEvent import ImageEvent, ResultEvent, AeroCubeEvent
 from eventClass.aeroCubeSignal import *
 from eventClass.bundle import Bundle
+from controller.settings import ControllerSettings
 from tcpService.tcpClient import TcpClient
+from tcpService.settings import TcpSettings
+
+
 app = Flask(__name__)
 api = Api(app)
 CORS(app)
 
-app.config['UPLOAD_FOLDER'] = 'flaskServer/static/img/'
+app.config['UPLOAD_FOLDER'] = FlaskServerSettings.get_static_img_dir()
 
 handler = EventHandler()
-client = TcpClient('127.0.0.1', 5005, 1024)
+client = TcpClient(ControllerSettings.IP_ADDR(),
+                   ControllerSettings.PORT(),
+                   TcpSettings.BUFFER_SIZE())
 client.connect_to_controller()
+
+# define handlers for EventHandler instance
 
 
 def on_send_event(event):
+    """
+    :param event:
+    """
     print('RestEndpoint.on_send_event: Started event about to send: \r\n{}\r\n'.format(event))
     # Send through TCP Client
     client.send_to_controller(event.to_json())
@@ -50,16 +63,30 @@ def on_dequeue_event():
     # Do we need anything here?
     pass
 
+
 handler.set_start_event_observer(on_send_event)
 handler.set_enqueue_observer(on_enqueue_event)
 handler.set_dequeue_observer(on_dequeue_event)
 
 
 class PhotoUpload(Resource):
+    """
+    Handles GET and POST requests for the Flask Server.
+    """
     def get(self):
+        """
+        Returns a success message on GET requests to verify a working connnection.
+        :return:
+        """
         return {'server status': 'server is up and running'}
 
     def post(self):
+        """
+        Parses a request to:
+            * Save the image locally
+            * Send an event to the EventHandler to initiate an ImP operation
+        :return:
+        """
         file = request.files['photo']
         filename = secure_filename(file.filename)
         filepath = os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER'])
@@ -73,10 +100,9 @@ class PhotoUpload(Resource):
         handler.enqueue_event(new_event)
         return {'upload status': 'file upload sucessful'}
 
-
 api.add_resource(PhotoUpload, '/api/uploadImage')
 
 if __name__ == "__main__":
     # NOTE: cannot run with debug=True, as it will cause the module to re-run
     # and mess up imported files
-    app.run(debug=False, port=3000, ssl_context='adhoc')
+    app.run(debug=False, port=FlaskServerSettings.PORT(), ssl_context='adhoc')
