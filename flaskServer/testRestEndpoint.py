@@ -9,6 +9,7 @@ from .settings import FlaskServerSettings
 
 class TestRestEndpoint(unittest.TestCase):
     """
+    TODO: fails unless the controller is also running
     Make sure _test_img has the name (as a str) of an existing file
     in the designated test_file dir.
     """
