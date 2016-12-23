@@ -53,11 +53,14 @@ class TestAeroCubeSignal(unittest.TestCase):
 
 class TestAeroCubePayload(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls._VALID_KEY = 'VALID_KEY'
+        cls._VALID_NUM = 42
+        cls._VALID_STRING = 'a string'
+
     def setUp(self):
         self._event = ImageEvent(ImageEventSignal.GET_AEROCUBE_POSE)
-        self._VALID_KEY = 'VALID_KEY'
-        self._VALID_NUM = 42
-        self._VALID_STRING = 'a string'
 
     def tearDown(self):
         self._event = None

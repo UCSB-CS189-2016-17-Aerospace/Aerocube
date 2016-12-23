@@ -7,10 +7,12 @@ import json
 
 
 class AeroCubeEvent(metaclass=ABCMeta):
-    _payload = None
-    _signal = None
-    _created_at = None
-    _uuid = None
+    """
+    :ivar _payload:
+    :ivar _signal:
+    :ivar _created_at:
+    :ivar _uuid:
+    """
 
     _INVALID_SIGNAL_FOR_EVENT = 'Invalid signal for event'
     _INVALID_PAYLOAD_NOT_BUNDLE = 'Invalid payload, must be instance of Bundle'

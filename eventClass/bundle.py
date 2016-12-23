@@ -9,10 +9,12 @@ class BundleKeyError(Exception):
 
 
 class Bundle(object):
-    _strings = None
-    _numbers = None
-    _raws = None
-    _iterables = None
+    """
+    :ivar _strings:
+    :ivar _numbers:
+    :ivar _raws:
+    :ivar _iterables:
+    """
 
     _IMPROPER_KEY_FORMAT_STRING = "{} is not properly formatted"
     _INCORRECT_TYPE_STRING = 'Not a string'
