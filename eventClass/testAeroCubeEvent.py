@@ -123,7 +123,6 @@ class TestAeroCubeSignal(unittest.TestCase):
 
 
 class TestAeroCubePayload(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls._VALID_KEY = 'VALID_KEY'
