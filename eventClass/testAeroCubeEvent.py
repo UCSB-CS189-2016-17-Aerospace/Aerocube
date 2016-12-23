@@ -4,7 +4,7 @@ from .bundle import Bundle, BundleKeyError
 import unittest
 
 
-class TestAeroCubeEvent(unittest.TestCase):
+class TestAeroCubeEventInit(unittest.TestCase):
     def test_image_event_init(self):
         event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
         self.assertIsNotNone(event)
@@ -17,15 +17,26 @@ class TestAeroCubeEvent(unittest.TestCase):
                           ResultEventSignal.IMP_OPERATION_OK)
 
     def test_result_event_init(self):
-        event = ResultEvent(ResultEventSignal.IMP_OPERATION_OK)
+        calling_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
+        event = ResultEvent(ResultEventSignal.IMP_OPERATION_OK,
+                            calling_event.uuid)
         self.assertIsNotNone(event)
         self.assertIsNotNone(event.signal)
         self.assertIsNotNone(event.created_at)
+        self.assertIsNotNone(event.payload.strings(ResultEvent.CALLING_EVENT_UUID))
 
-    def test_result_event_init_failed(self):
+    def test_result_event_init_failed_invalid_signal(self):
+        calling_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
         self.assertRaises(AttributeError,
                           ResultEvent,
-                          ImageEventSignal.IDENTIFY_AEROCUBES)
+                          ImageEventSignal.IDENTIFY_AEROCUBES,
+                          calling_event.uuid)
+
+    def test_result_event_init_failed_no_calling_event(self):
+        self.assertRaises(AttributeError,
+                          ResultEvent,
+                          ResultEventSignal.IMP_OPERATION_OK,
+                          None)
 
     def test_system_event_init(self):
         event = SystemEvent(SystemEventSignal.POWERING_OFF)
@@ -37,6 +48,66 @@ class TestAeroCubeEvent(unittest.TestCase):
         self.assertRaises(AttributeError,
                           SystemEvent,
                           ImageEventSignal.IDENTIFY_AEROCUBES)
+
+
+class TestAeroCubeEvent(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    @unittest.expectedFailure
+    def test_eq(self):
+        self.fail()
+
+    @unittest.expectedFailure
+    def test_ne(self):
+        self.fail()
+
+    @unittest.expectedFailure
+    def test_to_json(self):
+        self.fail()
+
+    @unittest.expectedFailure
+    def test_construct_from_json(self):
+        self.fail()
+
+    @unittest.expectedFailure
+    def test_construct_from_json_invalid(self):
+        self.fail()
+
+    @unittest.expectedFailure
+    def test_created_at(self):
+        self.fail()
+
+    @unittest.expectedFailure
+    def test_signal(self):
+        self.fail()
+
+    @unittest.expectedFailure
+    def test_payload(self):
+        self.fail()
+
+    @unittest.expectedFailure
+    def test_uuid(self):
+        self.fail()
+
+    @unittest.expectedFailure
+    def test_merge_payload(self):
+        self.fail()
+
+    @unittest.expectedFailure
+    def test_merge_payload_invalid_arg(self):
+        self.fail()
 
 
 class TestAeroCubeSignal(unittest.TestCase):
