@@ -1,6 +1,9 @@
+# import settings
+from .settings import ControllerSettings
+# import packages from Aerocube directory
 from eventClass.bundle import Bundle
 from tcpService.tcpServer import TcpServer
-# import packages from Aerocube directory
+from tcpService.settings import TcpSettings
 from eventClass.aeroCubeSignal import ImageEventSignal, ResultEventSignal, SystemEventSignal
 from eventClass.aeroCubeEvent import AeroCubeEvent, ImageEvent, ResultEvent
 from externalComm.externalComm import process
@@ -10,8 +13,14 @@ from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 
 
 class Controller:
+    """
+    :ivar server: TcpServer instance created upon init
+    :ivar calling_event:
+    """
     def __init__(self):
-        self.server = TcpServer('127.0.0.1', 5005, 1024)
+        self.server = TcpServer(ControllerSettings.IP_ADDR(),
+                                ControllerSettings.PORT(),
+                                TcpSettings.BUFFER_SIZE())
         self.calling_event = None
 
     def return_status(self, status):

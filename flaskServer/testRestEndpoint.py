@@ -32,15 +32,12 @@ class TestRestEndpoint(unittest.TestCase):
 
     def test_file_existence(self):
         files = {'photo': open(self._test_img_path, 'rb')}
-        ls_command = subprocess.check_output(['ls', self._static_img_dir])
-        self.assertFalse(self._test_img in ls_command,
+        ls_command = subprocess.getoutput('ls ' + self._static_img_dir)
+        self.assertFalse(self._test_img in ls_command.split('\n'),
                          msg='Precondition: {0} image should not exist at the API image upload endpoint.'.format(self._test_img))
-        existence = False
         requests.post('http://127.0.0.1:5005/api/uploadImage', files=files)
-        ls_command = subprocess.check_output(['ls', self._static_img_dir])
-        if self._test_img in ls_command:
-            existence = True
-        self.assertTrue(existence,
+        ls_command = subprocess.getoutput('ls ' + self._static_img_dir)
+        self.assertTrue(self._test_img in ls_command.split('\n'),
                         msg='Postcondition: {0} was not sucessfully created at the API image upload endpoint.'.format(self._test_img))
 
 

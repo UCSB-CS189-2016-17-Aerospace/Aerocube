@@ -1,7 +1,7 @@
 from collections import deque
+from enum import Enum
 from .aeroCubeEvent import AeroCubeEvent, ResultEvent
 from .aeroCubeSignal import *
-from enum import Enum
 
 
 class EventHandler(object):
@@ -13,8 +13,12 @@ class EventHandler(object):
     For all other operations, EventHandler will return None if an operation is
     improperly used (e.g., if dequeue_event is called on an EventHandler with
     no events).
+    :ivar _event_deque: queue-style structure that stores incoming events
+    :ivar _on_start_event: function handler for "on_start_event"
+    :ivar _on_enqueue: function handler for "on_enqueue"
+    :ivar _on_dequeue: function handler for "on_dequeue"
+    :ivar _state: state chosen from inner class State that controls how incoming events are dealt with
     """
-    _event_deque = None
 
     # TODO: Structure for Event Priorities
 
@@ -27,7 +31,7 @@ class EventHandler(object):
             super(EventHandler.NotAllowedInStateException, self).__init__(message)
 
     class State(Enum):
-        # Ready to receive
+        # Ready to receive & start events
         STARTED                     = 0x0000aaaa
         # Waiting for results
         PENDING                     = 0x0000bbbb
@@ -42,6 +46,8 @@ class EventHandler(object):
         self._on_enqueue = enqueue_observer
         self._on_dequeue = dequeue_observer
         self._state = EventHandler.State.STARTED
+
+    # setters for function handlers
 
     def set_start_event_observer(self, observer):
         """
@@ -67,6 +73,8 @@ class EventHandler(object):
         self._on_dequeue = observer
         print('EventHandler: Set on_dequeue')
 
+    # getter functions or functions to allow observation of the internal event deque
+
     def enqueue_event(self, event):
         """
         Adds a new event
@@ -83,6 +91,49 @@ class EventHandler(object):
             self._start_sending_events()
         except EventHandler.NotAllowedInStateException as e:
             print(e)
+
+    def get_state(self):
+        """
+        Get the state of the eventHandler
+        :return: The state of the eventHandler
+        """
+        return self._state
+
+    def any_events(self):
+        """
+        Check if there are any events
+        :return: true if there are events
+        """
+        return len(self._event_deque) > 0
+
+    def _dequeue_event(self):
+        """
+        Retrieves the next event to be handled
+        :return:
+        """
+        return self._event_deque.popleft()
+
+    def _peek_current_event(self):
+        """
+        Peeks at the current event
+        :return: the current event
+        """
+        if self.any_events():
+            return self._event_deque[0]
+        else:
+            return None
+
+    def _peek_last_added_event(self):
+        """
+        Peeks at the most recently added event
+        :return: the most recently added event
+        """
+        if self.any_events():
+            return self._event_deque[-1]
+        else:
+            return None
+
+    # state-change functions
 
     def restart(self):
         """
@@ -155,47 +206,6 @@ class EventHandler(object):
         self._state = EventHandler.State.STOPPED
         print('EventHandler.force_stop: State changed to {}'.format(self._state))
 
-    def get_state(self):
-        """
-        Get the state of the eventHandler
-        :return: The state of the eventHandler
-        """
-        return self._state
-
-    def any_events(self):
-        """
-        Check if there are any events
-        :return: true if there are events
-        """
-        return len(self._event_deque) > 0
-
-    def _dequeue_event(self):
-        """
-        Retrieves the next event to be handled
-        :return:
-        """
-        return self._event_deque.popleft()
-
-    def _peek_current_event(self):
-        """
-        Peeks at the current event
-        :return: the current event
-        """
-        if self.any_events():
-            return self._event_deque[0]
-        else:
-            return None
-
-    def _peek_last_added_event(self):
-        """
-        Peeks at the most recently added event
-        :return: the most recently added event
-        """
-        if self.any_events():
-            return self._event_deque[-1]
-        else:
-            return None
-
     def resolve_event(self, event):
         """
         Logic to resolve "finished" events/jobs in the EventHandler deque could
@@ -217,7 +227,6 @@ class EventHandler(object):
             # Return False to indicate calling_event not finished
             return False
 
-
     def _should_event_resolve(self, event):
         # Check if event is a proper event (ResultEvent)
         if not isinstance(event, ResultEvent):
@@ -231,7 +240,7 @@ class EventHandler(object):
             raise EventHandler.NotAllowedInStateException('ERROR: Attempted to resolve event while stopped')
         # Check if ResultEvent is for the current calling event
         if self._peek_current_event().uuid != event.payload.strings(ResultEvent.CALLING_EVENT_UUID):
-            raise AttributeError('EventHandler._should_event_resolve: ERROR: result event with CALLING_EVENT_UUID:{} received not for current calling event:{}', \
+            raise AttributeError('EventHandler._should_event_resolve: ERROR: result event with CALLING_EVENT_UUID:{} received not for current calling event:{}',
                                  event.payload.strings(ResultEvent.CALLING_EVENT_UUID), self._peek_current_event().uuid)
         return event.signal == ResultEventSignal.IDENT_AEROCUBES_FIN
 
@@ -251,6 +260,8 @@ class EventHandler(object):
             print('EventHandler._start_event: State changed to {}'.format(self._state))
         else:
             raise NotImplementedError('ERROR: Must call set_start_event_observer before an event can be sent')
+
+    # static helper function(s)
 
     @staticmethod
     def is_valid_element(obj):
