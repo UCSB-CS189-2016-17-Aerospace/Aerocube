@@ -9,6 +9,16 @@ class TestEventHandler(unittest.TestCase):
 
     # Set Up and Tear Down functions
 
+    @classmethod
+    def setUpClass(cls):
+        cls._VALID_IMAGE_EVENT = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
+        cls._VALID_RESULT_EVENT = ResultEvent(ResultEventSignal.IMP_OPERATION_OK,
+                                              cls._VALID_IMAGE_EVENT.uuid)
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
     def setUp(self):
         self._handler = EventHandler()
         self._handler.set_start_event_observer(self.event_observer)
@@ -18,15 +28,6 @@ class TestEventHandler(unittest.TestCase):
 
     def tearDown(self):
         self._handler = None
-
-    @classmethod
-    def setUpClass(cls):
-        cls._VALID_IMAGE_EVENT = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
-        cls._VALID_RESULT_EVENT = ResultEvent(ResultEventSignal.IMP_OPERATION_OK)
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
 
     # Init
 
@@ -50,7 +51,7 @@ class TestEventHandler(unittest.TestCase):
     def test_enqueue_event_invalid_arg(self):
         self.assertRaises(TypeError, self._handler.enqueue_event, 'non_event')
 
-    # dequeu_event
+    # dequeue_event
 
     def test_dequeue_event(self):
         self._handler.enqueue_event(self._VALID_IMAGE_EVENT)
@@ -111,6 +112,11 @@ class TestEventHandler(unittest.TestCase):
     def test_negative_is_valid_element(self):
         self.assertFalse(EventHandler.is_valid_element(1))
         self.assertFalse(EventHandler.is_valid_element('my_string'))
+
+    # state-change
+
+    def test_state_change_functions(self):
+        self.fail() # TODO: need to implement tests
 
 
 if __name__ == '__main__':
