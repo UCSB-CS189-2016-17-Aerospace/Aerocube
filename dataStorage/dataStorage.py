@@ -1,5 +1,7 @@
 import pickle
-from settings import *
+import cv2
+from .settings import *
+from eventClass.aeroCubeSignal import *
 
 
 def store(location, pickleable, use_relative_location=True):
@@ -10,7 +12,14 @@ def store(location, pickleable, use_relative_location=True):
     :param use_relative_location: bool
     :return: An event containing a signal that describes success or failure
     """
-    _store_json(settings.get_storage_directory() + location, pickleable)
+    return _store_json(get_storage_directory() + location, pickleable)
+
+
+# TODO: need test
+def store_image(location, img):
+    """
+    """
+    cv2.imwrite(location, img)
 
 
 def retrieve(location):
@@ -19,7 +28,7 @@ def retrieve(location):
     :param location: relative location
     :return:
     """
-    return _retrieve_json(settings.get_storage_directory() + location)
+    return _retrieve_json(get_storage_directory() + location)
 
 
 # below is random stuff
@@ -32,9 +41,9 @@ def _store_json(location, json):
     """
     try:
         pickle.dump(json, open(location, "wb"), pickle.HIGHEST_PROTOCOL)
+        # return ResultEventSignal.INTERN_STORE_OP_OK
     except OSError as err:
-        pass
-        # TODO: Handle err
+        return ResultEventSignal.INTERN_STORE_OP_FAILED
 
 
 def _retrieve_json(location):
