@@ -1,6 +1,6 @@
 import json
-from commClass import FirebaseComm
-##TODO: data_json finalization
+from .commClass import FirebaseComm
+# TODO: data_json finalization
 
 
 def __select_database__(database, testing):
@@ -22,15 +22,14 @@ def external_store_img(database, scanID, srcImage=None, testing=False):
 
 def external_read(database, scanID, location=None, testing=False):
     comm = __select_database__(database=database, testing=testing)
-    return comm.read(location=location,id=scanID)
+    return comm.read(location=location, id=scanID)
 
 
 def external_delete(database, scanID, location=None, testing=False):
     comm = __select_database__(database=database, testing=testing)
-    return comm.delete(location=location,id=scanID)
+    return comm.delete(location=location, id=scanID)
 
 
 def external_download_image(database, scanID, testing=False):
     comm = __select_database__(database=database, testing=testing)
     return comm.imageDownload(scanID)
-
