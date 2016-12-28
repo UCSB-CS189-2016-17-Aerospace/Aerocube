@@ -28,14 +28,12 @@
 *.out
 *.app
 
-# Virtual Environment 
+# Virtual Environment
 /venv
 
-#Random ds store
+# Random ds store
 .DS_Store
 
-#random python 
+# Random python 
 *.pyc
-
-# ImP Directory
-ImP/
+*__pycache__
