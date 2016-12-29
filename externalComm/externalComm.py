@@ -3,7 +3,7 @@ from .commClass import FirebaseComm
 # TODO: data_json finalization
 
 
-def __select_database__(database, testing):
+def _select_database(database, testing):
     if database == 'firebase':
         return FirebaseComm(testing)
     else:
