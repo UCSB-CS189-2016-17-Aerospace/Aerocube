@@ -1,0 +1,3 @@
+import logbook
+
+class Logger:
