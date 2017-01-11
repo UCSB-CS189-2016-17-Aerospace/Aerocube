@@ -25,9 +25,8 @@ Provides functionality to store different data of the following types:
 Used with AeroCubeEvent to help structure the payload of an event.
 
 ### Event Handler States 
-// include portion explaining that currently the EH only works w/one event at a time. As well as the purpose of states
-* **STARTED** - This state reperesents that the evetn handler is ready to both receive and starrt events.
+* **STARTED** - This state reperesents that the event handler is ready to both receive and start events.
 * **PENDING** - The state means that the event handler is waiting for results on a task that the controller is currently processing.
 * **STOPPED** - Simply means that the event handler is paused, therefore cannot accept any new events.
-* **PENDING_STOP_ON_RESOLVE** - This state essentially 
+* **PENDING_STOP_ON_RESOLVE** - Similar to the PENDING state, this implies that the event handler is waiting for results of a task. However, this state turns into STOPPED after the current event has resolved, not STARTED.
 
