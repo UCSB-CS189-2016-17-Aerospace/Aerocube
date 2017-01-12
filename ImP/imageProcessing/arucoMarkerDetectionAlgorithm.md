@@ -31,7 +31,9 @@ Point class found [here](http://docs.opencv.org/2.4/modules/core/doc/basic_struc
     vector< vector< Point2f > > candidates;
     vector< vector< Point > > contours;
     vector< int > ids;
+    _detectCandidates(grey, candidates, contours, _params);
 ```
+    
 
 ```
 /**
@@ -126,12 +128,14 @@ static void _findMarkerContours(InputArray _in, vector< vector< Point2f > > &can
        if(contours[i].size() < minPerimeterPixels || contours[i].size() > maxPerimeterPixels)
            continue;
 ```
+Verify [approxPolyDP](http://docs.opencv.org/2.4/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#approxpolydp) returns with 4 curves & is convex.
 ```
        // check is square and is convex
        vector< Point > approxCurve;
        approxPolyDP(contours[i], approxCurve, double(contours[i].size()) * accuracyRate, true);
        if(approxCurve.size() != 4 || !isContourConvex(approxCurve)) continue;
 ```
+
 ```
        // check min distance between corners
        double minDistSq =
@@ -170,13 +174,14 @@ static void _findMarkerContours(InputArray _in, vector< vector< Point2f > > &can
 ```
 }
 ```
-
+Parallel CPU implementation of the function above, given a range of scales, it will threshold and find contours.
 ```
 
    // this is the parallel call for the previous commented loop (result is equivalent)
    parallel_for_(Range(0, nScales), DetectInitialCandidatesParallel(&grey, &candidatesArrays,
                                                                     &contoursArrays, params));
 ```
+Aggregating the contours from each scale into 1 vector of vectors.
 ```
    // join candidates
    for(int i = 0; i < nScales; i++) {
@@ -191,20 +196,172 @@ static void _findMarkerContours(InputArray _in, vector< vector< Point2f > > &can
 ```
    /// 3. SORT CORNERS
    _reorderCandidatesCorners(candidates);
+```
+### _reorderCandidatesCorners 
+```
+/**
+ * @brief Assure order of candidate corners is clockwise direction
+ */
+static void _reorderCandidatesCorners(vector< vector< Point2f > > &candidates) {
 
+   for(unsigned int i = 0; i < candidates.size(); i++) {
+       double dx1 = candidates[i][1].x - candidates[i][0].x;
+       double dy1 = candidates[i][1].y - candidates[i][0].y;
+       double dx2 = candidates[i][2].x - candidates[i][0].x;
+       double dy2 = candidates[i][2].y - candidates[i][0].y;
+       double crossProduct = (dx1 * dy2) - (dy1 * dx2);
+
+       if(crossProduct < 0.0) { // not clockwise direction
+           swap(candidates[i][1], candidates[i][3]);
+       }
+   }
+}
+```
+```
    /// 4. FILTER OUT NEAR CANDIDATE PAIRS
    _filterTooCloseCandidates(candidates, candidatesOut, contours, contoursOut,
                              _params->minMarkerDistanceRate);
 }
 ```
+### _filterTooCloseCandidates
+```
+/**
+ * @brief Check candidates that are too close to each other and remove the smaller one
+ */
+static void _filterTooCloseCandidates(const vector< vector< Point2f > > &candidatesIn,
+                                     vector< vector< Point2f > > &candidatesOut,
+                                     const vector< vector< Point > > &contoursIn,
+                                     vector< vector< Point > > &contoursOut,
+                                     double minMarkerDistanceRate) {
 
+   CV_Assert(minMarkerDistanceRate >= 0);
 ```
-    _detectCandidates(grey, candidates, contours, _params);
+Comparing every possible pair, if considered too close, the pair of markers is put into nearCandidates .
 ```
+   vector< pair< int, int > > nearCandidates;
+   for(unsigned int i = 0; i < candidatesIn.size(); i++) {
+       for(unsigned int j = i + 1; j < candidatesIn.size(); j++) {
+
+           int minimumPerimeter = min((int)contoursIn[i].size(), (int)contoursIn[j].size() );
+
+           // fc is the first corner considered on one of the markers, 4 combinations are possible
+           for(int fc = 0; fc < 4; fc++) {
+               double distSq = 0;
+               for(int c = 0; c < 4; c++) {
+                   // modC is the corner considering first corner is fc
+                   int modC = (c + fc) % 4;
+                   distSq += (candidatesIn[i][modC].x - candidatesIn[j][c].x) *
+                                 (candidatesIn[i][modC].x - candidatesIn[j][c].x) +
+                             (candidatesIn[i][modC].y - candidatesIn[j][c].y) *
+                                 (candidatesIn[i][modC].y - candidatesIn[j][c].y);
+               }
+               distSq /= 4.;
+
+               // if mean square distance is too low, remove the smaller one of the two markers
+               double minMarkerDistancePixels = double(minimumPerimeter) * minMarkerDistanceRate;
+               if(distSq < minMarkerDistancePixels * minMarkerDistancePixels) {
+                   nearCandidates.push_back(pair< int, int >(i, j));
+                   break;
+               }
+           }
+       }
+   }
+```
+Choses the smaller one in the pairs to be marked and later removed. 
+```
+   // mark smaller one in pairs to remove
+   vector< bool > toRemove(candidatesIn.size(), false);
+   for(unsigned int i = 0; i < nearCandidates.size(); i++) {
+       // if one of the marker has been already markerd to removed, dont need to do anything
+       if(toRemove[nearCandidates[i].first] || toRemove[nearCandidates[i].second]) continue;
+       size_t perimeter1 = contoursIn[nearCandidates[i].first].size();
+       size_t perimeter2 = contoursIn[nearCandidates[i].second].size();
+       if(perimeter1 > perimeter2)
+           toRemove[nearCandidates[i].second] = true;
+       else
+           toRemove[nearCandidates[i].first] = true;
+   }
+```
+If not marked for removal add candidates to candidatesIn
+```
+   // remove extra candidates
+   candidatesOut.clear();
+   unsigned long totalRemaining = 0;
+   for(unsigned int i = 0; i < toRemove.size(); i++)
+       if(!toRemove[i]) totalRemaining++;
+   candidatesOut.resize(totalRemaining);
+   contoursOut.resize(totalRemaining);
+   for(unsigned int i = 0, currIdx = 0; i < candidatesIn.size(); i++) {
+       if(toRemove[i]) continue;
+       candidatesOut[currIdx] = candidatesIn[i];
+       contoursOut[currIdx] = contoursIn[i];
+       currIdx++;
+   }
+}
+```
+
 ```
     /// STEP 2: Check candidate codification (identify markers)
     _identifyCandidates(grey, candidates, contours, _dictionary, candidates, ids, _params,
                         _rejectedImgPoints);
+```
+### _identifyCandidates 
+```
+/**
+* @brief Identify square candidates according to a marker dictionary
+*/
+static void _identifyCandidates(InputArray _image, vector< vector< Point2f > >& _candidates,
+                               InputArrayOfArrays _contours, const Ptr<Dictionary> &_dictionary,
+                               vector< vector< Point2f > >& _accepted, vector< int >& ids,
+                               const Ptr<DetectorParameters> &params,
+                               OutputArrayOfArrays _rejected = noArray()) {
+
+   int ncandidates = (int)_candidates.size();
+
+   vector< vector< Point2f > > accepted;
+   vector< vector< Point2f > > rejected;
+
+   CV_Assert(_image.getMat().total() != 0);
+
+   Mat grey;
+   _convertToGrey(_image.getMat(), grey);
+
+   vector< int > idsTmp(ncandidates, -1);
+   vector< char > validCandidates(ncandidates, 0);
+
+   //// Analyze each of the candidates
+   // for (int i = 0; i < ncandidates; i++) {
+   //    int currId = i;
+   //    Mat currentCandidate = _candidates.getMat(i);
+   //    if (_identifyOneCandidate(dictionary, grey, currentCandidate, currId, params)) {
+   //        validCandidates[i] = 1;
+   //        idsTmp[i] = currId;
+   //    }
+   //}
+
+   // this is the parallel call for the previous commented loop (result is equivalent)
+   parallel_for_(Range(0, ncandidates),
+                 IdentifyCandidatesParallel(grey, _candidates, _contours, _dictionary, idsTmp,
+                                            validCandidates, params));
+
+   for(int i = 0; i < ncandidates; i++) {
+       if(validCandidates[i] == 1) {
+           accepted.push_back(_candidates[i]);
+           ids.push_back(idsTmp[i]);
+       } else {
+           rejected.push_back(_candidates[i]);
+       }
+   }
+
+   // parse output
+   _accepted = accepted;
+
+   if(_rejected.needed()) {
+       _copyVector2Output(rejected, _rejected);
+   }
+}
+```
+```
 
     /// STEP 3: Filter detected markers;
     _filterDetectedMarkers(candidates, ids);
