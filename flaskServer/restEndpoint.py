@@ -80,7 +80,7 @@ class PhotoUpload(Resource):
     """
     def get(self):
         """
-        Returns a success message on GET requests to verify a working connnection.
+        Returns a success message on GET requests to verify a working connection.
         :return:
         """
         return {'server status': 'server is up and running'}
@@ -138,7 +138,7 @@ class JobHandlerRestEndpoint(object):
 
         def get(self):
             """
-            Returns a success message on GET requests to verify a working connnection.
+            Returns a success message on GET requests to verify a working connection.
             :return:
             """
             return {'server status': 'server is up and running'}
