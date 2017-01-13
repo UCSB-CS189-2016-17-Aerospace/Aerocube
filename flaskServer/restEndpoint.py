@@ -10,7 +10,6 @@ from werkzeug import secure_filename
 from flask_cors import CORS, cross_origin
 import os
 from .settings import FlaskServerSettings
-from controller.settings import ControllerSettings
 from eventClass.eventHandler import EventHandler
 from eventClass.aeroCubeEvent import ImageEvent, ResultEvent, AeroCubeEvent
 from eventClass.aeroCubeSignal import *

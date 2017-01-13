@@ -1,4 +1,3 @@
-from flask import Flask
 import unittest
 import requests
 import subprocess
