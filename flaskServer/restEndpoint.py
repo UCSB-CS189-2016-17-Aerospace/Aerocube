@@ -103,9 +103,16 @@ class PhotoUpload(Resource):
         new_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, bundle)
         # Enqueue Event
         handler.enqueue_event(new_event)
-        return {'upload status': 'file upload sucessful'}
+        return {'upload status': 'file upload successful'}
 
 api.add_resource(PhotoUpload, '/api/uploadImage')
+
+
+class JobHandlerRestEndpoint(object):
+    """
+    Serves as a REST endpoint for the Job Handler that processes incoming jobs/events.
+    """
+
 
 if __name__ == "__main__":
     # NOTE: cannot run with debug=True, as it will cause the module to re-run
