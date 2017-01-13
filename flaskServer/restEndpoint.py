@@ -4,10 +4,10 @@ TODO: handler (EventHandler instance) is referenced nowhere but w/in PhotoUpload
 TODO: client (TcpClient instance) is referenced nowhere but in on_send_event, and
     seems it should be passed as a parameter instead of referenced as a global
 """
-from flask import Flask, render_template, url_for, request, redirect
-from flask_restful import Resource, Api, reqparse
+from flask import Flask, request
+from flask_restful import Resource, Api
 from werkzeug import secure_filename
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 import os
 from .settings import FlaskServerSettings
 from eventClass.eventHandler import EventHandler
@@ -112,6 +112,56 @@ class JobHandlerRestEndpoint(object):
     """
     Serves as a REST endpoint for the Job Handler that processes incoming jobs/events.
     """
+    def __init__(self):
+        # create handler
+        self.handler = EventHandler()
+
+        # initialize Flask server
+        self.app = Flask(__name__)
+        self.api = Api(self.app)
+        CORS(self.app)
+
+        self.app.config['UPLOAD_FOLDER'] = FlaskServerSettings.get_static_img_dir()
+
+        self.client = TcpClient(ControllerSettings.IP_ADDR(),
+                                ControllerSettings.PORT(),
+                                TcpSettings.BUFFER_SIZE())
+        self.client.connect_to_controller()
+
+    def run(self):
+        self.app.run(debug=False, port=FlaskServerSettings.PORT(), ssl_context='adhoc')
+
+    class PhotoUpload(Resource):
+        """
+        Handles GET and POST requests for the Flask Server.
+        """
+
+        def get(self):
+            """
+            Returns a success message on GET requests to verify a working connnection.
+            :return:
+            """
+            return {'server status': 'server is up and running'}
+
+        def post(self):
+            """
+            Parses a request to:
+                * Save the image locally
+                * Send an event to the EventHandler to initiate an ImP operation
+            :return:
+            """
+            file = request.files['photo']
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER'])
+            file.save(filepath + filename)
+            # Create Event
+            bundle = Bundle()
+            bundle.insert_string('FILE_PATH', filepath + filename)
+            bundle.insert_string('EXT_STORAGE_TARGET', 'FIREBASE')
+            new_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, bundle)
+            # Enqueue Event
+            handler.enqueue_event(new_event)
+            return {'upload status': 'file upload successful'}
 
 
 if __name__ == "__main__":
