@@ -18,6 +18,13 @@ class TestLogbook(unittest.TestCase):
         self._ctx = self._output_stream.push_application()
         self._log = Logger('TestLog')
 
+    def tearDown(self):
+        """
+        Close the output stream.
+        :return:
+        """
+        self._output_stream.close()
+
     def test_logging_to_stdout(self):
         """
         Call all log methods
