@@ -1,0 +1,28 @@
+### Python Requirements File ###
+### Usage (from root project directory):
+# sudo pip install -r requirements.txt
+# or (to specify usage of Python 3)
+# sudo pip3 install -r requirements.txt
+#
+### Notes ######################
+# Certain project requirements are not listed here, including:
+# * OpenCV
+# * CUDA
+#
+### Mathematical ###############
+numpy
+#
+### Flask Server ###############
+# May require the following command to be run:
+# sudo apt-get install build-essential libssl-dev libffi-dev python-dev
+Flask==0.11.1
+Flask-RESTful==0.3.5
+Jinja2==2.8
+Werkzeug==0.11.11
+requests==2.9.1
+Flask-Cors==3.0.2
+pyOpenSSL==16.2.0
+cryptography
+#
+### External Communication #####
+pyrebase

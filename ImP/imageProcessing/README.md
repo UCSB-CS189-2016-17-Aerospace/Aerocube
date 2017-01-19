@@ -38,3 +38,4 @@ Parameters:
 Return values:
 * **rvecs** - rotation vectors for the given corners
 * **tvecs** - translation vectors for the given corners
+
