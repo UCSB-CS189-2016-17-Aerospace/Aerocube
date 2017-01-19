@@ -57,3 +57,7 @@ solvePnP's outputs of ```rvec``` is a rotation matrix that has been converted to
 #### Translating to the Quaternion
 * [Wikipedia: Euler axis/angle to quaternion](https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions#Euler_axis.2Fangle_.E2.86.94_quaternion)
 * [Euclidean Space: AxisAngle to Quaternion](http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/)
+
+#### Python Libraries
+* http://kieranwynn.github.io/pyquaternion/
+* https://github.com/moble/quaternion/blob/master/README.md
