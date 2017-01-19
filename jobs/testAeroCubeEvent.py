@@ -1,7 +1,8 @@
-from .aeroCubeEvent import AeroCubeEvent, ImageEvent, ResultEvent, SystemEvent
+import unittest
+
+from .aeroCubeEvent import ImageEvent, ResultEvent, SystemEvent
 from .aeroCubeSignal import *
 from .bundle import Bundle, BundleKeyError
-import unittest
 
 
 class TestAeroCubeEventInit(unittest.TestCase):

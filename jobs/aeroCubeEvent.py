@@ -1,9 +1,10 @@
-from abc import ABCMeta, abstractmethod
+import json
 import time
 import uuid
+from abc import ABCMeta, abstractmethod
+
 from .aeroCubeSignal import *
 from .bundle import Bundle
-import json
 
 
 class AeroCubeEvent(metaclass=ABCMeta):

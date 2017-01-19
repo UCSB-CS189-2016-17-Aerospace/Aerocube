@@ -1,15 +1,13 @@
 # import settings
-from .settings import ControllerSettings
-# import packages from Aerocube directory
-from eventClass.bundle import Bundle
-from tcpService.tcpServer import TcpServer
-from tcpService.settings import TcpSettings
-from eventClass.aeroCubeSignal import ImageEventSignal, ResultEventSignal, SystemEventSignal
-from eventClass.aeroCubeEvent import AeroCubeEvent, ImageEvent, ResultEvent
-from externalComm.externalComm import process
-from dataStorage.dataStorage import store, store_image
-# import packages from Aerocube-ImP directory
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
+from dataStorage.dataStorage import store
+from externalComm.externalComm import process
+from jobs.aeroCubeEvent import AeroCubeEvent, ImageEvent, ResultEvent
+from jobs.aeroCubeSignal import ImageEventSignal, ResultEventSignal
+from jobs.bundle import Bundle
+from tcpService.settings import TcpSettings
+from tcpService.tcpServer import TcpServer
+from .settings import ControllerSettings
 
 
 class Controller:

@@ -1,13 +1,15 @@
-import unittest
-import cv2
-from cv2 import aruco
-import numpy as np
 import os
+import unittest
 from collections import namedtuple
+
+import cv2
+import numpy as np
+from cv2 import aruco
+
+from jobs.aeroCubeSignal import ImageEventSignal
 from .aerocubeMarker import AeroCubeMarker, AeroCubeFace, AeroCube
 from .imageProcessingInterface import ImageProcessor
 from .settings import ImageProcessingSettings
-from eventClass.aeroCubeSignal import ImageEventSignal
 
 
 class TestImageProcessingInterfaceMethods(unittest.TestCase):

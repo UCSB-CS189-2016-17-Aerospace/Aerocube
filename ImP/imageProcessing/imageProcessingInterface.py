@@ -1,10 +1,11 @@
 import itertools
+
 import cv2
 from cv2 import aruco
-import os
-from .aerocubeMarker import AeroCubeMarker, AeroCubeFace, AeroCube
+
+from jobs.aeroCubeSignal import ImageEventSignal
+from .aerocubeMarker import AeroCubeMarker, AeroCube
 from .cameraCalibration import CameraCalibration
-from eventClass.aeroCubeSignal import ImageEventSignal
 
 
 class ImageProcessor:

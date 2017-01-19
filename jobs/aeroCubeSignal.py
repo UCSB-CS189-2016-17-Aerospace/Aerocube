@@ -1,5 +1,4 @@
 from enum import Enum
-from abc import ABCMeta, abstractmethod
 
 
 class AeroCubeSignal():

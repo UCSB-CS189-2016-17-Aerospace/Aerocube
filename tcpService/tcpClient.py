@@ -1,6 +1,5 @@
 import socket
-import json
-from eventClass.aeroCubeEvent import AeroCubeEvent
+
 from .tcpUtils import TcpUtil
 
 

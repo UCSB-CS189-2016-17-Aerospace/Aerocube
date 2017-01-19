@@ -4,21 +4,21 @@ TODO: handler (EventHandler instance) is referenced nowhere but w/in PhotoUpload
 TODO: client (TcpClient instance) is referenced nowhere but in on_send_event, and
     seems it should be passed as a parameter instead of referenced as a global
 """
-from flask import Flask, render_template, url_for, request, redirect
-from flask_restful import Resource, Api, reqparse
-from werkzeug import secure_filename
-from flask_cors import CORS, cross_origin
 import os
-from .settings import FlaskServerSettings
-from controller.settings import ControllerSettings
-from eventClass.eventHandler import EventHandler
-from eventClass.aeroCubeEvent import ImageEvent, ResultEvent, AeroCubeEvent
-from eventClass.aeroCubeSignal import *
-from eventClass.bundle import Bundle
-from controller.settings import ControllerSettings
-from tcpService.tcpClient import TcpClient
-from tcpService.settings import TcpSettings
 
+from flask import Flask, request
+from flask_cors import CORS
+from flask_restful import Resource, Api
+from werkzeug import secure_filename
+
+from controller.settings import ControllerSettings
+from jobs.aeroCubeEvent import ImageEvent, ResultEvent, AeroCubeEvent
+from jobs.aeroCubeSignal import *
+from jobs.bundle import Bundle
+from jobs.jobHandler import JobHandler
+from tcpService.settings import TcpSettings
+from tcpService.tcpClient import TcpClient
+from .settings import FlaskServerSettings
 
 app = Flask(__name__)
 api = Api(app)
@@ -26,7 +26,7 @@ CORS(app)
 
 app.config['UPLOAD_FOLDER'] = FlaskServerSettings.get_static_img_dir()
 
-handler = EventHandler()
+handler = JobHandler()
 client = TcpClient(ControllerSettings.IP_ADDR(),
                    ControllerSettings.PORT(),
                    TcpSettings.BUFFER_SIZE())
@@ -56,7 +56,7 @@ def on_send_event(event):
                     break
                 else:
                     continue
-            except EventHandler.NotAllowedInStateException as e:
+            except JobHandler.NotAllowedInStateException as e:
                 print(e)
 
 

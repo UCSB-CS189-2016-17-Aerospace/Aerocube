@@ -1,7 +1,9 @@
 import pickle
+
 import cv2
+
+from jobs.aeroCubeSignal import *
 from .settings import *
-from eventClass.aeroCubeSignal import *
 
 
 def store(location, pickleable, use_relative_location=True):
