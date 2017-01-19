@@ -1,8 +1,7 @@
 import unittest
 import subprocess
-import os
-import signal
 import time
+import psutil
 from shellScripts.scriptWrapper import ScriptWrapper
 
 
@@ -15,7 +14,6 @@ class TestImageUpload(unittest.TestCase):
         """
         # run the controller
         print("~~~ Running the controller ~~~")
-        print([ScriptWrapper.runControllerPath()])
         self.controller = subprocess.Popen(ScriptWrapper.runControllerPath())
         # wait for controller to instantiate
         time.sleep(2)
@@ -34,7 +32,7 @@ class TestImageUpload(unittest.TestCase):
         # initiate image upload via curl command
         print("~~~ Calling curl command ~~~")
         try:
-            output = subprocess.check_output(ScriptWrapper.curlCommandPath(), timeout=25)
+            output = subprocess.check_output(ScriptWrapper.curlCommandPath(), timeout=30)
         except subprocess.TimeoutExpired:
             self.fail("Image upload timed out!")
 
@@ -45,12 +43,21 @@ class TestImageUpload(unittest.TestCase):
         Kills the processes of the Controller and Flask Server.
         Checks to see if they have been terminated correctly, and prints an error otherwise.
         """
-        os.killpg(os.getpgid(self.controller.pid), signal.SIGTERM)
-        os.killpg(os.getpgid(self.flask_server.pid), signal.SIGTERM)
+        procs = psutil.Process(self.controller.pid).children(recursive=True) + \
+            psutil.Process(self.flask_server.pid).children(recursive=True)
+        for proc in procs:
+            proc.terminate()
+        _, still_alive = psutil.wait_procs(
+                            procs,
+                            timeout=3,
+                            callback=lambda p: print("process {} terminated with exit code {}".format(p, p.returncode))
+                         )
+        for proc in still_alive:
+            proc.kill()
         if self.controller.poll() is None:
-            print("Warning! Controller has not terminated!")
+            print("Warning! Controller has not been killed!")
         if self.flask_server.poll() is None:
-            print("Warning! Flask Server has not terminated!")
+            print("Warning! Flask Server has not killed!")
 
 
 if __name__ == '__main__':
