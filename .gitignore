@@ -37,3 +37,6 @@
 # Random python 
 *.pyc
 *__pycache__
+
+# IDE-related files
+.idea/*
