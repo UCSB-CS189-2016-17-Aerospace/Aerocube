@@ -2,7 +2,7 @@
 ## Pose Representation
 There are a number of different ways to represent pose or, more broadly, rotation. In particular, [rotation in three dimensions](https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions) can take the form of:
 * Rotation matrix - an orthogonal, 3 x 3 matrix composed of three unit vectors; has 3 degrees of freedom
-* Euler axis and angle (rotation vector) - three-dimensional unit vector with angle θ; 3 degrees of freedom, and more compact than rotation matrix
+* [Euler axis and angle (rotation vector)](https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation) - three-dimensional unit vector with angle θ; 3 degrees of freedom, and more compact than rotation matrix
 * Rodrigues parameters - expressed in terms of the Euler axis and angle, (i.e., rotation vector)
 * [Quaternions](https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation) - form a four-dimensional vector space; often favored to represent rotations due to numerous advantages; normalizing is less computationally expensive than normalizing rotation matrices
 
@@ -11,7 +11,6 @@ There are a number of different ways to represent pose or, more broadly, rotatio
 Aruco allows for pose estimation of a marker through the following function.
 ```
 estimatePoseSingleMarkers(corners, markerLength, cameraMatrix, distCoeffs[, rvecs[, tvecs]]) -> rvecs, tvecs
-
 ```
 The arguments are:
 * **corners** - array of corner points of markers (four corners per marker)
