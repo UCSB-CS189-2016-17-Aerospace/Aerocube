@@ -6,7 +6,7 @@ from shellScripts.scriptWrapper import ScriptWrapper
 
 
 class TestImageUpload(unittest.TestCase):
-    _UPLOAD_STATUS_SUCCESS = "{\"upload status\": \"file upload sucessful\"}"
+    _UPLOAD_STATUS_SUCCESS = "{\"upload status\": \"file upload successful\"}"
 
     def setUp(self):
         """
