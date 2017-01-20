@@ -3,8 +3,8 @@ from cv2 import aruco
 import numpy as np
 import os
 from collections import namedtuple
-from .aerocubeMarker import AeroCubeMarker
-from .settings import ImageProcessingSettings
+from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker
+from ImP.imageProcessing.settings import ImageProcessingSettings
 
 
 class CameraCalibration():
