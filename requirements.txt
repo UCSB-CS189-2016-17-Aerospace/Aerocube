@@ -11,6 +11,7 @@
 #
 ### Mathematical ###############
 numpy
+pyquaternion
 #
 ### Flask Server ###############
 # May require the following command to be run:
