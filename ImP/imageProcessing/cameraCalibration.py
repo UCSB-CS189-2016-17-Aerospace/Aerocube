@@ -29,6 +29,14 @@ class CameraCalibration():
                                     [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]]),
             DIST_COEFFS=np.array([[-4.58647345e-02, 1.73122392e+00, -3.30440816e-03, -7.78486275e-04, -7.00795983e+00]])
         )
+         
+        GUS_GOPRO = _Calibration(
+            RET_VAL=7.338949904735088,
+            CAMERA_MATRIX=np.array([[1.22554451e+03, 0.00000000e+00, 1.46553617e+03],
+                                    [0.00000000e+00, 1.29778987e+03, 1.31391637e+03],
+                                    [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]]),
+            DIST_COEFFS=np.array([[-0.47054741,  2.05210803, -0.04170817,  0.0051407 , -3.94055482]])
+        ) 
 
     @staticmethod
     def get_charucoboard():
@@ -96,15 +104,11 @@ if __name__ == '__main__':
     # Get the calibration matrices for ANDREW_IPHONE calibration/configuration
     board = CameraCalibration.get_charucoboard()
     test_files_path = ImageProcessingSettings.get_test_files_path()
-    img_paths = [os.path.join(test_files_path, "gus_gopro_1.JPG"),
-                 os.path.join(test_files_path, "gus_gopro_2.JPG"),
-                 os.path.join(test_files_path, "gus_gopro_3.JPG"),
-                 os.path.join(test_files_path, "gus_gopro_4.JPG")]
+    img_paths = [os.path.join(test_files_path, "andrew_iphone_calibration_photo_0.jpg"),
+                 os.path.join(test_files_path, "andrew_iphone_calibration_photo_1.jpg"),
+                 os.path.join(test_files_path, "andrew_iphone_calibration_photo_2.jpg"),
+                 os.path.join(test_files_path, "andrew_iphone_calibration_photo_3.jpg")]
 
-    img_paths2 = [os.path.join(test_files_path, "gus_gorpo_1.JPG"),
-                 os.path.join(test_files_path, "gus_gorpo_2.JPG"),
-                 os.path.join(test_files_path, "gus_gorpo_3.JPG"),
-                 os.path.join(test_files_path, "gus_gorpo_4.JPG")]
 
     img_arr = [cv2.imread(img) for img in img_paths]
     print(CameraCalibration.get_calibration_matrices(board, img_arr))
