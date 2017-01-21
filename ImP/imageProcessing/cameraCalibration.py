@@ -96,15 +96,15 @@ if __name__ == '__main__':
     # Get the calibration matrices for ANDREW_IPHONE calibration/configuration
     board = CameraCalibration.get_charucoboard()
     test_files_path = ImageProcessingSettings.get_test_files_path()
-    img_paths = [os.path.join(test_files_path, "andrew_iphone_calibration_photo_0.jpg"),
-                 os.path.join(test_files_path, "andrew_iphone_calibration_photo_1.jpg"),
-                 os.path.join(test_files_path, "andrew_iphone_calibration_photo_2.jpg"),
-                 os.path.join(test_files_path, "andrew_iphone_calibration_photo_3.jpg")]
+    img_paths = [os.path.join(test_files_path, "gus_gopro_1.JPG"),
+                 os.path.join(test_files_path, "gus_gopro_2.JPG"),
+                 os.path.join(test_files_path, "gus_gopro_3.JPG"),
+                 os.path.join(test_files_path, "gus_gopro_4.JPG")]
 
-    img_paths2 = [os.path.join(test_files_path, "gus_gorpo_1.jpg"),
-                 os.path.join(test_files_path, "gus_gorpo_2.jpg"),
-                 os.path.join(test_files_path, "gus_gorpo_3.jpg"),
-                 os.path.join(test_files_path, "gus_gorpo_4.jpg")]
+    img_paths2 = [os.path.join(test_files_path, "gus_gorpo_1.JPG"),
+                 os.path.join(test_files_path, "gus_gorpo_2.JPG"),
+                 os.path.join(test_files_path, "gus_gorpo_3.JPG"),
+                 os.path.join(test_files_path, "gus_gorpo_4.JPG")]
 
-    img_arr = [cv2.imread(img) for img in img_paths2]
+    img_arr = [cv2.imread(img) for img in img_paths]
     print(CameraCalibration.get_calibration_matrices(board, img_arr))
