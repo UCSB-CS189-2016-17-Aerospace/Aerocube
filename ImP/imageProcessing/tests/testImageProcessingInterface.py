@@ -39,6 +39,13 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
                                                        [779.,  380.],
                                                        [741.,  333.]]])],
                                    IDs=np.array([[12], [4]]))
+    # struct for image 'jetson_test1.jpg'
+    TEST_JETSON_SINGLE_MARKER = TestFile(img_path=os.path.join(test_files_path, 'jetson_test1.jpg'),
+                                         corners=[np.array([[[1., 1.],
+                                                             [1., 1.],
+                                                             [1., 1.],
+                                                             [1., 1.]]])],
+                                         IDs=np.array([[0]]))
 
     def test_init(self):
         imp = ImageProcessor(self.TEST_SINGLE_MARKER.img_path)
@@ -153,6 +160,15 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
         corners, IDs = imp._find_fiducial_markers()
         img = imp.draw_fiducial_markers(corners, IDs)
         self.assertEqual(img.shape, imp._img_mat.shape)
+
+    # pose
+
+    def test_euler_axis_angle_to_quaternion(self):
+        imp = ImageProcessor(self.TEST_JETSON_SINGLE_MARKER.img_path)
+        rvecs, _ = imp._find_pose()
+        # test
+        imp.euler_axis_angle_to_quaternion(rvecs[0])
+        self.fail()
 
 if __name__ == '__main__':
     unittest.main()

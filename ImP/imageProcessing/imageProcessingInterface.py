@@ -1,7 +1,7 @@
 import itertools
 import cv2
 from cv2 import aruco
-import os
+import pyquaternion
 from .aerocubeMarker import AeroCubeMarker, AeroCubeFace, AeroCube
 from .cameraCalibration import CameraCalibration
 from eventClass.aeroCubeSignal import ImageEventSignal
@@ -151,3 +151,7 @@ class ImageProcessor:
         :return: img with marker boundaries drawn and markers IDed
         """
         return aruco.drawDetectedMarkers(self._img_mat, corners, marker_IDs)
+
+    @staticmethod
+    def euler_axis_angle_to_quaternion(euler):
+        pass
