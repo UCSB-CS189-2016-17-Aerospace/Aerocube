@@ -26,3 +26,6 @@ cryptography
 #
 ### External Communication #####
 pyrebase
+#
+### Utility ####################
+psutil
