@@ -14,17 +14,20 @@ class ImageEventSignal(Enum):
 
 
 class ResultEventSignal(Enum):
+    OK                     = 0x00020000
+    WARN                   = 0x00020001
+    ERROR                  = 0x00020002
     # ImP Operations
-    IMP_OPERATION_OK       = 0x00020001
-    IMP_OP_FAILED          = 0x00020002
+    IMP_OPERATION_OK       = 0x00020003
+    IMP_OP_FAILED          = 0x00020004
     # Internal Storage Operations
-    INTERN_STORE_OP_OK     = 0x00020003
-    INTERN_STORE_OP_FAILED = 0x00020004
+    INTERN_STORE_OP_OK     = 0x00020005
+    INTERN_STORE_OP_FAILED = 0x00020006
     # External Communication Operations
-    EXT_COMM_OP_OK         = 0x00020005
-    EXT_COMM_OP_FAILED     = 0x00020006
+    EXT_COMM_OP_OK         = 0x00020007
+    EXT_COMM_OP_FAILED     = 0x00020008
     # Job completed
-    IDENT_AEROCUBES_FIN     = 0x00020007
+    IDENT_AEROCUBES_FIN    = 0x00020009
 
     def __str__(self):
         return str(self.value)
