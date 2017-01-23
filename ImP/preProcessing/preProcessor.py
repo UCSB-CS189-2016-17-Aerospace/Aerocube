@@ -11,7 +11,7 @@ class PreProcessor:
 	def is_similar(self, pathToOtherImage):
 		existingImage = cv2.imread(pathToOtherImage)
 		difference = cv2.subtract(self.image, existingImage)
-		return np.mean(difference) <= threshold_value
+		return np.mean(difference) <= self.threshold_value
 		
 
 	def calculate_average_exposure(self):
