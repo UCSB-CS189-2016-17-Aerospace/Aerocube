@@ -1,5 +1,5 @@
 import numpy
-from PIL import Image
+from PIL import Image, ImageColor
 import random
 
 IMAGESIZE=500
@@ -34,7 +34,9 @@ def createImage(quarry_image_name, background_name, rotation_degree=0, pos=(0,0)
     quarry_image=Image.open(quarry_image_name)
     background=Image.open(background_name)
     quarry_image=quarry_image.resize((quarry_image.width*size,quarry_image.height*size))
-    boarder=Image.new("RGB",quarry_image.size)
+    boarder=Image.new("RGBA",quarry_image.size,ImageColor.getrgb("black"))#todo get rid of the boarder stuff
+    #quarry_image=quarry_image.convert("RGB")
+
     if skew_values is not None:
         width,height=quarry_image.size
         corners=[(skew_values[0],skew_values[1]),
@@ -42,10 +44,13 @@ def createImage(quarry_image_name, background_name, rotation_degree=0, pos=(0,0)
                  (width+skew_values[4],height+skew_values[5]),
                  (skew_values[6],height-skew_values[7])]
         quarry_image=skew(quarry_image,corners)
-    quarry_image=quarry_image.rotate(rotation_degree,expand=False)
-    boarder=boarder.rotate(rotation_degree,expand=False)
-    background.paste(boarder,pos)
-    background.paste(quarry_image,pos)
+        boarder=skew(boarder,corners)#boarder stuff
+
+    quarry_image=quarry_image.rotate(rotation_degree,expand=True)
+    boarder=boarder.rotate(rotation_degree,expand=True)#boarder stuff
+
+    background.paste(boarder,pos,boarder)
+    background.paste(quarry_image,pos,quarry_image)
     background.save(name)
 #TODO find a better way of doing this for example pass a quaternion in instead of new_corners
 def randomSkewValues(amount):
