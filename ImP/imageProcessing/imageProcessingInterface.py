@@ -2,8 +2,10 @@ import itertools
 import cv2
 from cv2 import aruco
 import pyquaternion
+import math
 from .aerocubeMarker import AeroCubeMarker, AeroCubeFace, AeroCube
 from .cameraCalibration import CameraCalibration
+from .settings import ImageProcessingSettings
 from eventClass.aeroCubeSignal import ImageEventSignal
 
 
@@ -152,6 +154,40 @@ class ImageProcessor:
         """
         return aruco.drawDetectedMarkers(self._img_mat, corners, marker_IDs)
 
+    def draw_axis(self, cameraMatrix, distCoeffs, quaternion, tvec):
+        """
+        Wrapper method that calls Aruco's draw axis method on a given marker.
+        Can be used to visually verify the accuracy of pose.
+        :param cameraMatrix: camera calibration matrix
+        :param distCoeffs: camera distortion coefficients
+        :param quaternion: pose represented as quaternion
+        :param tvec: translation vector, returned by Aruco's estimatePoseSingleMarker
+        :return: img held by this ImageProcessor with the drawn axis
+        """
+        return aruco.drawAxis(self._img_mat,
+                              cameraMatrix, distCoeffs,
+                              self.quaternion_to_rodrigues(quaternion),
+                              tvec,
+                              ImageProcessingSettings.get_marker_length())
+
     @staticmethod
-    def euler_axis_angle_to_quaternion(euler):
-        pass
+    def rodrigues_to_quaternion(rodrigues):
+        """
+        Converts an OpenCV rvec object (written in compact Rodrigues notation) into a quaternion.
+        http://stackoverflow.com/questions/12933284/rodrigues-into-eulerangles-and-vice-versa
+        :param rodrigues: rotation in compact Rodrigues notation (returned by cv2.Rodrigues) as 1x3 array
+        :return: rotation represented as quaternion
+        """
+        # theta = math.sqrt(rodrigues[0]**2 + rodrigues[1]**2 + rodrigues[2]**2)
+        # quat = pyquaternion.Quaternion(scalar=theta, vector=[r/theta for r in rodrigues])
+        quat = pyquaternion.Quaternion(matrix=cv2.Rodrigues(rodrigues)[0])
+        return quat
+
+    @staticmethod
+    def quaternion_to_rodrigues(quaternion):
+        """
+        Converts quaternion to rvec object (written in compact Rodrigues notation)
+        :param quaternion: rotation represented as quaternion
+        :return: rotation represented as rvec in compact Rodrigues notation
+        """
+        return cv2.Rodrigues(quaternion.rotation_matrix)[0]

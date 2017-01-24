@@ -3,10 +3,12 @@ import cv2
 from cv2 import aruco
 import numpy as np
 import os
+import pyquaternion
 from collections import namedtuple
 from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker, AeroCubeFace, AeroCube
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 from ImP.imageProcessing.settings import ImageProcessingSettings
+from ImP.imageProcessing.cameraCalibration import CameraCalibration
 from eventClass.aeroCubeSignal import ImageEventSignal
 
 
@@ -155,20 +157,42 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
         # assert equality
         self.assertTrue(np.array_equal(aerocube_list, scan_results))
 
+    # drawing functions
+
     def test_draw_fiducial_markers(self):
         imp = ImageProcessor(self.TEST_SINGLE_MARKER.img_path)
         corners, IDs = imp._find_fiducial_markers()
         img = imp.draw_fiducial_markers(corners, IDs)
         self.assertEqual(img.shape, imp._img_mat.shape)
 
-    # pose
+    def test_draw_axis(self):
+        imp = ImageProcessor(self.TEST_JETSON_SINGLE_MARKER.img_path)
+        rvecs, tvecs = imp._find_pose()
+        img = imp.draw_axis(CameraCalibration.PredefinedCalibration.ANDREW_IPHONE.CAMERA_MATRIX,
+                            CameraCalibration.PredefinedCalibration.ANDREW_IPHONE.DIST_COEFFS,
+                            imp.rodrigues_to_quaternion(rvecs[0]), tvecs[0])
+        self.assertIsNotNone(img)
 
-    def test_euler_axis_angle_to_quaternion(self):
+    # pose representation conversions
+
+    def test_rodrigues_to_quaternion(self):
         imp = ImageProcessor(self.TEST_JETSON_SINGLE_MARKER.img_path)
         rvecs, _ = imp._find_pose()
-        # test
-        imp.euler_axis_angle_to_quaternion(rvecs[0])
-        self.fail()
+        # test value
+        test_quat = imp.rodrigues_to_quaternion(rvecs[0])
+        # true value
+        true_quat = pyquaternion.Quaternion(w=-0.060, x=0.746, y=-0.648, z=-0.140)
+        # assert that the str representations are equal (components identical up to 3 decimal places)
+        self.assertEqual(str(test_quat), str(true_quat))
+
+    def test_quaternion_to_rodrigues(self):
+        rodr = np.array([[ 2.43782719, -2.1174341, -0.45808756]])
+        quat = pyquaternion.Quaternion(w=-0.060, x=0.746, y=-0.648, z=-0.140)
+        # assert that rotation matrices of Rodrigues representation and Quaternion translated into Rodrigues
+        # is close enough (1e-02)
+        self.assertTrue(np.allclose(cv2.Rodrigues(rodr)[0],
+                                    cv2.Rodrigues(ImageProcessor.quaternion_to_rodrigues(quat))[0],
+                                    rtol=1e-02))
 
 if __name__ == '__main__':
     unittest.main()
