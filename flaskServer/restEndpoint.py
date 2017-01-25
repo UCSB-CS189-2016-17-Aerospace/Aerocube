@@ -4,12 +4,13 @@ TODO: handler (EventHandler instance) is referenced nowhere but w/in PhotoUpload
 TODO: client (TcpClient instance) is referenced nowhere but in on_send_event, and
     seems it should be passed as a parameter instead of referenced as a global
 """
+import os
+
 from flask import Flask, request
+from flask_cors import CORS
 from flask_restful import Resource, Api
 from werkzeug import secure_filename
-from flask_cors import CORS
-import os
-from .settings import FlaskServerSettings
+
 from controller.settings import ControllerSettings
 from jobs.aeroCubeEvent import ImageEvent, ResultEvent, AeroCubeEvent
 from jobs.aeroCubeSignal import *
@@ -17,7 +18,7 @@ from jobs.bundle import Bundle
 from jobs.jobHandler import JobHandler
 from tcpService.settings import TcpSettings
 from tcpService.tcpClient import TcpClient
-
+from .settings import FlaskServerSettings
 
 app = Flask(__name__)
 api = Api(app)
@@ -70,8 +71,8 @@ def on_dequeue_event():
 
 
 handler.set_start_event_observer(on_send_event)
-handler.set_enqueue_observer(on_enqueue_event)
-handler.set_dequeue_observer(on_dequeue_event)
+handler.set_job_enqueue_observer(on_enqueue_event)
+handler.set_job_dequeue_observer(on_dequeue_event)
 
 
 class PhotoUpload(Resource):
@@ -102,7 +103,7 @@ class PhotoUpload(Resource):
         bundle.insert_string('EXT_STORAGE_TARGET', 'FIREBASE')
         new_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, bundle)
         # Enqueue Event
-        handler.enqueue_event(new_event)
+        handler.enqueue_job(new_event)
         return {'upload status': 'file upload successful'}
 
 api.add_resource(PhotoUpload, '/api/uploadImage')

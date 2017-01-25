@@ -38,34 +38,34 @@ class TestEventHandler(unittest.TestCase):
     # enqueue_event
 
     def test_enqueue_event(self):
-        self._handler.enqueue_event(self._VALID_IMAGE_EVENT)
+        self._handler.enqueue_job(self._VALID_IMAGE_EVENT)
         self.assertEqual(self._handler._event_deque,
                          deque([self._VALID_IMAGE_EVENT]))
 
     def test_enqueue_event_multiple_events(self):
-        self._handler.enqueue_event(self._VALID_IMAGE_EVENT)
-        self._handler.enqueue_event(self._VALID_RESULT_EVENT)
+        self._handler.enqueue_job(self._VALID_IMAGE_EVENT)
+        self._handler.enqueue_job(self._VALID_RESULT_EVENT)
         self.assertEqual(self._handler._event_deque,
                          deque([self._VALID_IMAGE_EVENT, self._VALID_RESULT_EVENT])
                          )
 
     def test_enqueue_event_invalid_arg(self):
-        self.assertRaises(TypeError, self._handler.enqueue_event, 'non_event')
+        self.assertRaises(TypeError, self._handler.enqueue_job, 'non_event')
 
     # dequeue_event
 
     def test_dequeue_event(self):
-        self._handler.enqueue_event(self._VALID_IMAGE_EVENT)
+        self._handler.enqueue_job(self._VALID_IMAGE_EVENT)
         self.assertEqual(self._handler._event_deque,
                          deque([self._VALID_IMAGE_EVENT]))
-        self._handler._dequeue_event()
+        self._handler._dequeue_job()
         self.assertEqual(self._handler._event_deque, deque())
 
     def test_dequeue_event_exception(self):
-        self.assertRaises(IndexError, self._handler._dequeue_event)
+        self.assertRaises(IndexError, self._handler._dequeue_job)
 
     def test_peek_current_event(self):
-        self._handler.enqueue_event(self._VALID_IMAGE_EVENT)
+        self._handler.enqueue_job(self._VALID_IMAGE_EVENT)
         self.assertEqual(self._handler._peek_current_event(),
                          self._VALID_IMAGE_EVENT)
 
@@ -75,8 +75,8 @@ class TestEventHandler(unittest.TestCase):
         self.assertIsNone(self._handler._peek_current_event())
 
     def test_peek_current_event_multiple(self):
-        self._handler.enqueue_event(self._VALID_IMAGE_EVENT)
-        self._handler.enqueue_event(self._VALID_RESULT_EVENT)
+        self._handler.enqueue_job(self._VALID_IMAGE_EVENT)
+        self._handler.enqueue_job(self._VALID_RESULT_EVENT)
         self.assertEqual(self._handler._peek_current_event(),
                          self._VALID_IMAGE_EVENT)
 
@@ -86,13 +86,13 @@ class TestEventHandler(unittest.TestCase):
         self.assertIsNone(self._handler._peek_last_added_event())
 
     def test_peek_last_added_event_not_empty(self):
-        self._handler.enqueue_event(self._VALID_IMAGE_EVENT)
+        self._handler.enqueue_job(self._VALID_IMAGE_EVENT)
         self.assertEqual(self._handler._peek_last_added_event(),
                          self._VALID_IMAGE_EVENT)
 
     def test_peek_last_added_event_multiple(self):
-        self._handler.enqueue_event(self._VALID_RESULT_EVENT)
-        self._handler.enqueue_event(self._VALID_IMAGE_EVENT)
+        self._handler.enqueue_job(self._VALID_RESULT_EVENT)
+        self._handler.enqueue_job(self._VALID_IMAGE_EVENT)
         self.assertEqual(self._handler._peek_last_added_event(),
                          self._VALID_IMAGE_EVENT)
 
@@ -100,10 +100,10 @@ class TestEventHandler(unittest.TestCase):
 
     def test_any_events_not_empty(self):
         self._handler._event_deque.append(self._VALID_IMAGE_EVENT)
-        self.assertTrue(self._handler.any_events())
+        self.assertTrue(self._handler.any_jobs())
 
     def test_any_events_empty(self):
-        self.assertFalse(self._handler.any_events())
+        self.assertFalse(self._handler.any_jobs())
 
     # is_valid_element
 
