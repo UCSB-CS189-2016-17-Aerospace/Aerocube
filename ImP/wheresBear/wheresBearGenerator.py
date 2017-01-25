@@ -3,6 +3,7 @@ from PIL import Image, ImageColor
 import random
 
 IMAGESIZE=500
+#todo get rid of arbitrary constants
 def generateDatabase(size, quarry_images, backgrounds=["background.png"]):
     #todo finish function
     for i in range(size):
@@ -34,7 +35,7 @@ def createImage(quarry_image_name, background_name, rotation_degree=0, pos=(0,0)
     quarry_image=Image.open(quarry_image_name)
     background=Image.open(background_name)
     quarry_image=quarry_image.resize((quarry_image.width*size,quarry_image.height*size))
-    boarder=Image.new("RGBA",quarry_image.size,ImageColor.getrgb("black"))#todo get rid of the boarder stuff
+    mask=Image.new("RGBA",quarry_image.size,ImageColor.getrgb("black"))#todo get rid of the boarder stuff
     #quarry_image=quarry_image.convert("RGB")
 
     if skew_values is not None:
@@ -44,13 +45,13 @@ def createImage(quarry_image_name, background_name, rotation_degree=0, pos=(0,0)
                  (width+skew_values[4],height+skew_values[5]),
                  (skew_values[6],height-skew_values[7])]
         quarry_image=skew(quarry_image,corners)
-        boarder=skew(boarder,corners)#boarder stuff
+        mask=skew(mask,corners)#boarder stuff
 
     quarry_image=quarry_image.rotate(rotation_degree,expand=True)
-    boarder=boarder.rotate(rotation_degree,expand=True)#boarder stuff
+    mask=mask.rotate(rotation_degree,expand=True)#boarder stuff
 
-    background.paste(boarder,pos,boarder)
-    background.paste(quarry_image,pos,quarry_image)
+
+    background.paste(quarry_image,pos,mask)
     background.save(name)
 #TODO find a better way of doing this for example pass a quaternion in instead of new_corners
 def randomSkewValues(amount):
@@ -88,5 +89,3 @@ def pasteRandomly(quarry_image, background):
     y = random.randint(0, background.height-quarry_image.height)
     background.paste(quarry_image, (x, y))
 
-if __name__ == "__main__":
-    generateDatabase(1,['marker_4X4_sp6_id7.png'],['desert.png'])
