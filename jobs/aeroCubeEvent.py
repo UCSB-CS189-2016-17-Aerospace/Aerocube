@@ -78,7 +78,7 @@ class AeroCubeEvent(metaclass=ABCMeta):
             event = ImageEvent(image_signal=signal, bundle=bundle, created_at=created_at, id=uuid)
         elif class_name == ResultEvent.__name__:
             signal = ResultEventSignal(signal_int)
-            event = ResultEvent(result_signal=signal, calling_event=bundle.strings(ResultEvent.CALLING_EVENT_UUID), bundle=bundle, created_at=created_at, id=uuid)
+            event = ResultEvent(result_signal=signal, calling_event_uuid=bundle.strings(ResultEvent.CALLING_EVENT_UUID), bundle=bundle, created_at=created_at, id=uuid)
         elif class_name == SystemEvent.__name__:
             signal = SystemEventSignal(signal_int)
             event = SystemEvent(system_signal=signal, bundle=bundle, created_at=created_at, id=uuid)
@@ -164,10 +164,10 @@ Payload examples for ResultEvent or variants:
 class ResultEvent(AeroCubeEvent):
     CALLING_EVENT_UUID = 'CALLING_EVENT'
 
-    def __init__(self, result_signal, calling_event, bundle=Bundle(), created_at=time.time(), id=None):
+    def __init__(self, result_signal, calling_event_uuid, bundle=Bundle(), created_at=time.time(), id=None):
         # print('ResultEvent.init: \r\n{}\r\n'.format(bundle))
         super().__init__(bundle, result_signal, created_at, id)
-        self.payload.insert_string(ResultEvent.CALLING_EVENT_UUID, calling_event)
+        self.payload.insert_string(ResultEvent.CALLING_EVENT_UUID, calling_event_uuid)
 
     def is_valid_signal(self, signal):
         return signal in ResultEventSignal

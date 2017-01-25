@@ -6,7 +6,7 @@ from jobs.aeroCubeSignal import *
 from jobs.jobHandler import JobHandler
 
 
-class TestEventHandler(unittest.TestCase):
+class TestJobHandler(unittest.TestCase):
 
     # Set Up and Tear Down functions
 

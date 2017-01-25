@@ -1,8 +1,8 @@
 import unittest
 
-from .aeroCubeEvent import ImageEvent, ResultEvent, SystemEvent
-from .aeroCubeSignal import *
-from .bundle import Bundle, BundleKeyError
+from jobs.aeroCubeEvent import ImageEvent, ResultEvent, SystemEvent
+from jobs.aeroCubeSignal import *
+from jobs.bundle import Bundle, BundleKeyError
 
 
 class TestAeroCubeEventInit(unittest.TestCase):
@@ -131,13 +131,14 @@ class TestAeroCubePayload(unittest.TestCase):
         cls._VALID_STRING = 'a string'
 
     def setUp(self):
-        self._event = ImageEvent(ImageEventSignal.GET_AEROCUBE_POSE)
+        self._event = ImageEvent(ImageEventSignal.GET_AEROCUBE_POSE, Bundle())
 
     def tearDown(self):
-        self._event = None
+        del self._event._payload
+        del self._event
 
     def test_init_payload(self):
-        self.assertEqual(self._event._payload, Bundle())
+        self.assertEqual(self._event.payload, Bundle())
 
     def test_retrieve_from_empty_payload(self):
         self.assertRaises(BundleKeyError, self._event._payload.strings, self._VALID_KEY)

@@ -11,6 +11,8 @@ class AeroCubeJobEventNode:
     def __init__(self, event, ok_event_node=None, warn_event_node=None, err_event_node=None):
         if not isinstance(event, AeroCubeEvent):
             raise AttributeError('Invalid event parameter, must be instance of AeroCubeEvent')
+        if isinstance(event, ResultEvent):
+            raise AttributeError('Event nodes may not be created with a ResultEvent')
         self._event = event
         self._event_signal_map = {
             ResultEventSignal.OK: ok_event_node,
@@ -18,19 +20,32 @@ class AeroCubeJobEventNode:
             ResultEventSignal.ERROR: err_event_node
         }
 
+    def __eq__(self, other):
+        return isinstance(other, AeroCubeJobEventNode) and \
+               other.event == self._event and \
+               self._event_signal_map == other.event_signal_map
+
+    def __ne__(self, other):
+        return not self == other
+
     @property
-    def uuid(self):
+    def event_uuid(self):
         return self._event.uuid
 
     @property
     def event(self):
         return self._event
 
+    @property
+    def event_signal_map(self):
+        return self._event_signal_map
+
     def next_event_node(self, result_event):
         """
-        next_event_node attempts to use a result_event
+        next_event_node attempts to use a result_event to determine the next event_node
         :param result_event:
-        :return:
+        :return None
+        :raises LookupError if init is not updated to match potential result event signals
         """
         if not isinstance(result_event, ResultEvent):
             raise TypeError('Can only traverse jobs with a result_event')
@@ -43,22 +58,33 @@ class AeroCubeJobEventNode:
 
 class AeroCubeJob:
     """
-    :ivar _root_event:
+    :ivar _root_event_node:
+    :ivar _current_node:
     :ivar _created_at:
     :ivar _uuid:
     """
 
-    def __init__(self, event_node, created_at=time.time()):
-        if not isinstance(event_node, AeroCubeJobEventNode):
+    def __init__(self, root_event_node, created_at=time.time(), id=None):
+        if not isinstance(root_event_node, AeroCubeJobEventNode):
             raise AttributeError('Invalid event node parameter, must be instance of AeroCubeJobEventNode')
-        self._root_event = event_node
-        self._current_node = event_node
+        self._root_event_node = root_event_node
+        self._current_node = root_event_node
         self._created_at = created_at
         self._uuid = id if id is not None else \
             uuid.uuid5(uuid.NAMESPACE_OID, "{}-{}".format(self.__class__.__name__, self._created_at)).hex
 
     def __str__(self):
         pass
+
+    def __eq__(self, other):
+        return self._uuid == other.uuid
+
+    def __ne__(self, other):
+        return not self == other
+
+    @property
+    def root_event(self):
+        return self._root_event_node.event
 
     @property
     def current_event(self):
@@ -67,10 +93,6 @@ class AeroCubeJob:
     @property
     def created_at(self):
         return self._created_at
-
-    @property
-    def root_event(self):
-        return self._root_event
 
     @property
     def uuid(self):
@@ -85,7 +107,6 @@ class AeroCubeJob:
         Updates the current node property and returns the updated node's event.
         If the current node is a leaf node, returns None
         :param result_event: the result_event corresponding to the current node
-        :return:
         """
         # Check if event is a proper event (ResultEvent)
         if not isinstance(result_event, ResultEvent):
