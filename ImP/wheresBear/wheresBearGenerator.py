@@ -1,8 +1,10 @@
 import numpy
 from PIL import Image, ImageColor
+import os
 import random
 
 IMAGESIZE = 500
+wheres_bear_dir = os.path.dirname(__file__)
 # TODO: get rid of arbitrary constants
 
 
@@ -34,7 +36,11 @@ def createImage(quarry_image_name, background_name, rotation_degree=0, pos=(0, 0
     :param skew_values: 8 long array of offsets for the corners of the quarry image
     :return:
     """
-    name = 'Rot{0}_Pos{1}_Siz{2}_skew{3}'.format(rotation_degree, pos, size, skew_values)+quarry_image_name
+    # hard-code files to save to wheresbear/database
+    name = os.path.join(wheres_bear_dir,
+                        'database',
+                        'Rot{0}_Pos{1}_Siz{2}_skew{3}'.format(rotation_degree, pos, size, skew_values),
+                        quarry_image_name)
     quarry_image = Image.open(quarry_image_name)
     background = Image.open(background_name)
     quarry_image = quarry_image.resize((quarry_image.width*size, quarry_image.height*size))

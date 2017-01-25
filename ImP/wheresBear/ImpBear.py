@@ -2,13 +2,17 @@ from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 from ImP.wheresBear.wheresBearGenerator import generateDatabase
 import sys
 import glob
+import os
 
-sizeOfDB = sys.argv[1]
-markers = glob.glob('marker_*.png')
+sizeOfDB = int(sys.argv[1])
+wheres_bear_dir = os.path.dirname(__file__)
+print(wheres_bear_dir)
+markers = glob.glob(os.path.join(wheres_bear_dir, 'marker_*.png'))
+backgrounds = [os.path.join(wheres_bear_dir, 'background.png')]
 
-generateDatabase(size=sizeOfDB,quarry_images=markers)
+generateDatabase(size=sizeOfDB, quarry_images=markers, backgrounds=backgrounds)
 images = glob.glob('Rot*_Pos*_Siz*_skew*')
-f = open('results.txt', 'w')
+f = open(os.path.join(wheres_bear_dir, 'results.txt'), 'w')
 for image in images:
     try:
         imp = ImageProcessor(image)
