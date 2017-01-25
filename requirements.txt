@@ -9,6 +9,8 @@
 # * OpenCV
 # * CUDA
 #
+### Image Processing ###########
+PIL
 ### Mathematical ###############
 numpy
 #
