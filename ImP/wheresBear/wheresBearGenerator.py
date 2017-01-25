@@ -39,8 +39,10 @@ def createImage(quarry_image_name, background_name, rotation_degree=0, pos=(0, 0
     # hard-code files to save to wheresbear/database
     name = os.path.join(wheres_bear_dir,
                         'database',
-                        'Rot{0}_Pos{1}_Siz{2}_skew{3}'.format(rotation_degree, pos, size, skew_values),
-                        quarry_image_name)
+                        'Rot{0}_Pos{1}_Siz{2}_skew{3}'.format(rotation_degree, pos, size, skew_values) +
+                        os.path.split(quarry_image_name)[-1])
+    print("the new name is")
+    print(name)
     quarry_image = Image.open(quarry_image_name)
     background = Image.open(background_name)
     quarry_image = quarry_image.resize((quarry_image.width*size, quarry_image.height*size))
