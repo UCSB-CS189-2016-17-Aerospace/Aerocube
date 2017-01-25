@@ -10,7 +10,8 @@
 # * CUDA
 #
 ### Image Processing ###########
-PIL
+Pillow # Community-supported fork of PIL
+#
 ### Mathematical ###############
 numpy
 #
