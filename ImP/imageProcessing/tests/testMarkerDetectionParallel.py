@@ -1,7 +1,7 @@
 import unittest
 import os
 import cv2
-from ImP.imageProcessing.markerDetectionParallel import *
+from ImP.imageProcessing.markerDetectionParallelWrapper import *
 from ImP.imageProcessing.settings import ImageProcessingSettings
 
 
@@ -19,9 +19,18 @@ class TestMarkerDetectionParallel(unittest.TestCase):
     def setUp(self):
         self.image = self._IMAGE
 
-    def test_detect_candidates_raise_improper_image(self):
-        self.assertRaises(MarkerDetectionParallel.CUDAFunctionException, MarkerDetectionParallel.detect_candidates, self.image)
-        self.assertRaises(MarkerDetectionParallel.CUDAFunctionException, MarkerDetectionParallel.detect_candidates, None)
+    def tearDown(self):
+        self.image = None
+
+    def test_detect_markers_raise_on_improper_image(self):
+        self.assertRaises(MarkerDetectionParallelWrapper.MarkerDetectionParallelException,
+                          MarkerDetectionParallelWrapper.detect_markers_parallel, None)
+
+    def test_detect_candidates_raise_on_improper_image(self):
+        self.assertRaises(MarkerDetectionParallelWrapper.MarkerDetectionParallelException,
+                          MarkerDetectionParallelWrapper._detect_candidates, self.image)
+        self.assertRaises(MarkerDetectionParallelWrapper.MarkerDetectionParallelException,
+                          MarkerDetectionParallelWrapper._detect_candidates, None)
 
     def test_detector_parameters(self):
         pass
