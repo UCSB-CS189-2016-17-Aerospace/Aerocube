@@ -1,6 +1,9 @@
 import cv2
-import pycuda
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
+# Import and initialize PyCUDA
+import pycuda.driver as cuda
+import pycuda.autoinit
+from pycuda.compiler import SourceModule
 
 
 class MarkerDetectionParallelWrapper:
@@ -132,9 +135,6 @@ class MarkerDetectionParallelWrapper:
             raise cls.MarkerDetectionParallelException
         pass
 
-
-
-
     @classmethod
     def _detect_initial_candidates(cls, gray):
         """
@@ -157,7 +157,11 @@ class MarkerDetectionParallelWrapper:
                   cls.detectorParams[cls.adaptiveThreshWinSizeStep]
 
         # Run sanity check, and verify nScales is valid (non-zero)
-        raise cls.MarkerDetectionParallelException if nScales <= 0 else None
+        if nScales <= 0:
+            raise cls.MarkerDetectionParallelException
+
+        # In parallel, threshold at different scales
+        pass
 
     @classmethod
     def _find_marker_contours(cls, thresh):
