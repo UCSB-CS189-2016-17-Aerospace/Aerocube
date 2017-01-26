@@ -70,7 +70,14 @@ class TestAeroCubeJob(unittest.TestCase):
         # IMAGE_EVENT_WARN_NODE's tree has height 2 (3 layers of nodes)
         cls._IMAGE_EVENT_WARN_NODE = AeroCubeJobEventNode(cls._IMAGE_EVENT, warn_event_node=cls._IMAGE_EVENT_OK_NODE)
         cls._IMAGE_EVENT_ERR_NODE = AeroCubeJobEventNode(cls._IMAGE_EVENT, err_event_node=cls._IMAGE_EVENT_LEAF_NODE)
-        cls._JOB = AeroCubeJob(cls._IMAGE_EVENT_OK_NODE)
+
+    def setUp(self):
+        self._JOB = AeroCubeJob(self._IMAGE_EVENT_OK_NODE)
+
+    def tearDown(self):
+        del self._JOB._root_event_node
+        del self._JOB._current_node
+        del self._JOB
 
     @classmethod
     def tearDownClass(cls):
@@ -91,8 +98,8 @@ class TestAeroCubeJob(unittest.TestCase):
         self.assertLess(before_created_at, AeroCubeJob(self._IMAGE_EVENT_LEAF_NODE).created_at)
 
     def test_init(self):
-        self.assertEqual(self._JOB._root_event_node, self._IMAGE_EVENT_WARN_NODE)
-        self.assertEqual(self._JOB._current_node, self._IMAGE_EVENT_WARN_NODE)
+        self.assertEqual(self._JOB._root_event_node, self._IMAGE_EVENT_OK_NODE)
+        self.assertEqual(self._JOB._current_node, self._IMAGE_EVENT_OK_NODE)
         self.assertEqual(self._JOB._root_event_node, self._JOB._current_node)
         self.assertIsNotNone(self._JOB._uuid)
 

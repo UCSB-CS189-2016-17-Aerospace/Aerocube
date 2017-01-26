@@ -88,19 +88,26 @@ class JobHandler(object):
             raise TypeError("Attempted to queue invalid object to JobHandler")
         # Try to restart the sending process on enqueue
         try:
-            self._on_job_enqueue(job)
-            self._start_sending_events()
+            if self._on_job_enqueue is not None:
+                self._on_job_enqueue(job)
+            if self._state == JobHandler.State.STARTED or self._state == JobHandler.State.STOPPED:
+                self._state = JobHandler.State.STARTED
+                self._start_sending_events()
+            elif self._state == JobHandler.State.PENDING or self._state == JobHandler.State.PENDING_STOP_ON_RESOLVE:
+                pass
         except JobHandler.NotAllowedInStateException as e:
             print(e)
 
-    def get_state(self):
+    @property
+    def state(self):
         """
         Get the state of the JobHandler
         :return: The state of the JobHandler
         """
         return self._state
 
-    def any_jobs(self):
+    @property
+    def has_jobs(self):
         """
         Check if there are any events
         :return: true if there are events
@@ -122,7 +129,7 @@ class JobHandler(object):
         Peeks at the current event of the current job
         :return: the current event
         """
-        if self.any_jobs():
+        if self.has_jobs:
             return self._job_deque[0].current_event
         else:
             return None
@@ -139,7 +146,7 @@ class JobHandler(object):
         Peeks at the most recently added job
         :return: the most recently added job
         """
-        if self.any_jobs():
+        if self.has_jobs:
             return self._job_deque[-1]
         else:
             return None
@@ -165,7 +172,7 @@ class JobHandler(object):
         """
         if self._state != JobHandler.State.STARTED:
             raise JobHandler.NotAllowedInStateException('ERROR: JobHandler must be in STARTED state to send events')
-        if self.any_jobs():
+        if self.has_jobs:
             self._start_event()
 
     def _continue_sending_events(self):

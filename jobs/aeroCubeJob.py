@@ -74,7 +74,9 @@ class AeroCubeJob:
             uuid.uuid5(uuid.NAMESPACE_OID, "{}-{}".format(self.__class__.__name__, self._created_at)).hex
 
     def __str__(self):
-        pass
+        return "Job UUID: {}; Root Event UUID: {}; Current Event UUID: {}".format(self._uuid,
+                                                                                  self._root_event_node.event_uuid,
+                                                                                  self._current_node.event_uuid)
 
     def __eq__(self, other):
         return self._uuid == other.uuid
