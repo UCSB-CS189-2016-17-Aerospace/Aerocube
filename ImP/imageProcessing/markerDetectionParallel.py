@@ -95,6 +95,26 @@ class MarkerDetectionParallel:
         pass
 
 
+
+
+    @classmethod
+    def detectInitialCandidates(cls, gray):
+        """
+
+        :param gray: grayscale image to be analyzed
+        :return: marker candidates and marker contours
+        """
+
+        # Check if detection parameters are valid
+        if cls.detectorParameters[cls.adaptiveThreshWinSizeMin] < 3 or cls.detectorParameters[cls.adaptiveThreshWinSizeMax] < 3:
+            raise cls.CUDAFunctionException
+        if cls.detectorParameters[cls.adaptiveThreshWinSizeMax] < cls.detectorParameters[cls.adaptiveThreshWinSizeMin]:
+            raise cls.CUDAFunctionException
+        if cls.detectorParameters[cls.adaptiveThreshWinSizeStep] <= 0:
+            raise cls.CUDAFunctionException
+
+        nScales = cls.detectorParameters[cls.adaptiveThreshWinSizeMax] - cls.detectorParameters[cls.adaptiveThreshWinSizeMin]
+
     class CUDAFunctionException(Exception):
         """
         General exception for errors in the usage of the functions in this file.

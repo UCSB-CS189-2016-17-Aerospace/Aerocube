@@ -23,6 +23,9 @@ class TestMarkerDetectionParallel(unittest.TestCase):
         self.assertRaises(MarkerDetectionParallel.CUDAFunctionException, MarkerDetectionParallel.detect_candidates, self.image)
         self.assertRaises(MarkerDetectionParallel.CUDAFunctionException, MarkerDetectionParallel.detect_candidates, None)
 
+    def test_detector_parameters(self):
+        pass
+
 if __name__ == '__main__':
     unittest.main()
 
