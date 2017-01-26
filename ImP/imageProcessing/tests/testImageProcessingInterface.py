@@ -175,6 +175,28 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
 
     # pose representation conversions
 
+    def test_rodrigues_to_quaternion_has_identical_rotation(self):
+        """
+        Confirms the following case:
+        http://stackoverflow.com/questions/12933284/rodrigues-into-eulerangles-and-vice-versa
+        """
+        imp = ImageProcessor(self.TEST_JETSON_SINGLE_MARKER.img_path)
+        rvecs, _ = imp._find_pose()
+        test_quat = imp.rodrigues_to_quaternion(rvecs[0])
+        # get rotation matrices
+        rot_mat_orig = cv2.Rodrigues(rvecs[0])[0]
+        rot_mat_quat = test_quat.rotation_matrix
+        rot_mat = cv2.multiply(rot_mat_orig, cv2.transpose(rot_mat_quat))
+        print('\n')
+        print(rot_mat_orig)
+        print(rot_mat_quat)
+        print(np.transpose(rot_mat_quat))
+        print(rot_mat)
+        print(np.identity(3))
+        self.assertTrue(np.allclose(rot_mat,
+                                    np.identity(3),
+                                    rtol=1e-02))
+
     def test_rodrigues_to_quaternion(self):
         imp = ImageProcessor(self.TEST_JETSON_SINGLE_MARKER.img_path)
         rvecs, _ = imp._find_pose()
