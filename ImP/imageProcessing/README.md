@@ -55,4 +55,4 @@ python3 setup.py build
 python3 setup.py install
 ```
    * If nvcc is not on path, may need to edit ```/etc/environment``` with location to cuda binaries (e.g., ```/usr/local/cuda/bin```)
-   
+* [Tutorial](https://documen.tician.de/pycuda/tutorial.html)
