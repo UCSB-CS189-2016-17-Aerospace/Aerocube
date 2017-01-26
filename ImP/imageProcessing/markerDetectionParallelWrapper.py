@@ -67,8 +67,28 @@ class MarkerDetectionParallelWrapper:
         """
 
     @classmethod
-    def _threshold(cls, gray):
-        pass
+    def _threshold(cls, gray, winSize, constant=detectorParams[adaptiveThreshConstant]):
+        """
+        Calls OpenCV's adaptiveThreshold method on what should be a grayscale image.
+        Thresholds by looking at a block of pixels about a pixel (determined by winSize)
+        and (because of ADAPTIVE_THRESH_MEAN_C) taking the mean of the pixel neighborhood.
+        Thresholding is THRESH_BINARY_INV, meaning items that pass the threshold are set to 0; else, set to 1.
+        Constant is subtracted from ADAPTIVE_THRESH_MEAN_C calculation to weight the thresholding.
+        Reference:
+        * http://docs.opencv.org/2.4/modules/imgproc/doc/miscellaneous_transformations.html#adaptivethreshold
+        :param gray: image to be thresholded; must be single-channel (i.e., grayscale) image
+        :param winSize: size of pixel neighborhood about a pixel, and therefore must be odd (e.g., 3, 5, 7, etc.)
+        :param constant: used to weight the mean of the threshold calculations of a given pixel and its neighborhood
+        :return: thresholded image
+        """
+        if winSize < 3:
+            raise MarkerDetectionParallelWrapper.MarkerDetectionParallelException
+        if winSize % 2 == 0:
+            winSize += 1
+        maxValue = 255
+        return cv2.adaptiveThreshold(gray, maxValue, adaptiveMethod=cv2.ADAPTIVE_THRESH_MEAN_C,
+                                     thresholdType=cv2.THRESH_BINARY_INV, blockSize=winSize, C=constant)
+
 
     # PUBLIC FUNCTIONS
 
@@ -139,16 +159,12 @@ class MarkerDetectionParallelWrapper:
         # Run sanity check, and verify nScales is valid (non-zero)
         raise cls.MarkerDetectionParallelException if nScales <= 0 else None
 
-
-
-
-
     @classmethod
     def _find_marker_contours(cls, thresh):
         """
         Given a thresholded image, find candidate marker contours.
         :param thresh: thresholded image to find markers in
-        :return:
+        :return: (candidates, contours)
         """
         # Set parameters
         minPerimeterRate = cls.detectorParams[cls.minMarkerPerimeterRate]
@@ -162,7 +178,21 @@ class MarkerDetectionParallelWrapper:
             minCornerDistanceRate < 0 or minDistanceToBorder < 0):
             raise cls.MarkerDetectionParallelException
 
-        # Calculate maximum and minimum sizes in pixels
+        # Calculate maximum and minimum sizes in pixels based off of dimensions of thresh image
+        minPerimeterPixels = minPerimeterRate * max(thresh.shape)
+        maxPerimeterPixels = maxPerimeterRate * max(thresh.shape)
+
+        # Get contours
+        # Supply a copy of thresh to findContours, as it modifies the source image
+        # RETR_LIST returns contours without any hierarchical relationships (as list)
+        # CHAIN_APPROX_NONE stores all contour points, s.t. subsequent points of a contour are no further than 1 unit
+        #   away from each other
+        contours_img = thresh
+        contours_img, contours, _ = cv2.findContours(contours_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+
+        # Filter list of contours
+        pass
+
 
     # ~~STEP 2 FUNCTIONS~~
 
