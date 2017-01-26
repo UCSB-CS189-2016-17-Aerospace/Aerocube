@@ -9,8 +9,10 @@ class ImageSimilarityTestCase(unittest.TestCase):
 		self.pathForTestImage = os.path.join(self.directory,'im1.JPG')
 		self.pathForNewImage = os.path.join(self.directory,'im5.JPG')
 		self.pathForSimilarImage = os.path.join(self.directory,'im4.JPG')
+		self.pathForDark = os.path.join(self.directory,'darkest.jpg')
 		self.processor = PreProcessor(self.pathForTestImage)
-	
+		self.processor2 = PreProcessor(self.pathForDark)
+
 	def tearDown(self):
 		self.processor = None
 	
@@ -45,8 +47,16 @@ class ImageSimilarityTestCase(unittest.TestCase):
 		'''
 		validaty = self.processor.image.__class__.__name__
 		self.assertEqual(validaty,'ndarray')
+	
+	"""
+	def test_create_diff_images(self):
+		self.processor.darken_image()
+	"""
 
-
+	"""
+	def test_is_low_contrast(self):
+		self.processor2.is_low_contrast()
+	"""
 
 if __name__ == '__main__':
 	unittest.main()
