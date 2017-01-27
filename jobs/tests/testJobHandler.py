@@ -169,11 +169,58 @@ class TestJobHandler(unittest.TestCase):
         self.assertFalse(JobHandler.is_valid_element(None))
         self.assertFalse(JobHandler.is_valid_element(self.image_event))
 
-    # get_state
+    # properties
 
-    def test_get_state(self):
+    def test_property_state(self):
         self.assertEqual(self._handler.state, self._handler._state)
 
+    def test_has_jobs(self):
+        self.assertFalse(self._handler.has_jobs)
+        self._handler._job_deque.append(self.valid_job)
+        self.assertTrue(self._handler.has_jobs)
+
+    # state changes
+
+    def test_state_init(self):
+        self.assertEqual(self._handler._state, JobHandler.State.STARTED)
+
+    def test_state_force_stop(self):
+        self._handler.force_stop()
+        self.assertEqual(self._handler._state, JobHandler.State.STOPPED)
+
+    def test_state_enqueue(self):
+        self._handler.enqueue_job(self.valid_job)
+        self.assertEqual(self._handler._state, JobHandler.State.PENDING)
+
+    def test_state_stop(self):
+        self._handler.enqueue_job(self.valid_job)
+        self._handler.stop()
+        self.assertEqual(self._handler._state, JobHandler.State.PENDING_STOP_ON_RESOLVE)
+
+    def test_state_restart_empty(self):
+        self._handler.enqueue_job(self.valid_job)
+        self._handler.force_stop()
+        self._handler._job_deque.popleft()
+        self._handler.restart()
+        self.assertEqual(self._handler._state, JobHandler.State.STARTED)
+
+    def test_state_restart_has_jobs(self):
+        self._handler.enqueue_job(self.valid_job)
+        self._handler.force_stop()
+        self._handler.restart()
+        self.assertEqual(self._handler._state, JobHandler.State.PENDING)
+
+    # can_state_resolve
+
+    def test_can_state_resolve(self):
+        self._handler._state = JobHandler.State.PENDING_STOP_ON_RESOLVE
+        self.assertTrue(self._handler._can_state_resolve())
+        self._handler._state = JobHandler.State.PENDING
+        self.assertTrue(self._handler._can_state_resolve())
+        self._handler._state = JobHandler.State.STARTED
+        self.assertRaises(JobHandler.NotAllowedInStateException, self._handler._can_state_resolve)
+        self._handler._state = JobHandler.State.STOPPED
+        self.assertRaises(JobHandler.NotAllowedInStateException, self._handler._can_state_resolve)
 
 if __name__ == '__main__':
     unittest.main()

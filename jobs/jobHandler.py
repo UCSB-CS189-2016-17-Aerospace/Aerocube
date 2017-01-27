@@ -231,7 +231,7 @@ class JobHandler(object):
         Needs to be determined.
         :return: if event is resolved/finished, return true; else, return false
         """
-        if self._can_state_resolve(event):
+        if self._can_state_resolve():
             # Modify JobHandler queue (assuming state is valid)
             self._peek_current_job().update_current_node(event)
             print('JobHandler.resolve_event: Resolved Event: \r\n{}\r\n'.format(event))
@@ -249,7 +249,7 @@ class JobHandler(object):
             # Return False to indicate calling_event not finished
             return False
 
-    def _can_state_resolve(self, event):
+    def _can_state_resolve(self):
         # Check if state is valid
         if self._state == JobHandler.State.STARTED:
             # Raise Error
