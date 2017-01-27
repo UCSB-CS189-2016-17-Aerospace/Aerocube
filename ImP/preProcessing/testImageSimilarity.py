@@ -10,11 +10,20 @@ class ImageSimilarityTestCase(unittest.TestCase):
 		self.pathForNewImage = os.path.join(self.directory,'im5.JPG')
 		self.pathForSimilarImage = os.path.join(self.directory,'im4.JPG')
 		self.pathForDark = os.path.join(self.directory,'darkest.jpg')
+		self.pathForSharpImage = os.path.join(self.directory,'im6.JPG')
 		self.processor = PreProcessor(self.pathForTestImage)
+		self.processor3 = PreProcessor(self.pathForSharpImage)
 		self.processor2 = PreProcessor(self.pathForDark)
 
 	def tearDown(self):
+		
+		self.processor.pilImage.close()
+		self.processor2.pilImage.close()
+		self.processor3.pilImage.close() #close images pil ones
+		
 		self.processor = None
+		self.processor2 = None
+		self.processor3 = None
 	
 	
 	def test_identical_images(self):
@@ -48,14 +57,24 @@ class ImageSimilarityTestCase(unittest.TestCase):
 		validaty = self.processor.image.__class__.__name__
 		self.assertEqual(validaty,'ndarray')
 	
-	"""
-	def test_create_diff_images(self):
-		self.processor.darken_image()
-	"""
+	
+	def test_create_darker_image(self):
+		#check for darker image by comparing pixels maybe ?
+		self.processor2.darken_image()
+	
+	def test_create_brighter_image(self):
+		#check for darker image by comparing pixels maybe ?
+		self.processor2.brighten_image()
 
 	"""
 	def test_is_low_contrast(self):
+		#hard to set up test since we have yet to define a threshold for iamge contrast 
 		self.processor2.is_low_contrast()
+	"""
+
+	"""
+	def test_image_sharpening(self):
+		self.processor3.sharper_image()
 	"""
 
 if __name__ == '__main__':

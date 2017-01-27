@@ -2,17 +2,18 @@ import cv2
 import numpy as np
 from skimage import data
 from skimage import exposure 
-from PIL import Image 
+from PIL import Image, ImageFilter
 
 class PreProcessor:
 
 	threshold_value = 2.2
 
 	def __init__(self, pathToNewImage):
-		self.image = cv2.imread(pathToNewImage)
-		self.scikitImage = data.imread(pathToNewImage)
+		self.image = cv2.imread(pathToNewImage) #for OpenCV
+		self.scikitImage = data.imread(pathToNewImage) # for scikit 
+		self.pilImage = Image.open(pathToNewImage) # for PIL 
 		#only using this var underneath to play with new images at the moment
-		self.path = pathToNewImage
+		
 
 	def is_similar(self, pathToOtherImage):
 		existingImage = cv2.imread(pathToOtherImage)
@@ -26,8 +27,6 @@ class PreProcessor:
 	def increase_contrast(self):
 		pass
 
-	def brighten_image(self):
-		pass
 
 	def darken_image(self):
 		"""
@@ -38,8 +37,10 @@ class PreProcessor:
 		TODO: Find threshold value for both pycuda and regular algorithm
 			  Also, modify so we can set darkness levels via arg		
 		"""
-		image = Image.open(self.path)
-		image.point(lambda x: x*0.4).save('darkest.jpg')
+		#image = Image.open(self.path)
+		#image.point(lambda x: x*0.4).save('darkest.jpg')
+		self.pilImage.point(lambda x: x*0.4).save('darkest.jpg')
+		self.pilImage.close()
 
 	def brighten_image(self):
 		"""
@@ -50,13 +51,19 @@ class PreProcessor:
 			  Feed in x value via arg
 
 		"""
-		image = Image.open(self.path)
-		image.point(lambda x: x*1.0).save('darkest.jpg')
+		
+		self.pilImage.point(lambda x: x*3.0).save('brighter.jpg')
+		self.pilImage.close()
+
 
 	def is_low_contrast(self):
 		"""
 		By default the threshold value is set to 0.05, however under darker_image set to 
 		0.4 we achieve a low contrast==True under the threshold of 0.24
 		"""
-		isLow = exposure.is_low_contrast(self.scikitImage, fraction_threshold=0.24))
-		print(isLow)
+		return exposure.is_low_contrast(self.scikitImage, fraction_threshold=0.24)
+		
+	def sharper_image(self):
+		pass
+
+
