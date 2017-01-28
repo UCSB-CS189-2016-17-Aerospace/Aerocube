@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 # Import and initialize PyCUDA
 import pycuda.driver as cuda
@@ -91,6 +92,24 @@ class MarkerDetectionParallelWrapper:
         return cv2.adaptiveThreshold(gray, maxValue, adaptiveMethod=cv2.ADAPTIVE_THRESH_MEAN_C,
                                      thresholdType=cv2.THRESH_BINARY_INV, blockSize=winSize, C=constant)
 
+    @classmethod
+    def cuda_hello_world_print(cls):
+        mod = SourceModule("""
+                __global__ void multiply_them(float *dest, float *a, float *b)
+                {
+                    const int i = threadIdx.x;
+                    dest[i] = a[i] * b[i];
+                }
+            """)
+        multiply_them = mod.get_function("multiply_them")
+        a = np.random.randn(400).astype(np.float32)
+        b = np.random.randn(400).astype(np.float32)
+        dest = np.zeros_like(a)
+        multiply_them(
+            cuda.Out(dest), cuda.In(a), cuda.In(b),
+            block=(400, 1, 1), grid=(1, 1)
+        )
+        print(dest - a * b)
 
     # PUBLIC FUNCTIONS
 
@@ -202,3 +221,7 @@ class MarkerDetectionParallelWrapper:
     # ~~STEP 3 FUNCTIONS~~
 
     # ~~STEP 4 FUNCTIONS~~
+
+
+if __name__ == '__main__':
+    MarkerDetectionParallelWrapper.cuda_hello_world_print()
