@@ -26,7 +26,7 @@ class TestMarkerDetectionParallel(unittest.TestCase):
     # HELPER FUNCTIONS
 
     def test_threshold_raise_on_small_window(self):
-        self.assertRaises(MarkerDetectionParallelWrapper.MarkerDetectionParallelException,
+        self.assertRaises(AssertionError,
                           MarkerDetectionParallelWrapper._threshold,
                           self.gray, 2)
 

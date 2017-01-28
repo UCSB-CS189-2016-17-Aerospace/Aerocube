@@ -84,8 +84,7 @@ class MarkerDetectionParallelWrapper:
         :param constant: used to weight the mean of the threshold calculations of a given pixel and its neighborhood
         :return: thresholded image
         """
-        if winSize < 3:
-            raise MarkerDetectionParallelWrapper.MarkerDetectionParallelException
+        assert winSize >= 3
         if winSize % 2 == 0:
             winSize += 1
         maxValue = 255
