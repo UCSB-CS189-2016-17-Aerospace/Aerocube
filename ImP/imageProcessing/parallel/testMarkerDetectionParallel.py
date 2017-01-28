@@ -1,8 +1,7 @@
-import unittest
 import os
-import cv2
-import numpy as np
-from ImP.imageProcessing.markerDetectionParallelWrapper import *
+import unittest
+
+from ImP.imageProcessing.parallel.markerDetectionParallelWrapper import *
 from ImP.imageProcessing.settings import ImageProcessingSettings
 
 
