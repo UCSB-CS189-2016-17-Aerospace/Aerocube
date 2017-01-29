@@ -5,25 +5,49 @@ from .testSettings import testSettings
 
 class ImageSimilarityTestCase(unittest.TestCase):
 	def setUp(self):
+		"""
+		pathForTestImage is for image similarity 
+
+		pathForNewImage is for image similarity 
+
+		pathForSimilarImage is for image similarity
+
+		processor is for all of these
+
+		-------
+
+		pathForDark is for darken image, can be any 
+
+		pathForBright is for brighten image, can be any 
+
+		processor2 can be used for both, so same image essentially 
+
+		--------
+
+		isLowContrast yet to be defined beccause we do not know how dark we want to go 
+
+		"""
 		self.directory = testSettings.get_test_files_path()
 		self.pathForTestImage = os.path.join(self.directory,'im1.JPG')
 		self.pathForNewImage = os.path.join(self.directory,'im5.JPG')
 		self.pathForSimilarImage = os.path.join(self.directory,'im4.JPG')
-		self.pathForDark = os.path.join(self.directory,'darkest.jpg')
-		self.pathForSharpImage = os.path.join(self.directory,'im6.JPG')
+		self.pathForDark = os.path.join(self.directory,'brighter.jpg')
+
 		self.processor = PreProcessor(self.pathForTestImage)
-		self.processor3 = PreProcessor(self.pathForSharpImage)
 		self.processor2 = PreProcessor(self.pathForDark)
+		self.temp = self.processor2.pilImage.copy()
 
 	def tearDown(self):
+		#self.temp.save(self.processor.path)
+		self.temp.save(self.processor2.path)
 		
 		self.processor.pilImage.close()
 		self.processor2.pilImage.close()
-		self.processor3.pilImage.close() #close images pil ones
+		
 		
 		self.processor = None
 		self.processor2 = None
-		self.processor3 = None
+		
 	
 	
 	def test_identical_images(self):
@@ -59,23 +83,22 @@ class ImageSimilarityTestCase(unittest.TestCase):
 	
 	
 	def test_create_darker_image(self):
-		#check for darker image by comparing pixels maybe ?
-		self.processor2.darken_image()
+		self.processor2.darken_image(0.6)
+		
+		
 	
 	def test_create_brighter_image(self):
-		#check for darker image by comparing pixels maybe ?
-		self.processor2.brighten_image()
-
-	"""
+		self.processor2.brighten_image(1.4)
+		
+	
 	def test_is_low_contrast(self):
 		#hard to set up test since we have yet to define a threshold for iamge contrast 
-		self.processor2.is_low_contrast()
-	"""
+		self.processor2.is_low_contrast(0.24)
+	
+	def test_too_bright(self):
+		#hard to set up test since we have yet to define a threshold for iamge contrast 
+		self.processor2.is_too_bright(0.9)
 
-	"""
-	def test_image_sharpening(self):
-		self.processor3.sharper_image()
-	"""
 
 if __name__ == '__main__':
 	unittest.main()

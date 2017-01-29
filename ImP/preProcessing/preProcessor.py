@@ -13,22 +13,20 @@ class PreProcessor:
 		self.scikitImage = data.imread(pathToNewImage) # for scikit 
 		self.pilImage = Image.open(pathToNewImage) # for PIL 
 		#only using this var underneath to play with new images at the moment
-		
+		self.path = pathToNewImage
 
 	def is_similar(self, pathToOtherImage):
 		existingImage = cv2.imread(pathToOtherImage)
 		difference = cv2.subtract(self.image, existingImage)
+		self.pilImage.close()
 		return np.mean(difference) <= self.threshold_value
 		
-
-	def calculate_average_exposure(self):
-		pass
 
 	def increase_contrast(self):
 		pass
 
 
-	def darken_image(self):
+	def darken_image(self, darkFactor):
 		"""
 		Aruco knows no bounds when it comes to dark images. At the moment we do not have a
 		set value for how dark we can make an image. It works under x =0.2, but that may
@@ -39,10 +37,11 @@ class PreProcessor:
 		"""
 		#image = Image.open(self.path)
 		#image.point(lambda x: x*0.4).save('darkest.jpg')
-		self.pilImage.point(lambda x: x*0.4).save('darkest.jpg')
-		self.pilImage.close()
+		self.pilImage.point(lambda x: x*darkFactor).save(self.path)
+		#self.pilImage = self.pilImage.point(lambda x: x*0.6)
+		#self.pilImage.close()
 
-	def brighten_image(self):
+	def brighten_image(self, brightFactor):
 		"""
 		Works the same way as darken_image() but x>1.0 to brighten the image as ooposed to 
 		being x<1.0 to darken it.
@@ -52,18 +51,21 @@ class PreProcessor:
 
 		"""
 		
-		self.pilImage.point(lambda x: x*3.0).save('brighter.jpg')
-		self.pilImage.close()
+		self.pilImage.point(lambda x: x*brightFactor).save(self.path)
+		#self.pilImage.close()
 
+	def restore_image(self, factor):
+		self.pilImage.point(lambda x: x/factor).save(self.path)
 
-	def is_low_contrast(self):
+	def is_low_contrast(self, threshold):
 		"""
 		By default the threshold value is set to 0.05, however under darker_image set to 
 		0.4 we achieve a low contrast==True under the threshold of 0.24
 		"""
-		return exposure.is_low_contrast(self.scikitImage, fraction_threshold=0.24)
+		return exposure.is_low_contrast(self.scikitImage, fraction_threshold=threshold)
 		
-	def sharper_image(self):
-		pass
+	
+	def is_too_bright(self, threshold):
+		return exposure.is_low_contrast(self.scikitImage, fraction_threshold=threshold)
 
 
