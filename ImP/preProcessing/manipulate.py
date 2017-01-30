@@ -22,3 +22,10 @@ temp = processor.pilImage.copy()
 processor.brighten_image(1.5)
 #temp.save(processor.path)
 
+"""
+Make instance of preprocessor off of the new image
+run similarity check
+run contrast low, contrast high, fix accordingly 
+return new image or return that the new image is redundant
+
+"""
