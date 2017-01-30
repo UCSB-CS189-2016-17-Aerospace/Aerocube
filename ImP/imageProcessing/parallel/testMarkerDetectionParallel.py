@@ -1,5 +1,8 @@
-import os
 import unittest
+import os
+import cv2
+from cv2 import aruco
+import numpy as np
 
 from ImP.imageProcessing.parallel.markerDetectionParallelWrapper import *
 from ImP.imageProcessing.settings import ImageProcessingSettings
@@ -37,6 +40,12 @@ class TestMarkerDetectionParallel(unittest.TestCase):
         thresh = MarkerDetectionParallelWrapper._threshold(self.gray, 3)
         self.assertIsNotNone(thresh)
         self.assertIsNotNone(thresh.size)
+
+    def test_threshold_equals_aruco_threshold(self):
+        thresh_const = MarkerDetectionParallelWrapper.detectorParams[MarkerDetectionParallelWrapper.adaptiveThreshConstant]
+        self.assertTrue(np.array_equal(MarkerDetectionParallelWrapper._threshold(self.gray, 3),
+                                       aruco._threshold(self.gray, 3, thresh_const)))
+
 
     # PUBLIC FUNCTIONS
 
