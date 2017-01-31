@@ -4,6 +4,9 @@ import pyrebase
 
 class Comm():
     __metaclass__ = ABCMeta
+    @property
+    def name(self):
+        raise NotImplementedError
 
     @abstractmethod
     def read(self, location, id): pass
@@ -24,6 +27,7 @@ class Comm():
 class FirebaseComm(Comm):
     # using secret token as authentication but if we want to change to using login use this instead
     # user=self.auth.sign_in_with_email_and_password('yourfirenation@gmail.com','yourfirenation')
+    name="firebase"
     def __init__(self, testing=False):
         if testing:
             config = {
