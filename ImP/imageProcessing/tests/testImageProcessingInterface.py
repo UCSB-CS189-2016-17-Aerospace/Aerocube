@@ -187,14 +187,12 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
         rot_mat_orig = cv2.Rodrigues(rvecs[0])[0]
         rot_mat_quat = test_quat.rotation_matrix
         rot_mat = cv2.multiply(rot_mat_orig, cv2.transpose(rot_mat_quat))
-        print('\n')
-        print(rot_mat_orig)
-        print(rot_mat_quat)
-        print(np.transpose(rot_mat_quat))
-        print(rot_mat)
-        print(np.identity(3))
-        self.assertTrue(np.allclose(rot_mat,
-                                    np.identity(3),
+        # test not working for some reason; just test equality of rotation matrices
+        # self.assertTrue(np.allclose(rot_mat,
+        #                             np.identity(3),
+        #                             rtol=1e-02))
+        self.assertTrue(np.allclose(rot_mat_orig,
+                                    rot_mat_quat,
                                     rtol=1e-02))
 
     def test_rodrigues_to_quaternion(self):
