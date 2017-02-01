@@ -1,5 +1,5 @@
 import json
-from .commClass import FirebaseComm
+from externalComm.commClass import FirebaseComm
 # TODO: data_json finalization
 
 

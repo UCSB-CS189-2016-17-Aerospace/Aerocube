@@ -1,6 +1,6 @@
 import unittest
-from .commClass import FirebaseComm
-from .externalComm import *
+from externalComm.commClass import FirebaseComm
+from externalComm.externalComm import *
 import os.path
 
 
@@ -25,20 +25,20 @@ class TestFirebaseComm(unittest.TestCase):
         self.assertTrue(os.path.isfile('externalComm/test.jpg'))
 
 
-class ExternalComm(unittest.TestCase):
+class TestExternalComm(unittest.TestCase):
 
     def test_process_store(self):
-        external_write(database=FirebaseComm.name, location='test', scanID='4', data='this is a process test2', testing=True)
-        self.assertEqual(external_read(database=FirebaseComm.name, location='test', scanID='4', testing=True), 'this is a process test2')
+        external_write(database=FirebaseComm.NAME, location='test', scanID='4', data='this is a process test2', testing=True)
+        self.assertEqual(external_read(database=FirebaseComm.NAME, location='test', scanID='4', testing=True), 'this is a process test2')
         # testing process delete
-        external_delete(database=FirebaseComm.name, location='test', scanID='4', testing=True)
-        self.assertIsNone(external_read(database=FirebaseComm.name, location='test', scanID='4', testing=True))
+        external_delete(database=FirebaseComm.NAME, location='test', scanID='4', testing=True)
+        self.assertIsNone(external_read(database=FirebaseComm.NAME, location='test', scanID='4', testing=True))
 
     def test_process_read(self):
-        self.assertEqual(external_read(database=FirebaseComm.name, location='test', scanID='3', testing=True), 'this is a process test')
+        self.assertEqual(external_read(database=FirebaseComm.NAME, location='test', scanID='3', testing=True), 'this is a process test')
 
     def test_process_storeImage(self):
-        external_store_img(database=FirebaseComm.name, scanID='processtest', srcImage='testimage.jpg', testing=True)
+        external_store_img(database=FirebaseComm.NAME, scanID='processtest', srcImage='testimage.jpg', testing=True)
 
 if __name__ == '__main__':
     unittest.main()
