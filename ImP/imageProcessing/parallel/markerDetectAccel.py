@@ -1,13 +1,15 @@
 import cv2
 import numpy as np
+import numba
+from numba import cuda
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 # Import and initialize PyCUDA
-import pycuda.driver as cuda
-import pycuda.autoinit
-from pycuda.compiler import SourceModule
+# import pycuda.driver as cuda
+# import pycuda.autoinit
+# from pycuda.compiler import SourceModule
 
 
-class MarkerDetectionParallelWrapper:
+class MarkerDetectAccel:
     """
     Class wrapping together the logic of marker detection, using GPU parallelization when possible.
 
@@ -65,7 +67,7 @@ class MarkerDetectionParallelWrapper:
 
     # HELPER FUNCTIONS/OBJECTS
 
-    class MarkerDetectionParallelException(Exception):
+    class MarkerDetectAccException(Exception):
         """
         General exception for errors in the usage of the functions in this file.
         """
@@ -92,24 +94,44 @@ class MarkerDetectionParallelWrapper:
         return cv2.adaptiveThreshold(gray, maxValue, adaptiveMethod=cv2.ADAPTIVE_THRESH_MEAN_C,
                                      thresholdType=cv2.THRESH_BINARY_INV, blockSize=winSize, C=constant)
 
-    @classmethod
-    def cuda_hello_world_print(cls):
-        mod = SourceModule("""
-                __global__ void multiply_them(float *dest, float *a, float *b)
-                {
-                    const int i = threadIdx.x;
-                    dest[i] = a[i] * b[i];
-                }
-            """)
-        multiply_them = mod.get_function("multiply_them")
-        a = np.random.randn(400).astype(np.float32)
-        b = np.random.randn(400).astype(np.float32)
-        dest = np.zeros_like(a)
-        multiply_them(
-            cuda.Out(dest), cuda.In(a), cuda.In(b),
-            block=(400, 1, 1), grid=(1, 1)
-        )
-        print(dest - a * b)
+    # @classmethod
+    # def cuda_hello_world_print(cls):
+    #     mod = SourceModule("""
+    #             __global__ void multiply_them(float *dest, float *a, float *b)
+    #             {
+    #                 const int i = threadIdx.x;
+    #                 dest[i] = a[i] * b[i];
+    #             }
+    #         """)
+    #     multiply_them = mod.get_function("multiply_them")
+    #     a = np.random.randn(400).astype(np.float32)
+    #     b = np.random.randn(400).astype(np.float32)
+    #     dest = np.zeros_like(a)
+    #     multiply_them(
+    #         cuda.Out(dest), cuda.In(a), cuda.In(b),
+    #         block=(400, 1, 1), grid=(1, 1)
+    #     )
+    #     print(dest - a * b)
+
+    @staticmethod
+    @numba.jit(nopython=True)
+    def numba_jit_add(x, y):
+        return x + y
+
+    @staticmethod
+    @cuda.jit
+    def cuda_increment_by_one(an_array):
+        # Thread id in a 1D block
+        tx = cuda.threadIdx.x
+        # Block id in a 1D grid
+        ty = cuda.blockIdx.x
+        # Block width, i.e. number of threads per block
+        bw = cuda.blockDim.x
+        # Compute flattened index inside the array
+        pos = tx + ty * bw
+        print(pos)
+        if pos < an_array.size:  # Check array boundaries
+            an_array[pos] += 1
 
     # PUBLIC FUNCTIONS
 
@@ -123,7 +145,7 @@ class MarkerDetectionParallelWrapper:
         """
         # Raise exception if image is empty
         if not img:
-            raise cls.MarkerDetectionParallelException
+            raise cls.MarkerDetectAccException
 
         # Convert to grayscale (if necessary)
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -148,9 +170,9 @@ class MarkerDetectionParallelWrapper:
         """
         # Check if grayscale image is empty or is not actually a grayscale image
         if gray is None:
-            raise cls.MarkerDetectionParallelException
+            raise cls.MarkerDetectAccException
         if gray.size is 0 or len(gray.shape) != 2:
-            raise cls.MarkerDetectionParallelException
+            raise cls.MarkerDetectAccException
         pass
 
     @classmethod
@@ -164,11 +186,11 @@ class MarkerDetectionParallelWrapper:
 
         # Check if detection parameters are valid
         if cls.detectorParams[cls.adaptiveThreshWinSizeMin] < 3 or cls.detectorParams[cls.adaptiveThreshWinSizeMax] < 3:
-            raise cls.MarkerDetectionParallelException
+            raise cls.MarkerDetectAccException
         if cls.detectorParams[cls.adaptiveThreshWinSizeMax] < cls.detectorParams[cls.adaptiveThreshWinSizeMin]:
-            raise cls.MarkerDetectionParallelException
+            raise cls.MarkerDetectAccException
         if cls.detectorParams[cls.adaptiveThreshWinSizeStep] <= 0:
-            raise cls.MarkerDetectionParallelException
+            raise cls.MarkerDetectAccException
 
         # Determine number of window sizes, or scales, to apply thresholding
         nScales = (cls.detectorParams[cls.adaptiveThreshWinSizeMax] - cls.detectorParams[cls.adaptiveThreshWinSizeMin]) / \
@@ -176,7 +198,7 @@ class MarkerDetectionParallelWrapper:
 
         # Run sanity check, and verify nScales is valid (non-zero)
         if nScales <= 0:
-            raise cls.MarkerDetectionParallelException
+            raise cls.MarkerDetectAccException
 
         # In parallel, threshold at different scales
         pass
@@ -198,7 +220,7 @@ class MarkerDetectionParallelWrapper:
         # Assert parameters are valid
         if (minPerimeterRate <= 0 or maxPerimeterRate <= 0 or accuracyRate <= 0 or
             minCornerDistanceRate < 0 or minDistanceToBorder < 0):
-            raise cls.MarkerDetectionParallelException
+            raise cls.MarkerDetectAccException
 
         # Calculate maximum and minimum sizes in pixels based off of dimensions of thresh image
         minPerimeterPixels = minPerimeterRate * max(thresh.shape)
@@ -224,4 +246,4 @@ class MarkerDetectionParallelWrapper:
 
 
 if __name__ == '__main__':
-    MarkerDetectionParallelWrapper.cuda_hello_world_print()
+    MarkerDetectAccel.cuda_hello_world_print()

@@ -2,7 +2,12 @@
 ## Concepts of CUDA
 * **Host** - the CPU; code run on the CPU is the *host code*
 * **Device** - refers to the GPU; code on the GPU is *device code*
+* **Kernels** - GPU function launched by the *host* and executed on the *device*
 * **CUBIN** - CUDA binary; ELF-formatted file that contains CUDA executable code sections
+* Memory
+   * **Global Device Memory** - large, relatively slow off-chip memory connected to GPU
+   * **On-Chip Shared Memory** - faster?
+   * **Local Memory** - even faster?
 ### References
 * [An Easy Introduction to CUDA](https://devblogs.nvidia.com/parallelforall/easy-introduction-cuda-c-and-c/)
 * [An Even Easier Introduction to CUDA](https://devblogs.nvidia.com/parallelforall/even-easier-introduction-cuda/)
@@ -10,6 +15,10 @@
 * https://mathema.tician.de/dl/main.pdf
 * http://stackoverflow.com/questions/2392250/understanding-cuda-grid-dimensions-block-dimensions-and-threads-organization-s
 * http://www.nvidia.com/docs/IO/116711/sc11-cuda-c-basics.pdf
+
+## Anaconda Accelerate and Numba
+* [Numba Documentation](http://numba.pydata.org/numba-doc/latest/index.html)
+
 ## PyCUDA
 * Overview
    * Allows creation of CUBIN code (called modules) embedded into Python code
