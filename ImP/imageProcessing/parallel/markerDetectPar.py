@@ -9,7 +9,7 @@ from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 # from pycuda.compiler import SourceModule
 
 
-class MarkerDetectAccel:
+class MarkerDetectPar:
     """
     Class wrapping together the logic of marker detection, using GPU parallelization when possible.
 
@@ -67,7 +67,7 @@ class MarkerDetectAccel:
 
     # HELPER FUNCTIONS/OBJECTS
 
-    class MarkerDetectAccException(Exception):
+    class MarkerDetectParException(Exception):
         """
         General exception for errors in the usage of the functions in this file.
         """
@@ -145,7 +145,7 @@ class MarkerDetectAccel:
         """
         # Raise exception if image is empty
         if not img:
-            raise cls.MarkerDetectAccException
+            raise cls.MarkerDetectParException
 
         # Convert to grayscale (if necessary)
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -170,9 +170,9 @@ class MarkerDetectAccel:
         """
         # Check if grayscale image is empty or is not actually a grayscale image
         if gray is None:
-            raise cls.MarkerDetectAccException
+            raise cls.MarkerDetectParException
         if gray.size is 0 or len(gray.shape) != 2:
-            raise cls.MarkerDetectAccException
+            raise cls.MarkerDetectParException
         pass
 
     @classmethod
@@ -186,11 +186,11 @@ class MarkerDetectAccel:
 
         # Check if detection parameters are valid
         if cls.detectorParams[cls.adaptiveThreshWinSizeMin] < 3 or cls.detectorParams[cls.adaptiveThreshWinSizeMax] < 3:
-            raise cls.MarkerDetectAccException
+            raise cls.MarkerDetectParException
         if cls.detectorParams[cls.adaptiveThreshWinSizeMax] < cls.detectorParams[cls.adaptiveThreshWinSizeMin]:
-            raise cls.MarkerDetectAccException
+            raise cls.MarkerDetectParException
         if cls.detectorParams[cls.adaptiveThreshWinSizeStep] <= 0:
-            raise cls.MarkerDetectAccException
+            raise cls.MarkerDetectParException
 
         # Determine number of window sizes, or scales, to apply thresholding
         nScales = (cls.detectorParams[cls.adaptiveThreshWinSizeMax] - cls.detectorParams[cls.adaptiveThreshWinSizeMin]) / \
@@ -198,7 +198,7 @@ class MarkerDetectAccel:
 
         # Run sanity check, and verify nScales is valid (non-zero)
         if nScales <= 0:
-            raise cls.MarkerDetectAccException
+            raise cls.MarkerDetectParException
 
         # In parallel, threshold at different scales
         pass
@@ -220,7 +220,7 @@ class MarkerDetectAccel:
         # Assert parameters are valid
         if (minPerimeterRate <= 0 or maxPerimeterRate <= 0 or accuracyRate <= 0 or
             minCornerDistanceRate < 0 or minDistanceToBorder < 0):
-            raise cls.MarkerDetectAccException
+            raise cls.MarkerDetectParException
 
         # Calculate maximum and minimum sizes in pixels based off of dimensions of thresh image
         minPerimeterPixels = minPerimeterRate * max(thresh.shape)
@@ -243,7 +243,3 @@ class MarkerDetectAccel:
     # ~~STEP 3 FUNCTIONS~~
 
     # ~~STEP 4 FUNCTIONS~~
-
-
-if __name__ == '__main__':
-    MarkerDetectAccel.cuda_hello_world_print()

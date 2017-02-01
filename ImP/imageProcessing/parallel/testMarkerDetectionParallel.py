@@ -4,7 +4,7 @@ import cv2
 from cv2 import aruco
 import numpy as np
 
-from ImP.imageProcessing.parallel.markerDetectAccel import *
+from ImP.imageProcessing.parallel.markerDetectPar import *
 from ImP.imageProcessing.settings import ImageProcessingSettings
 
 
@@ -32,7 +32,7 @@ class TestMarkerDetectionParallel(unittest.TestCase):
         Test Numba's JIT decorator is working.
         :return:
         """
-        self.assertEqual(MarkerDetectAccel.numba_jit_add(1, 2), 3)
+        self.assertEqual(MarkerDetectPar.numba_jit_add(1, 2), 3)
 
     def test_cuda_increment_by_one(self):
         """
@@ -48,7 +48,7 @@ class TestMarkerDetectionParallel(unittest.TestCase):
         # Launch the kernel
         threadsperblock = 32
         blockspergrid = (arr.size + threadsperblock - 1)
-        MarkerDetectAccel.cuda_increment_by_one[blockspergrid, threadsperblock](new_arr)
+        MarkerDetectPar.cuda_increment_by_one[blockspergrid, threadsperblock](new_arr)
         print([x+1 for x in arr])
         print(new_arr)
         # Confirm results of Python and Cuda are equal
@@ -58,35 +58,35 @@ class TestMarkerDetectionParallel(unittest.TestCase):
 
     def test_threshold_raise_on_small_window(self):
         self.assertRaises(AssertionError,
-                          MarkerDetectAccel._threshold,
+                          MarkerDetectPar._threshold,
                           self.gray, 2)
 
     def test_threshold_winSize_adjusted_correctly(self):
-        self.assertTrue(np.array_equal(MarkerDetectAccel._threshold(self.gray, 4),
-                                       MarkerDetectAccel._threshold(self.gray, 5)))
+        self.assertTrue(np.array_equal(MarkerDetectPar._threshold(self.gray, 4),
+                                       MarkerDetectPar._threshold(self.gray, 5)))
 
     def test_threshold_returns_valid_thresholded_img(self):
-        thresh = MarkerDetectAccel._threshold(self.gray, 3)
+        thresh = MarkerDetectPar._threshold(self.gray, 3)
         self.assertIsNotNone(thresh)
         self.assertIsNotNone(thresh.size)
 
     def test_threshold_equals_aruco_threshold(self):
-        thresh_const = MarkerDetectAccel.detectorParams[MarkerDetectAccel.adaptiveThreshConstant]
-        self.assertTrue(np.array_equal(MarkerDetectAccel._threshold(self.gray, 3),
+        thresh_const = MarkerDetectPar.detectorParams[MarkerDetectPar.adaptiveThreshConstant]
+        self.assertTrue(np.array_equal(MarkerDetectPar._threshold(self.gray, 3),
                                        aruco._threshold(self.gray, 3, thresh_const)))
 
 
     # PUBLIC FUNCTIONS
 
     def test_detect_markers_raise_on_improper_image(self):
-        self.assertRaises(MarkerDetectAccel.MarkerDetectAccException,
-                          MarkerDetectAccel.detect_markers_parallel, None)
+        self.assertRaises(MarkerDetectPar.MarkerDetectParException,
+                          MarkerDetectPar.detect_markers_parallel, None)
 
     def test_detect_candidates_raise_on_improper_image(self):
-        self.assertRaises(MarkerDetectAccel.MarkerDetectAccException,
-                          MarkerDetectAccel._detect_candidates, self.image)
-        self.assertRaises(MarkerDetectAccel.MarkerDetectAccException,
-                          MarkerDetectAccel._detect_candidates, None)
+        self.assertRaises(MarkerDetectPar.MarkerDetectParException,
+                          MarkerDetectPar._detect_candidates, self.image)
+        self.assertRaises(MarkerDetectPar.MarkerDetectParException,
+                          MarkerDetectPar._detect_candidates, None)
 
     def test_detector_parameters(self):
         pass
