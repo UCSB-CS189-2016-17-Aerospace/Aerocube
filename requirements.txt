@@ -13,6 +13,7 @@
 #
 ### Mathematical ###############
 numpy==1.11.2
+pyquaternion
 #
 ### Flask Server ###############
 # May require the following command to be run:
