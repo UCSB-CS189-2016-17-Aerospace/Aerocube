@@ -9,10 +9,10 @@
 # * OpenCV
 # * CUDA
 # * PyCUDA -- see ImP/README for installation
-# * Anaconda (for GPU-acceleration in Python)
+# * Anaconda Accelerate (for GPU-acceleration in Python)
 #
 ### Mathematical ###############
-numpy
+numpy==1.11.2
 #
 ### Flask Server ###############
 # May require the following command to be run:
