@@ -1,4 +1,3 @@
-from flask import Flask
 import unittest
 import requests
 import subprocess
@@ -38,7 +37,7 @@ class TestRestEndpoint(unittest.TestCase):
         requests.post('http://127.0.0.1:5005/api/uploadImage', files=files)
         ls_command = subprocess.getoutput('ls ' + self._static_img_dir)
         self.assertTrue(self._test_img in ls_command.split('\n'),
-                        msg='Postcondition: {0} was not sucessfully created at the API image upload endpoint.'.format(self._test_img))
+                        msg='Postcondition: {0} was not successfully created at the API image upload endpoint.'.format(self._test_img))
 
 
 if __name__ == '__main__':
