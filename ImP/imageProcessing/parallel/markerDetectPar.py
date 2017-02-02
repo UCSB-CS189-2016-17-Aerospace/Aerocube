@@ -43,7 +43,7 @@ class MarkerDetectPar:
     errorCorrectionRate = 'errorCorrectionRate'
 
     # Parameter dictionary/values
-    detectorParams = {
+    params = {
         adaptiveThreshWinSizeMin:               3,
         adaptiveThreshWinSizeMax:               23,
         adaptiveThreshWinSizeStep:              10,
@@ -74,7 +74,7 @@ class MarkerDetectPar:
         """
 
     @classmethod
-    def _threshold(cls, gray, winSize, constant=detectorParams[adaptiveThreshConstant]):
+    def _threshold(cls, gray, winSize, constant=params[adaptiveThreshConstant]):
         """
         Calls OpenCV's adaptiveThreshold method on what should be a grayscale image.
         Thresholds by looking at a block of pixels about a pixel (determined by winSize)
@@ -97,7 +97,7 @@ class MarkerDetectPar:
 
     @staticmethod
     @cuda.jit(device=True)
-    def _cuda_threshold(gray, winSize, constant=detectorParams[adaptiveThreshConstant]):
+    def _cuda_threshold(gray, winSize, constant=params[adaptiveThreshConstant]):
         """
         CUDA-accelerated implementation of threshold; should match _threshold's output.
         :param gray:
@@ -161,8 +161,7 @@ class MarkerDetectPar:
         :return:
         """
         # Raise exception if image is empty
-        if not img:
-            raise cls.MarkerDetectParException
+        assert img
 
         # Convert to grayscale (if necessary)
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -185,11 +184,15 @@ class MarkerDetectPar:
         :param gray: grayscale image to be analyzed
         :return: marker candidates and marker contours
         """
-        # Check if grayscale image is empty or is not actually a grayscale image
-        if gray is None:
-            raise cls.MarkerDetectParException
-        if gray.size is 0 or len(gray.shape) != 2:
-            raise cls.MarkerDetectParException
+        # 1. VERIFY IMAGE IS GRAY
+        assert gray is not None
+        assert gray.size is not 0 and len(gray.shape) == 2
+        # 2. DETECT FIRST SET OF CANDIDATES
+        candidates, contours = cls._detect_initial_candidates(gray)
+        # 3. SORT CORNERS
+        cls._reorder_candidate_corners(candidates)
+        # 4. FILTER OUT NEAR CANDIDATE PAIRS
+        # TODO: _filter_too_close_candidates
         pass
 
     @classmethod
@@ -202,27 +205,27 @@ class MarkerDetectPar:
         """
 
         # Check if detection parameters are valid
-        assert cls.detectorParams[cls.adaptiveThreshWinSizeMin] >= 3 and cls.detectorParams[cls.adaptiveThreshWinSizeMax] >= 3
-        assert cls.detectorParams[cls.adaptiveThreshWinSizeMax] >= cls.detectorParams[cls.adaptiveThreshWinSizeMin]
-        assert cls.detectorParams[cls.adaptiveThreshWinSizeStep] > 0
+        assert cls.params[cls.adaptiveThreshWinSizeMin] >= 3 and cls.params[cls.adaptiveThreshWinSizeMax] >= 3
+        assert cls.params[cls.adaptiveThreshWinSizeMax] >= cls.params[cls.adaptiveThreshWinSizeMin]
+        assert cls.params[cls.adaptiveThreshWinSizeStep] > 0
 
         # Initialize variables
         # Determine number of window sizes, or scales, to apply thresholding
-        nScales = (cls.detectorParams[cls.adaptiveThreshWinSizeMax] - cls.detectorParams[cls.adaptiveThreshWinSizeMin]) / \
-                  cls.detectorParams[cls.adaptiveThreshWinSizeStep]
+        nScales = (cls.params[cls.adaptiveThreshWinSizeMax] - cls.params[cls.adaptiveThreshWinSizeMin]) / \
+                  cls.params[cls.adaptiveThreshWinSizeStep]
         # Declare candidates and contours arrays
         candidates = list()
         contours = list()
 
         # Threshold at different scales
-        for i in range(nScales):
-            scale = cls.detectorParams[cls.adaptiveThreshWinSizeMin] + i * cls.detectorParams[cls.adaptiveThreshWinSizeStep]
-            markers = cls._find_marker_contours(cls._threshold(gray, scale, cls.detectorParams[cls.adaptiveThreshConstant]))
-            candidates.append(markers[0])
-            contours.append(markers[1])
+        for i in range(int(nScales)):
+            scale = cls.params[cls.adaptiveThreshWinSizeMin] + i * cls.params[cls.adaptiveThreshWinSizeStep]
+            markers = cls._find_marker_contours(cls._threshold(gray, scale, cls.params[cls.adaptiveThreshConstant]))
+            if len(markers[0]) > 0:
+                candidates.append(markers[0])
+                contours.append(markers[1])
 
-        return np.array(candidates), np.array(contours)
-
+        return np.squeeze(candidates), np.squeeze(contours)
 
     @classmethod
     def _find_marker_contours(cls, thresh):
@@ -232,11 +235,11 @@ class MarkerDetectPar:
         :return: (candidates, contours)
         """
         # Set parameters
-        minPerimeterRate = cls.detectorParams[cls.minMarkerPerimeterRate]
-        maxPerimeterRate = cls.detectorParams[cls.maxMarkerPerimeterRate]
-        accuracyRate = cls.detectorParams[cls.polygonalApproxAccuracyRate]
-        minCornerDistanceRate = cls.detectorParams[cls.minCornerDistanceRate]
-        minDistanceToBorder = cls.detectorParams[cls.minDistanceToBorder]
+        minPerimeterRate = cls.params[cls.minMarkerPerimeterRate]
+        maxPerimeterRate = cls.params[cls.maxMarkerPerimeterRate]
+        accuracyRate = cls.params[cls.polygonalApproxAccuracyRate]
+        minCornerDistanceRate = cls.params[cls.minCornerDistanceRate]
+        minDistanceToBorder = cls.params[cls.minDistanceToBorder]
 
         # Assert parameters are valid
         assert (minPerimeterRate > 0 and maxPerimeterRate > 0 and accuracyRate > 0 and
@@ -292,6 +295,26 @@ class MarkerDetectPar:
             contours_out.append(np.squeeze(c))
 
         return np.array(candidates), contours_out
+
+    @classmethod
+    def _reorder_candidate_corners(cls, candidates):
+        """
+        Reorder candidate corners to assure clockwise direction. May alter the original param.
+        :param candidates: List of candidates, each candidate being a list of four points, with values Point(x,y)
+        :return: candidates list with reordered points, if necessary
+        """
+        for c in candidates:
+            # Take distance from pt1 to pt0
+            dx1 = c[1][0] - c[0][0]
+            dy1 = c[1][1] - c[0][1]
+            # Take distance from pt2 to pt0
+            dx2 = c[2][0] - c[0][0]
+            dy2 = c[2][1] - c[0][1]
+            cross_product = float(dx1*dy2 - dy1*dx2)
+            # If cross_product is counter-clockwise, swap pt1 and pt3
+            if cross_product < 0.0:
+                c[1], c[3] = c[3], c[1]
+        return candidates
 
     # ~~STEP 2 FUNCTIONS~~
 
