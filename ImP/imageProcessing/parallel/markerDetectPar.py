@@ -230,7 +230,7 @@ class MarkerDetectPar:
         minDistanceToBorder = cls.detectorParams[cls.minDistanceToBorder]
 
         # Assert parameters are valid
-        assert (minPerimeterRate > 0 and maxPerimeterRate > 0 accuracyRate > 0 and
+        assert (minPerimeterRate > 0 and maxPerimeterRate > 0 and accuracyRate > 0 and
                 minCornerDistanceRate >= 0 and minDistanceToBorder >= 0)
 
         # Calculate maximum and minimum sizes in pixels based off of dimensions of thresh image

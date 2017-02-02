@@ -3,12 +3,11 @@ import os
 import cv2
 from cv2 import aruco
 import numpy as np
-
 from ImP.imageProcessing.parallel.markerDetectPar import *
 from ImP.imageProcessing.settings import ImageProcessingSettings
 
 
-class TestMarkerDetectionParallel(unittest.TestCase):
+class TestMarkerDetectPar(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -75,7 +74,6 @@ class TestMarkerDetectionParallel(unittest.TestCase):
         self.assertTrue(np.array_equal(MarkerDetectPar._threshold(self.gray, 3),
                                        aruco._threshold(self.gray, 3, thresh_const)))
 
-
     # PUBLIC FUNCTIONS
 
     def test_detect_markers_raise_on_improper_image(self):
@@ -90,6 +88,14 @@ class TestMarkerDetectionParallel(unittest.TestCase):
 
     def test_detector_parameters(self):
         pass
+
+    # ~~STEP 1 FUNCTIONS~~
+
+    # ~~STEP 2 FUNCTIONS~~
+
+    # ~~STEP 3 FUNCTIONS~~
+
+    # ~~STEP 4 FUNCTIONS~~
 
 if __name__ == '__main__':
     unittest.main()
