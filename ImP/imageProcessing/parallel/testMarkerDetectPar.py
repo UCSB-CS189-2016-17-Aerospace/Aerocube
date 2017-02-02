@@ -61,8 +61,8 @@ class TestMarkerDetectPar(unittest.TestCase):
                           self.gray, 2)
 
     def test_threshold_winSize_adjusted_correctly(self):
-        self.assertTrue(np.array_equal(MarkerDetectPar._threshold(self.gray, 4),
-                                       MarkerDetectPar._threshold(self.gray, 5)))
+        np.testing.assert_equal(MarkerDetectPar._threshold(self.gray, 4),
+                                MarkerDetectPar._threshold(self.gray, 5))
 
     def test_threshold_returns_valid_thresholded_img(self):
         thresh = MarkerDetectPar._threshold(self.gray, 3)
@@ -71,8 +71,8 @@ class TestMarkerDetectPar(unittest.TestCase):
 
     def test_threshold_equals_aruco_method(self):
         thresh_const = MarkerDetectPar.detectorParams[MarkerDetectPar.adaptiveThreshConstant]
-        self.assertTrue(np.array_equal(MarkerDetectPar._threshold(self.gray, 3),
-                                       aruco._threshold(self.gray, 3, thresh_const)))
+        np.testing.assert_equal(MarkerDetectPar._threshold(self.gray, 3),
+                                aruco._threshold(self.gray, 3, thresh_const))
 
     # PUBLIC FUNCTIONS
 
@@ -133,7 +133,7 @@ class TestMarkerDetectPar(unittest.TestCase):
                                        3, params[MarkerDetectPar.adaptiveThreshConstant])
         thresh_copy = np.copy(thresh)
         MarkerDetectPar._find_marker_contours(thresh)
-        self.assertTrue(np.array_equal(thresh, thresh_copy))
+        np.testing.assert_equal(thresh, thresh_copy)
 
     # ~~STEP 2 FUNCTIONS~~
 
