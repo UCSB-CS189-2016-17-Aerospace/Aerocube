@@ -206,11 +206,22 @@ class MarkerDetectPar:
         assert cls.detectorParams[cls.adaptiveThreshWinSizeMax] >= cls.detectorParams[cls.adaptiveThreshWinSizeMin]
         assert cls.detectorParams[cls.adaptiveThreshWinSizeStep] > 0
 
+        # Initialize variables
         # Determine number of window sizes, or scales, to apply thresholding
         nScales = (cls.detectorParams[cls.adaptiveThreshWinSizeMax] - cls.detectorParams[cls.adaptiveThreshWinSizeMin]) / \
                   cls.detectorParams[cls.adaptiveThreshWinSizeStep]
+        # Declare candidates and contours arrays
+        candidates = list()
+        contours = list()
 
-        # In parallel, threshold at different scales
+        # Threshold at different scales
+        for i in range(0, cls.detectorParams[cls.adaptiveThreshWinSizeMin]):
+            scale = i * cls.detectorParams[cls.adaptiveThreshWinSizeStep]
+            markers = cls._find_marker_contours(cls._threshold(gray, scale, cls.detectorParams[cls.adaptiveThreshConstant]))
+            candidates.append(markers[0])
+            contours.append(markers[1])
+
+        return np.array(candidates), np.array(contours)
 
 
     @classmethod
