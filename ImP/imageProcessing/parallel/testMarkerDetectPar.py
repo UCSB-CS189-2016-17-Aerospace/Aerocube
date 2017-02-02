@@ -91,8 +91,14 @@ class TestMarkerDetectPar(unittest.TestCase):
 
     # ~~STEP 1 FUNCTIONS~~
 
-    @unittest.expectedFailure
     def test_find_marker_contours_equals_aruco_method(self):
+        """
+        Tests find_marker_contours with various thresholded images.
+        Note that candidate matrices are floats, and thus must be tested with allclose.
+        However, contour matrices with ints should be tested with array_equal.
+        :return:
+        """
+        # TODO: Assert equal for non-empty contours array fails for some reason
         params = MarkerDetectPar.detectorParams
         aruco_params = (params[MarkerDetectPar.minMarkerPerimeterRate],
                        params[MarkerDetectPar.maxMarkerPerimeterRate],
@@ -104,22 +110,22 @@ class TestMarkerDetectPar(unittest.TestCase):
                                          3, params[MarkerDetectPar.adaptiveThreshConstant])
         test_contours_thresh_3 = MarkerDetectPar._find_marker_contours(thresh_3)
         true_contours_thresh_3 = aruco._findMarkerContours(thresh_3, *aruco_params)
-        self.assertTrue(np.array_equal(test_contours_thresh_3[0], true_contours_thresh_3[0]))
-        self.assertTrue(np.array_equal(test_contours_thresh_3[1], true_contours_thresh_3[1]))
+        np.testing.assert_allclose(test_contours_thresh_3[0], true_contours_thresh_3[0])
+        np.testing.assert_array_equal(test_contours_thresh_3[1], true_contours_thresh_3[1])
         # thresh with winSize = 5
         thresh_5 = cv2.adaptiveThreshold(self.gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV,
                                          5, params[MarkerDetectPar.adaptiveThreshConstant])
         test_contours_thresh_5 = MarkerDetectPar._find_marker_contours(thresh_5)
         true_contours_thresh_5 = aruco._findMarkerContours(thresh_5, *aruco_params)
-        self.assertTrue(np.array_equal(test_contours_thresh_5[0], true_contours_thresh_5[0]))
-        self.assertTrue(np.array_equal(test_contours_thresh_5[1], true_contours_thresh_5[1]))
+        np.testing.assert_allclose(test_contours_thresh_5[0], true_contours_thresh_5[0])
+        np.testing.assert_array_equal(test_contours_thresh_5[1], true_contours_thresh_5[1])
         # thresh with winSize = 7
         thresh_7 = cv2.adaptiveThreshold(self.gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV,
                                          7, params[MarkerDetectPar.adaptiveThreshConstant])
         test_contours_thresh_7 = MarkerDetectPar._find_marker_contours(thresh_7)
         true_contours_thresh_7 = aruco._findMarkerContours(thresh_7, *aruco_params)
-        self.assertTrue(np.array_equal(test_contours_thresh_7[0], true_contours_thresh_7[0]))
-        self.assertTrue(np.array_equal(test_contours_thresh_7[1], true_contours_thresh_7[1]))
+        np.testing.assert_allclose(test_contours_thresh_7[0], true_contours_thresh_7[0])
+        np.testing.assert_array_equal(test_contours_thresh_7[1], true_contours_thresh_7[1])
 
     def test_assert_find_marker_contours_does_not_modify_thresh(self):
         params = MarkerDetectPar.detectorParams

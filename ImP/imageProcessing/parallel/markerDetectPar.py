@@ -215,8 +215,8 @@ class MarkerDetectPar:
         contours = list()
 
         # Threshold at different scales
-        for i in range(0, cls.detectorParams[cls.adaptiveThreshWinSizeMin]):
-            scale = i * cls.detectorParams[cls.adaptiveThreshWinSizeStep]
+        for i in range(nScales):
+            scale = cls.detectorParams[cls.adaptiveThreshWinSizeMin] + i * cls.detectorParams[cls.adaptiveThreshWinSizeStep]
             markers = cls._find_marker_contours(cls._threshold(gray, scale, cls.detectorParams[cls.adaptiveThreshConstant]))
             candidates.append(markers[0])
             contours.append(markers[1])
@@ -261,32 +261,37 @@ class MarkerDetectPar:
         # Filter list of contours
         for c in contours:
             # Check perimeter
-            if c.size < minPerimeterPixels or c.size > maxPerimeterPixels:
+            if len(c) < minPerimeterPixels or len(c) > maxPerimeterPixels:
                 continue
-            # Check is square; convex
-            approxCurve = cv2.approxPolyDP(c, c.size * accuracyRate, True)
-            if approxCurve.size != 4 or not cv2.isContourConvex(approxCurve):
+            # Check is square (4 corners) and convex
+            # "Squeeze" (remove dimensions 1-long) from approxCurve for more sensible indexing
+            approxCurve = np.squeeze(cv2.approxPolyDP(c, len(c) * accuracyRate, True))
+            if len(approxCurve) != 4 or not cv2.isContourConvex(approxCurve):
                 continue
             # Check min distance between corners
-            minDistSq = math.pow(max(contours_img.size), 2)
+            # Note that the "points" of approxCurve are stored as Points[col, row] --> Points[x,y],
+            # whereas contours_img is a Image[row,col] --> Image[y,x]
+            minDistSq = math.pow(max(contours_img.shape), 2)
             for j in range(4):
-                minDistSq = min(math.pow(approxCurve[j].x - approxCurve[(j+1) % 4].x, 2) +
-                                math.pow(approxCurve[j].y - approxCurve[(j+1) % 4].y, 2),
+                minDistSq = min(math.pow(approxCurve[j][0] - approxCurve[(j+1) % 4][0], 2) +
+                                math.pow(approxCurve[j][1] - approxCurve[(j+1) % 4][1], 2),
                                 minDistSq)
-            if minDistSq < math.pow(c.size * minCornerDistanceRate, 2): continue
+            if minDistSq < math.pow(len(c) * minCornerDistanceRate, 2): continue
             # Check if it's too near to the img border
+            # Note that images are stored similarly to matrices (row-major-order)
+            # http://stackoverflow.com/questions/25642532/opencv-pointx-y-represent-column-row-or-row-column
             too_near_border = False
             for pt in approxCurve:
-                if (pt.x < minDistanceToBorder or pt.y < minDistanceToBorder or
-                        pt.x > contours_img.cols - 1 - minDistanceToBorder or
-                        pt.y > contours_img.rows - 1 - minDistanceToBorder):
+                if (pt[0] < minDistanceToBorder or pt[1] < minDistanceToBorder or
+                        pt[0] > contours_img.shape[1] - 1 - minDistanceToBorder or
+                        pt[1] > contours_img.shape[0] - 1 - minDistanceToBorder):
                     too_near_border = True
             if too_near_border: continue
             # If all tests pass, add to candidate vector
-            candidates.append([[ac.x, ac.y] for ac in approxCurve])
-            contours_out.append(c)
+            candidates.append(np.array(approxCurve, dtype=np.float32))
+            contours_out.append(np.squeeze(c))
 
-        return np.array(candidates), np.array(contours_out)
+        return np.array(candidates), contours_out
 
     # ~~STEP 2 FUNCTIONS~~
 
