@@ -146,6 +146,7 @@ class TestMarkerDetectPar(unittest.TestCase):
     def test_reorder_candidate_corners_equals_aruco_method(self):
         # TODO: Aruco call is failing; could try to rewrite Aruco function signature, but that seems risky
         candidates, _ = aruco._detectInitialCandidates(self.gray)
+        aruco._reorderCandidatesCorners(candidates)
         np.testing.assert_array_equal(MarkerDetectPar._reorder_candidate_corners(candidates),
                                       aruco._reorderCandidatesCorners(candidates))
 
