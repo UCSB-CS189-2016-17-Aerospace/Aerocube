@@ -192,9 +192,7 @@ class MarkerDetectPar:
         # 3. SORT CORNERS
         cls._reorder_candidate_corners(candidates)
         # 4. FILTER OUT NEAR CANDIDATE PAIRS
-        # TODO: _filter_too_close_candidates
-        cls._filter_too_close_candidates(candidates, contours)
-        pass
+        return cls._filter_too_close_candidates(candidates, contours)
 
     @classmethod
     def _detect_initial_candidates(cls, gray):
@@ -204,7 +202,6 @@ class MarkerDetectPar:
         :param gray: grayscale image to be analyzed
         :return: marker candidates and marker contours
         """
-
         # Check if detection parameters are valid
         assert cls.params[cls.adaptiveThreshWinSizeMin] >= 3 and cls.params[cls.adaptiveThreshWinSizeMax] >= 3
         assert cls.params[cls.adaptiveThreshWinSizeMax] >= cls.params[cls.adaptiveThreshWinSizeMin]
@@ -300,7 +297,8 @@ class MarkerDetectPar:
     @classmethod
     def _reorder_candidate_corners(cls, candidates):
         """
-        Reorder candidate corners to assure clockwise direction. May alter the original param.
+        Reorder candidate corners to assure clockwise direction. Alters the original candidates array.
+        Returns a reference to the candidates array (for convenience).
         :param candidates: List of candidates, each candidate being a list of four points, with values Point(x,y)
         :return: candidates list with reordered points, if necessary
         """
@@ -359,7 +357,7 @@ class MarkerDetectPar:
                             to_remove[i] = True
         # Remove markers from candidates and contours array if marked for deletion
         del_markers = np.where(np.any(to_remove is True))
-        # np.delete(candidates, np.where(np.any(to_remove)))
+        return np.delete(candidates, del_markers), np.delete(contours, del_markers)
 
 
     # ~~STEP 2 FUNCTIONS~~

@@ -150,6 +150,35 @@ class TestMarkerDetectPar(unittest.TestCase):
         np.testing.assert_array_equal(MarkerDetectPar._reorder_candidate_corners(candidates),
                                       aruco._reorderCandidatesCorners(candidates))
 
+    def test_reorder_candidate_corners_preserves_shape_and_alters_param(self):
+        candidates, _ = aruco._detectInitialCandidates(self.gray)
+        cand_copy = np.copy(candidates)
+        tmp = MarkerDetectPar._reorder_candidate_corners(candidates)
+        self.assertFalse(np.allclose(cand_copy, candidates))
+        self.assertFalse(np.allclose(cand_copy, tmp))
+        self.assertEqual(np.array(candidates).shape, cand_copy.shape)
+
+    @unittest.skip("Aruco Python binding failing")
+    def test_filter_too_close_candidates_equals_aruco_method(self):
+        candidates, contours = aruco._detectInitialCandidates(self.gray)
+        # Use own method to simulate reordering of corners, since Aruco function is not working
+        MarkerDetectPar._reorder_candidate_corners(candidates)
+        # Get test and true values
+        true_cand, true_cont = aruco._filterTooCloseCandidates(candidates,
+                                                               contours,
+                                                               MarkerDetectPar.params[MarkerDetectPar.minMarkerDistanceRate])
+        test_cand, test_cont = MarkerDetectPar._filter_too_close_candidates(candidates, contours)
+        # Assert equality
+        np.testing.assert_allclose(true_cand, test_cand)
+        np.testing.assert_array_equal(true_cont, test_cont)
+
+    def test_filter_too_close_candidates_does_not_alter_params(self):
+        candidates, contours = aruco._detectInitialCandidates(self.gray)
+        cand_copy, cont_copy = np.copy(candidates), np.copy(contours)
+        MarkerDetectPar._filter_too_close_candidates(candidates, contours)
+        np.testing.assert_allclose(candidates, cand_copy)
+        np.testing.assert_array_equal(contours, cont_copy)
+
     # ~~STEP 2 FUNCTIONS~~
 
     # ~~STEP 3 FUNCTIONS~~
