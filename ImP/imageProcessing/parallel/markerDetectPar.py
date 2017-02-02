@@ -210,11 +210,8 @@ class MarkerDetectPar:
         nScales = (cls.detectorParams[cls.adaptiveThreshWinSizeMax] - cls.detectorParams[cls.adaptiveThreshWinSizeMin]) / \
                   cls.detectorParams[cls.adaptiveThreshWinSizeStep]
 
-        # Run sanity check, and assert nScales is valid (non-zero)
-        assert nScales > 0
-
         # In parallel, threshold at different scales
-        pass
+
 
     @classmethod
     def _find_marker_contours(cls, thresh):
@@ -243,7 +240,7 @@ class MarkerDetectPar:
         # RETR_LIST returns contours without any hierarchical relationships (as list)
         # CHAIN_APPROX_NONE stores all contour points, s.t. subsequent points of a contour are no further than 1 unit
         #   away from each other
-        contours_img = thresh
+        contours_img = np.copy(thresh)
         contours_img, contours, _ = cv2.findContours(contours_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
 
         # Initialize candidates and contours arrays
