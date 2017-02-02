@@ -18,6 +18,8 @@
 
 ## Anaconda Accelerate and Numba
 * [Numba Documentation](http://numba.pydata.org/numba-doc/latest/index.html)
+* [Numba Explanation of CUDA Hardware](http://numba.pydata.org/numba-doc/0.13/CUDAintro.html)
+* [Supported Python Features for CUDA Functions](http://numba.pydata.org/numba-doc/latest/cuda/cudapysupported.html)
 
 ## PyCUDA
 * Overview

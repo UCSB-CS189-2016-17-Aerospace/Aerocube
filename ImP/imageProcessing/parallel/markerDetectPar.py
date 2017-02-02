@@ -326,11 +326,41 @@ class MarkerDetectPar:
         :param contours: ???
         :return: candidates, contours
         """
-        # Set minMarkerDistanceRate var
         minMarkerDistanceRate = cls.params[cls.minMarkerDistanceRate]
         assert minMarkerDistanceRate >= 0
-        # Compare every pair of markers
-        pass
+        # Initialize array to keep track of markers to remove
+        to_remove = [False]*len(candidates)
+        # Compare mean square distance between corner points for each candidate (squared to avoid negatives)
+        # If a candidate's corner is too close (has a mean square distance too low) to the other candidate's corners,
+        # remove the smaller candidate of the pair
+        for i in range(len(candidates)):
+            for j in range(1, len(candidates)):
+                minimumPerimeter = int(min(len(contours[i]), len(contours[j])))
+                minMarkerDistancePixels = minimumPerimeter * minMarkerDistanceRate
+                # Because the corners (guaranteed clockwise) of i can have 4 different combinations with the
+                # corners of j, we must repeat this process 4 times
+                for fc in range(4):
+                    # For each corner in candidate i, compute mean square distance to candidate j
+                    distSq = 0
+                    for c in range(4):
+                        modC = (fc + c) % 4
+                        distSq += math.pow(candidates[i][modC][0] - candidates[j][c][0], 2) + \
+                                  math.pow(candidates[i][modC][1] - candidates[j][c][1], 2)
+                    distSq /= 4.0  # Take the mean distance squared
+                    # If mean square distance too low, mark for deletion
+                    if distSq < math.pow(minMarkerDistancePixels, 2):
+                        # If one marker already marked for deletion, do nothing
+                        if to_remove[i] or to_remove[j]:
+                            break
+                        # Else, mark one with smaller contour perimeter for deletion
+                        elif len(contours[i]) > len(contours[j]):
+                            to_remove[j] = True
+                        else:
+                            to_remove[i] = True
+        # Remove markers from candidates and contours array if marked for deletion
+        del_markers = np.where(np.any(to_remove is True))
+        # np.delete(candidates, np.where(np.any(to_remove)))
+
 
     # ~~STEP 2 FUNCTIONS~~
 
