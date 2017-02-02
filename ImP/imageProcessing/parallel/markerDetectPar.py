@@ -193,6 +193,7 @@ class MarkerDetectPar:
         cls._reorder_candidate_corners(candidates)
         # 4. FILTER OUT NEAR CANDIDATE PAIRS
         # TODO: _filter_too_close_candidates
+        cls._filter_too_close_candidates(candidates, contours)
         pass
 
     @classmethod
@@ -315,6 +316,21 @@ class MarkerDetectPar:
             if cross_product < 0.0:
                 c[1], c[3] = c[3], c[1]
         return candidates
+
+    @classmethod
+    def _filter_too_close_candidates(cls, candidates, contours):
+        """
+        Modifies the given arrays of markers, filtering out candidate markers that are
+        too close to each other.
+        :param candidates: list of candidates, each represented by four Points, with values Point(x,y)
+        :param contours: ???
+        :return: candidates, contours
+        """
+        # Set minMarkerDistanceRate var
+        minMarkerDistanceRate = cls.params[cls.minMarkerDistanceRate]
+        assert minMarkerDistanceRate >= 0
+        # Compare every pair of markers
+        pass
 
     # ~~STEP 2 FUNCTIONS~~
 
