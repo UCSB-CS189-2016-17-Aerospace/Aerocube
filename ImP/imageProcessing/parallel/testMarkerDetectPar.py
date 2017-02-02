@@ -76,6 +76,9 @@ class TestMarkerDetectPar(unittest.TestCase):
 
     # PUBLIC FUNCTIONS
 
+    def test_detector_parameters(self):
+        pass
+
     def test_detect_markers_raise_on_improper_image(self):
         self.assertRaises(MarkerDetectPar.MarkerDetectParException,
                           MarkerDetectPar.detect_markers_parallel, None)
@@ -86,10 +89,10 @@ class TestMarkerDetectPar(unittest.TestCase):
         self.assertRaises(MarkerDetectPar.MarkerDetectParException,
                           MarkerDetectPar._detect_candidates, None)
 
-    def test_detector_parameters(self):
-        pass
-
     # ~~STEP 1 FUNCTIONS~~
+
+    def test_find_marker_contours(self):
+        pass
 
     # ~~STEP 2 FUNCTIONS~~
 

@@ -1,3 +1,4 @@
+import math
 import cv2
 import numpy as np
 import numba
@@ -245,9 +246,39 @@ class MarkerDetectPar:
         contours_img = thresh
         contours_img, contours, _ = cv2.findContours(contours_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
 
-        # Filter list of contours
-        pass
+        # Initialize candidates and contours arrays
+        candidates = list()
+        contours_out = list()
 
+        # Filter list of contours
+        for c in contours:
+            # Check perimeter
+            if c.size < minPerimeterPixels or c.size > maxPerimeterPixels:
+                continue
+            # Check is square; convex
+            approxCurve = cv2.approxPolyDP(c, c.size * accuracyRate, True)
+            if approxCurve.size != 4 or not cv2.isContourConvex(approxCurve):
+                continue
+            # Check min distance between corners
+            minDistSq = math.pow(max(contours_img.size), 2)
+            for j in range(4):
+                minDistSq = min(math.pow(approxCurve[j].x - approxCurve[(j+1) % 4].x, 2) +
+                                math.pow(approxCurve[j].y - approxCurve[(j+1) % 4].y, 2),
+                                minDistSq)
+            if minDistSq < math.pow(c.size * minCornerDistanceRate, 2): continue
+            # Check if it's too near to the img border
+            too_near_border = False
+            for pt in approxCurve:
+                if (pt.x < minDistanceToBorder or pt.y < minDistanceToBorder or
+                        pt.x > contours_img.cols - 1 - minDistanceToBorder or
+                        pt.y > contours_img.rows - 1 - minDistanceToBorder):
+                    too_near_border = True
+            if too_near_border: continue
+            # If all tests pass, add to candidate vector
+            candidates.append([[ac.x, ac.y] for ac in approxCurve])
+            contours_out.append(c)
+
+        return np.array(candidates), np.array(contours_out)
 
     # ~~STEP 2 FUNCTIONS~~
 
