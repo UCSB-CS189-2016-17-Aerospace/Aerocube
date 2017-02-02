@@ -94,6 +94,22 @@ class MarkerDetectPar:
         return cv2.adaptiveThreshold(gray, maxValue, adaptiveMethod=cv2.ADAPTIVE_THRESH_MEAN_C,
                                      thresholdType=cv2.THRESH_BINARY_INV, blockSize=winSize, C=constant)
 
+    @staticmethod
+    @cuda.jit(device=True)
+    def _cuda_threshold(gray, winSize, constant=detectorParams[adaptiveThreshConstant]):
+        """
+        CUDA-accelerated implementation of threshold; should match _threshold's output.
+        :param gray:
+        :param winSize:
+        :param constant:
+        :return:
+        """
+        assert winSize >= 3
+        if winSize % 2 == 0:
+            winSize += 1
+        maxValue = 255
+        pass
+
     # @classmethod
     # def cuda_hello_world_print(cls):
     #     mod = SourceModule("""
@@ -185,20 +201,16 @@ class MarkerDetectPar:
         """
 
         # Check if detection parameters are valid
-        if cls.detectorParams[cls.adaptiveThreshWinSizeMin] < 3 or cls.detectorParams[cls.adaptiveThreshWinSizeMax] < 3:
-            raise cls.MarkerDetectParException
-        if cls.detectorParams[cls.adaptiveThreshWinSizeMax] < cls.detectorParams[cls.adaptiveThreshWinSizeMin]:
-            raise cls.MarkerDetectParException
-        if cls.detectorParams[cls.adaptiveThreshWinSizeStep] <= 0:
-            raise cls.MarkerDetectParException
+        assert cls.detectorParams[cls.adaptiveThreshWinSizeMin] >= 3 and cls.detectorParams[cls.adaptiveThreshWinSizeMax] >= 3
+        assert cls.detectorParams[cls.adaptiveThreshWinSizeMax] >= cls.detectorParams[cls.adaptiveThreshWinSizeMin]
+        assert cls.detectorParams[cls.adaptiveThreshWinSizeStep] > 0
 
         # Determine number of window sizes, or scales, to apply thresholding
         nScales = (cls.detectorParams[cls.adaptiveThreshWinSizeMax] - cls.detectorParams[cls.adaptiveThreshWinSizeMin]) / \
                   cls.detectorParams[cls.adaptiveThreshWinSizeStep]
 
-        # Run sanity check, and verify nScales is valid (non-zero)
-        if nScales <= 0:
-            raise cls.MarkerDetectParException
+        # Run sanity check, and assert nScales is valid (non-zero)
+        assert nScales > 0
 
         # In parallel, threshold at different scales
         pass
@@ -218,9 +230,8 @@ class MarkerDetectPar:
         minDistanceToBorder = cls.detectorParams[cls.minDistanceToBorder]
 
         # Assert parameters are valid
-        if (minPerimeterRate <= 0 or maxPerimeterRate <= 0 or accuracyRate <= 0 or
-            minCornerDistanceRate < 0 or minDistanceToBorder < 0):
-            raise cls.MarkerDetectParException
+        assert (minPerimeterRate > 0 and maxPerimeterRate > 0 accuracyRate > 0 and
+                minCornerDistanceRate >= 0 and minDistanceToBorder >= 0)
 
         # Calculate maximum and minimum sizes in pixels based off of dimensions of thresh image
         minPerimeterPixels = minPerimeterRate * max(thresh.shape)
