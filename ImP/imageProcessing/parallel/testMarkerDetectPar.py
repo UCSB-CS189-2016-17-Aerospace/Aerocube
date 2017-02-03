@@ -200,8 +200,13 @@ class TestMarkerDetectPar(unittest.TestCase):
         #                                MarkerDetectPar.params[MarkerDetectPar.perspectiveRemoveIgnoredMarginPerCell],
         #                                MarkerDetectPar.params[MarkerDetectPar.minOtsuStdDev])
         test_bits = MarkerDetectPar._extract_bits(self.gray_marker, candidates[9])
-        all_the_bits = [MarkerDetectPar._extract_bits(self.gray_marker, c) for c in candidates]
-        print(test_bits)
+        # all_the_bits = [MarkerDetectPar._extract_bits(self.gray_marker, c) for c in candidates]
+        np.testing.assert_array_equal(test_bits, np.array([[0, 0, 0, 0, 0, 0],
+                                                           [0, 1, 0, 1, 1, 0],
+                                                           [0, 0, 1, 0, 1, 0],
+                                                           [0, 0, 0, 1, 1, 0],
+                                                           [0, 0, 0, 1, 0, 0],
+                                                           [0, 0, 0, 0, 0, 0]]))
 
 
     # ~~STEP 3 FUNCTIONS~~

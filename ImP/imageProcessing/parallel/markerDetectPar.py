@@ -417,7 +417,7 @@ class MarkerDetectPar:
                                      [0                , resultImgSize - 1]], dtype=np.float32)
         # Get transformation and warp image
         transformation = cv2.getPerspectiveTransform(corners, resultImgCorners)
-        resultImg = cv2.warpPerspective(gray, transformation, (resultImgSize, resultImgSize), flags=cv2.INTER_NEAREST)
+        result_img = cv2.warpPerspective(gray, transformation, (resultImgSize, resultImgSize), flags=cv2.INTER_NEAREST)
 
         # Initialize image containing bits output
         bits = np.zeros((markerSizeWithBorders, markerSizeWithBorders), dtype=np.int8)
@@ -426,21 +426,21 @@ class MarkerDetectPar:
         # If not enough, probably means all bits are same color (black or white)
         # Remove some border to avoid noise from perspective transformation
         # Remember that image matrices are stored row-major-order, [y][x]
-        innerRegion = resultImg[int(cellSize/2):int(-cellSize/2), int(cellSize/2):int(-cellSize/2)]
-        mean, stddev = cv2.meanStdDev(innerRegion)
+        inner_region = result_img[int(cellSize/2):int(-cellSize/2), int(cellSize/2):int(-cellSize/2)]
+        mean, stddev = cv2.meanStdDev(inner_region)
         if stddev < minStdDevOtsu:
             return bits.fill(1) if mean > 127 else bits
 
         # Because standard deviation is high enough, threshold using Otsu
-        _, resultImg = cv2.threshold(resultImg, 125, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        _, result_img = cv2.threshold(result_img, 125, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
         for y in range(markerSizeWithBorders):
             for x in range(markerSizeWithBorders):
                 # Get each individual square of each cell, excluding the margin pixels
                 yStart = y * cellSize + cellMarginPixels
-                yEnd = y * (cellSize+1) - 2 * cellMarginPixels
+                yEnd = yStart + cellSize - 2 * cellMarginPixels
                 xStart = x * cellSize + cellMarginPixels
-                xEnd = x * (cellSize+1) - 2 * cellMarginPixels
-                square = resultImg[yStart:yEnd, xStart:xEnd]
+                xEnd = xStart + cellSize - 2 * cellMarginPixels
+                square = result_img[yStart:yEnd, xStart:xEnd]
                 if cv2.countNonZero(square) > (square.size / 2):
                     bits[y][x] = 1
         return bits
