@@ -185,6 +185,7 @@ class TestMarkerDetectPar(unittest.TestCase):
         np.testing.assert_array_equal(contours, cont_copy)
 
     # ~~STEP 2 FUNCTIONS~~
+
     @unittest.skip("Faulty Python binding")
     def test_identify_candidates_equals_aruco_method(self):
         candidates, contours = aruco._detectCandidates(self.gray, aruco.DetectorParameters_create())
@@ -194,13 +195,71 @@ class TestMarkerDetectPar(unittest.TestCase):
                                                          aruco_acc,
                                                          aruco.DetectorParameters_create())
 
+    def test_identify_candidates_for_marker_returns_valid_results(self):
+        candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
+        acc, ids, rej = MarkerDetectPar._identify_candidates(self.gray_marker_0, candidates, FiducialMarker.get_dictionary())
+        np.testing.assert_allclose(acc, [np.array([[ 82.,  51.],
+                                                   [453.,  51.],
+                                                   [454., 417.],
+                                                   [ 82., 417.]], dtype=np.float32)])
+        np.testing.assert_array_equal(ids, [0])
+        np.testing.assert_allclose(rej, [np.array([[270., 297.],
+                                                   [325., 297.],
+                                                   [325., 352.],
+                                                   [270., 352.]], dtype=np.float32),
+                                         np.array([[332., 236.],
+                                                   [387., 236.],
+                                                   [387., 291.],
+                                                   [332., 291.]], dtype=np.float32),
+                                         np.array([[271., 236.],
+                                                   [326., 236.],
+                                                   [326., 291.],
+                                                   [271., 291.]], dtype=np.float32),
+                                         np.array([[331., 175.],
+                                                   [386., 175.],
+                                                   [386., 230.],
+                                                   [331., 230.]], dtype=np.float32),
+                                         np.array([[210., 175.],
+                                                   [265., 175.],
+                                                   [265., 230.],
+                                                   [210., 230.]], dtype=np.float32),
+                                         np.array([[332., 116.],
+                                                   [387., 116.],
+                                                   [387., 171.],
+                                                   [332., 171.]], dtype=np.float32),
+                                         np.array([[271., 116.],
+                                                   [326., 116.],
+                                                   [326., 171.],
+                                                   [271., 171.]], dtype=np.float32),
+                                         np.array([[147., 116.],
+                                                   [202., 116.],
+                                                   [202., 171.],
+                                                   [147., 171.]], dtype=np.float32),
+                                         np.array([[270., 177.],
+                                                   [325., 176.],
+                                                   [326., 230.],
+                                                   [271., 231.]], dtype=np.float32)])
+        candidates, _ = aruco._detectCandidates(self.gray_marker_0_trans, aruco.DetectorParameters_create())
+        acc, ids, rej = MarkerDetectPar._identify_candidates(self.gray_marker_0_trans, candidates,
+                                                             FiducialMarker.get_dictionary())
+        np.testing.assert_allclose(acc, [np.array([[418.,  45.],
+                                                   [415., 515.],
+                                                   [ 94., 475.],
+                                                   [ 66.,  90.]], dtype=np.float32)])
+        np.testing.assert_array_equal(ids, [0])
+        self.assertEqual(np.array(rej).shape, (9, 4, 2))
+
     @unittest.skip("_identify_one_candidate: faulty Python binding, C++ assertion fails for valid Python-side input")
     def test_identify_one_candidate_equals_aruco_method(self):
         candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
         true_cand = aruco._identifyOneCandidate(FiducialMarker.get_dictionary(), self.gray_marker_0, candidates[9])
 
     def test_identify_one_candidate_returns_proper_id(self):
-        pass
+        candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
+        retval = MarkerDetectPar._identify_one_candidate(FiducialMarker.get_dictionary(), self.gray_marker_0, candidates[9])
+        print(retval)
+        retval = MarkerDetectPar._identify_one_candidate(FiducialMarker.get_dictionary(), self.gray_marker_0, candidates[0])
+        print(retval)
 
     @unittest.skip("_extractBits: faulty Python binding")
     def test_extract_bits_equals_aruco_method(self):
@@ -213,7 +272,7 @@ class TestMarkerDetectPar(unittest.TestCase):
         test_bits = MarkerDetectPar._extract_bits(self.gray_marker_0, candidates[9])
         np.testing.assert_array_equal(true_bits, test_bits)
 
-    def test_extract_bits_for_marker_0(self):
+    def test_extract_bits_for_proper_marker(self):
         candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
         test_bits = MarkerDetectPar._extract_bits(self.gray_marker_0, candidates[9])
         np.testing.assert_array_equal(test_bits, np.array([[0, 0, 0, 0, 0, 0],
@@ -222,8 +281,6 @@ class TestMarkerDetectPar(unittest.TestCase):
                                                            [0, 0, 0, 1, 1, 0],
                                                            [0, 0, 0, 1, 0, 0],
                                                            [0, 0, 0, 0, 0, 0]]))
-
-    def test_extract_bits_for_marker_0_transformed(self):
         candidates, _ = aruco._detectCandidates(self.gray_marker_0_trans, aruco.DetectorParameters_create())
         test_bits = MarkerDetectPar._extract_bits(self.gray_marker_0_trans, candidates[9])
         np.testing.assert_array_equal(test_bits, np.array([[0, 0, 0, 0, 0, 0],
@@ -232,6 +289,12 @@ class TestMarkerDetectPar(unittest.TestCase):
                                                            [0, 0, 0, 1, 1, 0],
                                                            [0, 0, 0, 1, 0, 0],
                                                            [0, 0, 0, 0, 0, 0]]))
+
+    def test_extract_bits_for_false_candidate_all_black(self):
+        candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
+        bits = MarkerDetectPar._extract_bits(self.gray_marker_0, candidates[0])
+        np.testing.assert_array_equal(bits, np.ones((6, 6), dtype=np.int8))
+
 
     def test_get_border_errors_equals_aruco_method(self):
         candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())

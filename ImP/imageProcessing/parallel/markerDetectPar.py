@@ -1,5 +1,6 @@
 import math
 import cv2
+from cv2 import aruco
 import numpy as np
 import numba
 from numba import cuda
@@ -363,7 +364,14 @@ class MarkerDetectPar:
 
     # ~~STEP 2 FUNCTIONS~~
     @classmethod
-    def _identify_candidates(cls, gray, candidates, contours, dictionary):
+    def _identify_candidates(cls, gray, candidates, dictionary):
+        """
+
+        :param gray:
+        :param candidates:
+        :param dictionary:
+        :return:
+        """
         # Assert that image is not none and gray
         assert gray is not None
         assert gray.size is not 0 and len(gray.shape) == 2
@@ -371,16 +379,29 @@ class MarkerDetectPar:
         ncandidates = int(len(candidates))
         accepted = list()
         rejected = list()
-        ids = [-1]*ncandidates
-        valid_candidates = [False]*ncandidates
+        ids = list()
+        # ids = [-1]*ncandidates
+        # valid_candidates = [False]*ncandidates
         # Analyze each candidate
         for i in range(ncandidates):
-            pass
+            valid, corners, cand_id = cls._identify_one_candidate(dictionary, gray, candidates[i])
+            if valid:
+                accepted.append(corners)
+                ids.append(cand_id)
+            else:
+                rejected.append(corners)
 
-        return ids, accepted, rejected
+        return accepted, ids, rejected
 
     @classmethod
     def _identify_one_candidate(cls, dictionary, gray, corners):
+        """
+
+        :param dictionary:
+        :param gray:
+        :param corners:
+        :return:
+        """
         markerBorderBits = cls.params[cls.markerBorderBits]
         assert len(corners) is 4
         assert gray is not None
@@ -391,11 +412,16 @@ class MarkerDetectPar:
         max_errors_in_border = int(dictionary.markerSize * dictionary.markerSize * markerBorderBits)
         border_errors = cls._get_border_errors(candidate_bits, dictionary.markerSize, markerBorderBits)
         if border_errors > max_errors_in_border:
-            return False
+            return False, corners, -1
 
         # Take inner bits for marker identification with beautiful Python slicing (god damn!)
         inner_bits = candidate_bits[markerBorderBits:-markerBorderBits, markerBorderBits:-markerBorderBits]
-        
+        retval, cand_id, rotation = dictionary.identify(inner_bits, cls.params[cls.errorCorrectionRate])
+        if retval is False:
+            return False, corners, -1
+        else:
+            # Shift corner positions to correct rotation before returning
+            return True, np.roll(corners, rotation), cand_id
         pass
 
     @classmethod
@@ -452,7 +478,8 @@ class MarkerDetectPar:
         # If not enough, probably means all bits are same color (black or white)
         mean, stddev = cv2.meanStdDev(inner_region)
         if stddev < minStdDevOtsu:
-            return bits.fill(1) if mean > 127 else bits
+            bits.fill(1) if mean > 127 else bits
+            return bits
 
         # Because standard deviation is high enough, threshold using Otsu
         _, result_img = cv2.threshold(result_img, 125, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
