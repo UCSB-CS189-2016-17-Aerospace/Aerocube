@@ -170,7 +170,8 @@ class MarkerDetectPar:
         # ~~STEP 1~~: Detect marker candidates
         candidates, contours = cls._detect_candidates(gray_img)
 
-        # STEP 2
+        # ~~STEP 2~~: Identify marker candidates, filtering out candidates without properly set bits
+        accepted, ids, rejected = cls._identify_candidates(gray_img, candidates, dictionary)
 
         # STEP 3
 
@@ -361,29 +362,33 @@ class MarkerDetectPar:
         cont_out = [c for i, c in enumerate(contours) if to_remove[i] is False]
         return cand_out, cont_out
 
-
     # ~~STEP 2 FUNCTIONS~~
+
     @classmethod
     def _identify_candidates(cls, gray, candidates, dictionary):
         """
-
-        :param gray:
-        :param candidates:
-        :param dictionary:
-        :return:
+        Iterates through given array of candidates and extracts the "bits" of the candidate marker by Otsu thresholding.
+        Rejects the candidate if bits are not properly set or identifiable by the dictionary. Additionally, reverses any
+        rotation applied to each candidate's corner points before returning them from this function.
+        :param gray: grayscale image containing the candidate corner points
+        :param candidates: list of each candidate's corner points, with shape (4, 2) and type np.float32
+        :param dictionary: dictionary used to analyze and identify each candidate marker
+        :return: (accepted, ids, rejected)
+            * accepted - list of accepted candidates, with the corner points rotated to reflect their proper order
+                according to the dictionary
+            * ids - list of ids of the respective candidates, identified by the dictionary
+            * rejected - list of rejected candidates (e.g., due to too many erroneous border bits, improper data bits,
+                rejection by the dictionary)
         """
         # Assert that image is not none and gray
         assert gray is not None
         assert gray.size is not 0 and len(gray.shape) == 2
         # Initialize variables
-        ncandidates = int(len(candidates))
         accepted = list()
-        rejected = list()
         ids = list()
-        # ids = [-1]*ncandidates
-        # valid_candidates = [False]*ncandidates
+        rejected = list()
         # Analyze each candidate
-        for i in range(ncandidates):
+        for i in range(len(candidates)):
             valid, corners, cand_id = cls._identify_one_candidate(dictionary, gray, candidates[i])
             if valid:
                 accepted.append(corners)
@@ -396,11 +401,20 @@ class MarkerDetectPar:
     @classmethod
     def _identify_one_candidate(cls, dictionary, gray, corners):
         """
-
-        :param dictionary:
-        :param gray:
-        :param corners:
-        :return:
+        Given a grayscale image and the candidate corners (i.e., corner points), extract the bits of the candidate from
+        the image if possible and use the dictionary to identify the candidate. If successful, reverse any rotation
+        applied to the ordering of the corner points (to standardize the order of the corners) and return with the ID.
+        Else, return False, and return original corners and invalid ID.
+        :param dictionary: dictionary used to identify extracted bits from the corners in the image
+        :param gray: grayscale image that contains the corner points of the candidate
+        :param corners: corner points of the candidate with shape (4,2); recall that Points are stored as [x][y]
+        :return: (valid_candidate, corners, id)
+            * valid_candidate - indicates whether the given candidate is valid or not, due to:
+                1. too many erroneous bits (white bits) in candidate marker border (assumed to be all black bits)
+                2. dictionary fails to identify the candidate marker
+            * corners - corners of the identified candidate, rotated if the dictionary detects a rotation occurred;
+                else, if candidate identified invalid, original corners returned
+            * id - id of the identified candidate; if invalid candidate, set to -1
         """
         markerBorderBits = cls.params[cls.markerBorderBits]
         assert len(corners) is 4

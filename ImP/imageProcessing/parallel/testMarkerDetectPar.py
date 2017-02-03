@@ -29,7 +29,7 @@ class TestMarkerDetectPar(unittest.TestCase):
         self.gray_marker_0_trans = cv2.cvtColor(self.img_marker_0_trans, cv2.COLOR_BGR2GRAY)
 
     def tearDown(self):
-        self.image = None
+        pass
 
     # CUDA TEST FUNCTIONS
 
@@ -242,6 +242,7 @@ class TestMarkerDetectPar(unittest.TestCase):
         candidates, _ = aruco._detectCandidates(self.gray_marker_0_trans, aruco.DetectorParameters_create())
         acc, ids, rej = MarkerDetectPar._identify_candidates(self.gray_marker_0_trans, candidates,
                                                              FiducialMarker.get_dictionary())
+        # TODO: unsure if rotation was properly done here
         np.testing.assert_allclose(acc, [np.array([[418.,  45.],
                                                    [415., 515.],
                                                    [ 94., 475.],
