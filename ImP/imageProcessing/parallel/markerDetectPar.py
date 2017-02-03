@@ -364,7 +364,9 @@ class MarkerDetectPar:
     # ~~STEP 2 FUNCTIONS~~
     @classmethod
     def _identify_candidates(cls, gray, candidates, contours, dictionary):
-
+        ids = list()
+        accepted = list()
+        rejected = list()
         return ids, accepted, rejected
 
     # ~~STEP 3 FUNCTIONS~~
