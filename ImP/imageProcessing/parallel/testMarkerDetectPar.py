@@ -13,14 +13,17 @@ class TestMarkerDetectPar(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._IMAGE = cv2.imread(os.path.join(ImageProcessingSettings.get_test_files_path(), 'jetson_test1.jpg'))
+        cls._IMG_MARKER = cv2.imread(os.path.join(ImageProcessingSettings.get_test_files_path(), 'marker_4X4_sp6_id0.png'))
 
     @classmethod
     def tearDownClass(cls):
         pass
 
     def setUp(self):
-        self.image = self._IMAGE
+        self.image = np.copy(self._IMAGE)
+        self.img_marker = np.copy(self._IMG_MARKER)
         self.gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+        self.gray_marker = cv2.cvtColor(self.img_marker, cv2.COLOR_BGR2GRAY)
 
     def tearDown(self):
         self.image = None
@@ -187,6 +190,19 @@ class TestMarkerDetectPar(unittest.TestCase):
                                                          AeroCubeMarker.get_dictionary(),
                                                          aruco_acc,
                                                          aruco.DetectorParameters_create())
+
+    def test_extract_bits_equals_aruco_method(self):
+        candidates, contours = aruco._detectCandidates(self.gray_marker, aruco.DetectorParameters_create())
+        print(candidates[9])
+        # true_bits = aruco._extractBits(self.gray_marker, candidates[9], FiducialMarker.get_marker_size(),
+        #                                MarkerDetectPar.params[MarkerDetectPar.markerBorderBits],
+        #                                MarkerDetectPar.params[MarkerDetectPar.perspectiveRemovePixelPerCell],
+        #                                MarkerDetectPar.params[MarkerDetectPar.perspectiveRemoveIgnoredMarginPerCell],
+        #                                MarkerDetectPar.params[MarkerDetectPar.minOtsuStdDev])
+        test_bits = MarkerDetectPar._extract_bits(self.gray_marker, candidates[9])
+        all_the_bits = [MarkerDetectPar._extract_bits(self.gray_marker, c) for c in candidates]
+        print(test_bits)
+
 
     # ~~STEP 3 FUNCTIONS~~
 

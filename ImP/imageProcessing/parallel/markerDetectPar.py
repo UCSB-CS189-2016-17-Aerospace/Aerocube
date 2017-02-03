@@ -426,13 +426,13 @@ class MarkerDetectPar:
         # If not enough, probably means all bits are same color (black or white)
         # Remove some border to avoid noise from perspective transformation
         # Remember that image matrices are stored row-major-order, [y][x]
-        innerRegion = resultImg[cellSize/2:-cellSize/2][cellSize/2:-cellSize/2]
+        innerRegion = resultImg[int(cellSize/2):int(-cellSize/2), int(cellSize/2):int(-cellSize/2)]
         mean, stddev = cv2.meanStdDev(innerRegion)
         if stddev < minStdDevOtsu:
             return bits.fill(1) if mean > 127 else bits
 
         # Because standard deviation is high enough, threshold using Otsu
-        resultImg = cv2.threshold(resultImg, 125, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        _, resultImg = cv2.threshold(resultImg, 125, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
         for y in range(markerSizeWithBorders):
             for x in range(markerSizeWithBorders):
                 # Get each individual square of each cell, excluding the margin pixels
@@ -440,7 +440,7 @@ class MarkerDetectPar:
                 yEnd = y * (cellSize+1) - 2 * cellMarginPixels
                 xStart = x * cellSize + cellMarginPixels
                 xEnd = x * (cellSize+1) - 2 * cellMarginPixels
-                square = resultImg[yStart:yEnd][xStart:xEnd]
+                square = resultImg[yStart:yEnd, xStart:xEnd]
                 if cv2.countNonZero(square) > (square.size / 2):
                     bits[y][x] = 1
         return bits
