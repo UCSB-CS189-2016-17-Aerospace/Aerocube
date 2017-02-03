@@ -364,9 +364,16 @@ class MarkerDetectPar:
     # ~~STEP 2 FUNCTIONS~~
     @classmethod
     def _identify_candidates(cls, gray, candidates, contours, dictionary):
+        # Assert that image is not none and gray
+        assert gray is not None
+        assert gray.size is not 0 and len(gray.shape) == 2
+        # Initialize variables
+        ncandidates = int(len(candidates))
         ids = list()
         accepted = list()
         rejected = list()
+        valid_candidates = list()
+
         return ids, accepted, rejected
 
     # ~~STEP 3 FUNCTIONS~~

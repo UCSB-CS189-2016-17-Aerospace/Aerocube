@@ -3,6 +3,7 @@ import os
 import cv2
 from cv2 import aruco
 import numpy as np
+from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker
 from ImP.imageProcessing.parallel.markerDetectPar import *
 from ImP.imageProcessing.settings import ImageProcessingSettings
 
@@ -178,6 +179,14 @@ class TestMarkerDetectPar(unittest.TestCase):
         np.testing.assert_array_equal(contours, cont_copy)
 
     # ~~STEP 2 FUNCTIONS~~
+    @unittest.skip("Faulty Python binding")
+    def test_identify_candidates_equals_aruco_method(self):
+        candidates, contours = aruco._detectCandidates(self.gray, aruco.DetectorParameters_create())
+        aruco_acc, aruco_rej, aruco_ids = list(), list(), list()
+        aruco_ids, aruco_rej = aruco._identifyCandidates(self.gray, candidates, contours,
+                                                         AeroCubeMarker.get_dictionary(),
+                                                         aruco_acc,
+                                                         aruco.DetectorParameters_create())
 
     # ~~STEP 3 FUNCTIONS~~
 
