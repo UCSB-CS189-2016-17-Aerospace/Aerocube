@@ -19,6 +19,9 @@ class TestFiducialMarker(unittest.TestCase):
     def test_get_dictionary_size(self):
         self.assertEqual(FiducialMarker.get_dictionary_size(), 50)
 
+    def test_get_marker_size(self):
+        self.assertEqual(FiducialMarker.get_marker_size(), 4)
+
     def test_positive_dictionary_equal(self):
         dict1 = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
         dict2 = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)

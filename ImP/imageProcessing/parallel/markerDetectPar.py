@@ -369,12 +369,69 @@ class MarkerDetectPar:
         assert gray.size is not 0 and len(gray.shape) == 2
         # Initialize variables
         ncandidates = int(len(candidates))
-        ids = list()
         accepted = list()
         rejected = list()
-        valid_candidates = list()
+        ids = [-1]*ncandidates
+        valid_candidates = [False]*ncandidates
+        # Analyze each candidate
+        for i in range(ncandidates):
+            pass
 
         return ids, accepted, rejected
+
+    @classmethod
+    def _identify_one_candidate(cls, dictionary, gray, corners):
+        assert len(corners) is 4
+        assert gray is not None
+        assert cls.params[cls.markerBorderBits] > 0
+
+        # Get bits
+
+    @classmethod
+    def _extract_bits(cls, gray, corners):
+        # Initialize variables
+        markerSize = FiducialMarker.get_marker_size()
+        markerBorderBits = cls.params[cls.markerBorderBits]
+        cellSize = cls.params[cls.perspectiveRemovePixelPerCell]
+        cellMarginRate = cls.params[cls.perspectiveRemoveIgnoredMarginPerCell]
+        minStdDevOtsu = cls.params[cls.minOtsuStdDev]
+        # Run assertions
+        assert len(gray.shape) == 2
+        assert len(corners) == 4
+        assert markerBorderBits > 0 and cellSize > 0 and cellMarginRate >= 0 and cellMarginRate <= 1
+        assert minStdDevOtsu >= 0
+
+        # Number of bits in marker
+        markerSizeWithBorders = markerSize + 2*markerBorderBits
+        cellMarginPixels = int(cellMarginRate * cellSize)
+        resultImgSize = int(markerSizeWithBorders * cellSize)
+        resultImgCorners = np.array([[0                , 0                ],
+                                     [resultImgSize - 1, 0                ],
+                                     [resultImgSize - 1, resultImgSize - 1],
+                                     [0                , resultImgSize - 1]], dtype=np.float32)
+        # Get transformation and warp image
+        transformation = cv2.getPerspectiveTransform(corners, resultImgCorners)
+        resultImg = cv2.warpPerspective(gray, transformation, (resultImgSize, resultImgSize), flags=cv2.INTER_NEAREST)
+
+        # Initialize image containing bits output
+        bits = np.zeros((markerSizeWithBorders, markerSizeWithBorders), dtype=np.int8)
+
+        # Check if standard deviation enough to apply Otsu thresholding
+        # If not enough, probably means all bits are same color (black or white)
+        # Remove some border to avoid noise from perspective transformation
+        # Remember that image matrices are stored row-major-order, [y][x]
+        innerRegion = resultImg[cellSize/2:-cellSize/2][cellSize/2:-cellSize/2]
+        mean, stddev = cv2.meanStdDev(innerRegion)
+        if stddev < minStdDevOtsu:
+            return bits.fill(1) if mean > 127 else bits
+
+        # Because standard deviation is high enough, threshold using Otsu
+        resultImg = cv2.threshold(resultImg, 125, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        for x in range(markerSizeWithBorders):
+            for y in range(markerSizeWithBorders):
+
+                pass
+        return bits
 
     # ~~STEP 3 FUNCTIONS~~
 
