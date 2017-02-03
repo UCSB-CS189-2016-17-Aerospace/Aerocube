@@ -93,14 +93,11 @@ class TestMarkerDetectPar(unittest.TestCase):
 
     def test_detect_candidates_equals_aruco_method(self):
         candidates, contours = MarkerDetectPar._detect_candidates(self.gray)
-        cand_out = list()
-        cont_out = list()
-
-        retval = aruco._detectCandidates(self.gray, cand_out, cont_out, aruco.DetectorParameters_create())
-        pass
+        aruco_cand, aruco_cont = aruco._detectCandidates(self.gray, aruco.DetectorParameters_create())
+        np.testing.assert_allclose(candidates, aruco_cand)
+        np.testing.assert_array_equal(contours, aruco_cont)
 
     def test_detect_initial_candidates_equals_aruco_method(self):
-        # TODO: (14,) instead of (32,) being returned
         test_vals = MarkerDetectPar._detect_initial_candidates(self.gray)
         true_vals = aruco._detectInitialCandidates(self.gray)
         np.testing.assert_allclose(test_vals[0], true_vals[0])
@@ -134,13 +131,6 @@ class TestMarkerDetectPar(unittest.TestCase):
         true_contours_thresh_13 = aruco._findMarkerContours(thresh_13, *aruco_params)
         np.testing.assert_allclose(test_contours_thresh_13[0], true_contours_thresh_13[0])
         np.testing.assert_array_equal(test_contours_thresh_13[1], true_contours_thresh_13[1])
-        # thresh with winSize = 7
-        thresh_7 = cv2.adaptiveThreshold(self.gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV,
-                                         7, params[MarkerDetectPar.adaptiveThreshConstant])
-        test_contours_thresh_7 = MarkerDetectPar._find_marker_contours(thresh_7)
-        true_contours_thresh_7 = aruco._findMarkerContours(thresh_7, *aruco_params)
-        np.testing.assert_allclose(test_contours_thresh_7[0], true_contours_thresh_7[0])
-        np.testing.assert_array_equal(test_contours_thresh_7[1], true_contours_thresh_7[1])
 
     def test_assert_find_marker_contours_does_not_modify_thresh(self):
         params = MarkerDetectPar.params
@@ -177,8 +167,8 @@ class TestMarkerDetectPar(unittest.TestCase):
                                                                MarkerDetectPar.params[MarkerDetectPar.minMarkerDistanceRate])
         test_cand, test_cont = MarkerDetectPar._filter_too_close_candidates(candidates, contours)
         # Assert equality
-        np.testing.assert_allclose(true_cand, test_cand)
-        np.testing.assert_array_equal(true_cont, test_cont)
+        np.testing.assert_allclose(test_cand, true_cand)
+        np.testing.assert_array_equal(true_cand, true_cont)
 
     def test_filter_too_close_candidates_does_not_alter_params(self):
         candidates, contours = aruco._detectInitialCandidates(self.gray)

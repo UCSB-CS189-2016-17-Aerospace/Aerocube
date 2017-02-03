@@ -210,7 +210,7 @@ class MarkerDetectPar:
         # Initialize variables
         # Determine number of window sizes, or scales, to apply thresholding
         nScales = (cls.params[cls.adaptiveThreshWinSizeMax] - cls.params[cls.adaptiveThreshWinSizeMin]) / \
-                  cls.params[cls.adaptiveThreshWinSizeStep]
+                  cls.params[cls.adaptiveThreshWinSizeStep] + 1
         # Declare candidates and contours arrays
         candidates = list()
         contours = list()
@@ -218,12 +218,13 @@ class MarkerDetectPar:
         # Threshold at different scales
         for i in range(int(nScales)):
             scale = cls.params[cls.adaptiveThreshWinSizeMin] + i * cls.params[cls.adaptiveThreshWinSizeStep]
-            markers = cls._find_marker_contours(cls._threshold(gray, scale, cls.params[cls.adaptiveThreshConstant]))
-            if len(markers[0]) > 0:
-                candidates.append(markers[0])
-                contours.append(markers[1])
+            cand, cont = cls._find_marker_contours(cls._threshold(gray, scale, cls.params[cls.adaptiveThreshConstant]))
+            if len(cand) > 0:
+                for j in range(len(cand)):
+                    candidates.append(cand[j])
+                    contours.append(cont[j])
 
-        return np.squeeze(candidates), np.squeeze(contours)
+        return np.squeeze(candidates), contours
 
     @classmethod
     def _find_marker_contours(cls, thresh):
@@ -291,8 +292,7 @@ class MarkerDetectPar:
             # If all tests pass, add to candidate vector
             candidates.append(np.array(approxCurve, dtype=np.float32))
             contours_out.append(np.squeeze(c))
-
-        return np.array(candidates), contours_out
+        return candidates, contours_out
 
     @classmethod
     def _reorder_candidate_corners(cls, candidates):
@@ -332,7 +332,7 @@ class MarkerDetectPar:
         # If a candidate's corner is too close (has a mean square distance too low) to the other candidate's corners,
         # remove the smaller candidate of the pair
         for i in range(len(candidates)):
-            for j in range(1, len(candidates)):
+            for j in range(i+1, len(candidates)):
                 minimumPerimeter = int(min(len(contours[i]), len(contours[j])))
                 minMarkerDistancePixels = minimumPerimeter * minMarkerDistanceRate
                 # Because the corners (guaranteed clockwise) of i can have 4 different combinations with the
@@ -355,9 +355,10 @@ class MarkerDetectPar:
                             to_remove[j] = True
                         else:
                             to_remove[i] = True
-        # Remove markers from candidates and contours array if marked for deletion
-        del_markers = np.where(np.any(to_remove is True))
-        return np.delete(candidates, del_markers), np.delete(contours, del_markers)
+        # Add marker info to out arrays only if not marked for removal
+        cand_out = [c for i, c in enumerate(candidates) if to_remove[i] is False]
+        cont_out = [c for i, c in enumerate(contours) if to_remove[i] is False]
+        return cand_out, cont_out
 
 
     # ~~STEP 2 FUNCTIONS~~
