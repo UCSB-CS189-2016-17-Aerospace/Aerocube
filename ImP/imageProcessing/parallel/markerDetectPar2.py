@@ -1,14 +1,16 @@
 #import math
-#import cv2
+import cv2
 #import numpy as np
 #import numba
 #from numba import cuda
 #Sfrom ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 
 class MarkerDetectPar:
+
+
 	
 
-    def _filterDetectedMarkers(cls, corners, ids):
+    def _filterDetectedMarkers(self, corners, ids):
         """
             corners: type vector< vector< Point2f > >
         ids: vector< int >
@@ -24,16 +26,16 @@ class MarkerDetectPar:
         i =0
         while(i < len(corners)):
             j = i +1
-            while(j < len(ids)):
+            while(j < len(corners)):
                 if(ids[i] != ids[j]): 
                     break
+                
                 # check if first marker is inside second
                 inside = True
-                
                 for p in range(4):
                     point = corners[j][p]
                     #stil not implemented pointPolygonTest
-                    if(pointPolygonTest(corners[i],point,False)<0):
+                    if(cv2.pointPolygonTest(corners[i],point,False)<0):
                         inside = False
                         break
                 if(inside):
@@ -45,7 +47,7 @@ class MarkerDetectPar:
 
                 for p in range(4):
                     point = corners[i][p]
-                    if(pointPolygonTest(corners[j], point,False)<0):
+                    if(cv2.pointPolygonTest(corners[j], point,False)<0):
                         inside = False
                         break
                 if(inside):
@@ -53,18 +55,26 @@ class MarkerDetectPar:
                     atLeastOneRemove = True
                     break        
 
-                j+=1
+                
             i+=1
 
         # need to parse the output 
+        if atLeastOneRemove:
+            filteredCorners = corners[0]
+            filteredIds = ids[0]
+
+            for g in range(len(toRemove)):
+                if not toRemove[g]:
+                    pass
+
+                    
 
 
 
 
-    def pointPolygonTest(cls, corners, thePoint, someBool):
+
+
+    def _copyVector2Output(self, vec, out):
         pass
-
-
-
 
 
