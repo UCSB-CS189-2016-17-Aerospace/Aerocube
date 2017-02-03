@@ -459,6 +459,32 @@ class MarkerDetectPar:
                     bits[y][x] = 1
         return bits
 
+    @classmethod
+    def _get_border_errors(cls, bits, marker_size, border_size):
+        """
+        Return number of erroneous bits in border (i.e., number of white bits in border).
+        :param bits: 2-dimensional matrix of binary values, representing the bits (incl. border) of a marker
+        :param marker_size: size of the marker, in terms of bits
+        :param border_size: size of the marker border, in terms of bits
+        :return: total count of white bits found in border
+        """
+        size_with_borders = marker_size + 2 * border_size
+        assert marker_size > 0 and bits.shape == (size_with_borders, size_with_borders)
+
+        # Iterate through border bits, counting number of white bits
+        # Remember that bits (as with all image matrices) are stored row-major-order, where img[y][x]
+        total_errors = 0
+        for y in range(size_with_borders):
+            for k in range(border_size):
+                if bits[y][k] != 0: total_errors += 1
+                if bits[y][size_with_borders - 1 - k] != 0: total_errors += 1
+        for x in range(border_size, size_with_borders - border_size):
+            for k in range(border_size):
+                if bits[k][x] != 0: total_errors += 1
+                if bits[size_with_borders - 1 - k][x] != 0: total_errors += 1
+
+        return total_errors
+
     # ~~STEP 3 FUNCTIONS~~
 
     # ~~STEP 4 FUNCTIONS~~

@@ -229,6 +229,28 @@ class TestMarkerDetectPar(unittest.TestCase):
                                                            [0, 0, 0, 1, 0, 0],
                                                            [0, 0, 0, 0, 0, 0]]))
 
+    def test_get_border_errors_equals_aruco_method(self):
+        candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
+        bits_marker_0 = MarkerDetectPar._extract_bits(self.gray_marker_0, candidates[9])
+        true_err_count = aruco._getBorderErrors(bits_marker_0,
+                                                FiducialMarker.get_marker_size(),
+                                                MarkerDetectPar.params[MarkerDetectPar.markerBorderBits])
+        test_err_count = MarkerDetectPar._get_border_errors(bits_marker_0,
+                                                            FiducialMarker.get_marker_size(),
+                                                            MarkerDetectPar.params[MarkerDetectPar.markerBorderBits])
+        self.assertEqual(test_err_count, true_err_count)
+        candidates, _ = aruco._detectCandidates(self.gray_marker_0_trans, aruco.DetectorParameters_create())
+        bits_marker_0_trans = MarkerDetectPar._extract_bits(self.gray_marker_0_trans, candidates[9])
+        true_err_count = aruco._getBorderErrors(bits_marker_0_trans,
+                                                FiducialMarker.get_marker_size(),
+                                                MarkerDetectPar.params[MarkerDetectPar.markerBorderBits])
+        test_err_count = MarkerDetectPar._get_border_errors(bits_marker_0_trans,
+                                                            FiducialMarker.get_marker_size(),
+                                                            MarkerDetectPar.params[MarkerDetectPar.markerBorderBits])
+        self.assertEqual(test_err_count, true_err_count)
+
+
+
     # ~~STEP 3 FUNCTIONS~~
 
     # ~~STEP 4 FUNCTIONS~~

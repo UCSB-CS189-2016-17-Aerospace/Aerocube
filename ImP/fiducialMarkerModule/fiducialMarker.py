@@ -5,7 +5,6 @@ from cv2 import aruco
 class FiducialMarker:
     _dictionary = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
     _dictionary_size = 50
-    _MARKER_SIZE = 4
     _default_side_pixels = 6
 
     @staticmethod
@@ -18,7 +17,11 @@ class FiducialMarker:
 
     @staticmethod
     def get_marker_size():
-        return FiducialMarker._MARKER_SIZE
+        return FiducialMarker.get_dictionary().markerSize
+
+    @staticmethod
+    def get_max_correction_bits():
+        return FiducialMarker.get_dictionary().maxCorrectionBits
 
     @staticmethod
     def dictionary_equal(dict1, dict2):
