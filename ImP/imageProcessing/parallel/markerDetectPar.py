@@ -389,6 +389,12 @@ class MarkerDetectPar:
 
     @classmethod
     def _extract_bits(cls, gray, corners):
+        """
+
+        :param gray:
+        :param corners:
+        :return:
+        """
         # Initialize variables
         markerSize = FiducialMarker.get_marker_size()
         markerBorderBits = cls.params[cls.markerBorderBits]
@@ -427,10 +433,16 @@ class MarkerDetectPar:
 
         # Because standard deviation is high enough, threshold using Otsu
         resultImg = cv2.threshold(resultImg, 125, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-        for x in range(markerSizeWithBorders):
-            for y in range(markerSizeWithBorders):
-
-                pass
+        for y in range(markerSizeWithBorders):
+            for x in range(markerSizeWithBorders):
+                # Get each individual square of each cell, excluding the margin pixels
+                yStart = y * cellSize + cellMarginPixels
+                yEnd = y * (cellSize+1) - 2 * cellMarginPixels
+                xStart = x * cellSize + cellMarginPixels
+                xEnd = x * (cellSize+1) - 2 * cellMarginPixels
+                square = resultImg[yStart:yEnd][xStart:xEnd]
+                if cv2.countNonZero(square) > (square.size / 2):
+                    bits[y][x] = 1
         return bits
 
     # ~~STEP 3 FUNCTIONS~~
