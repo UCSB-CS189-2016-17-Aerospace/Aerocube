@@ -13,7 +13,8 @@ class TestMarkerDetectPar(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._IMAGE = cv2.imread(os.path.join(ImageProcessingSettings.get_test_files_path(), 'jetson_test1.jpg'))
-        cls._IMG_MARKER = cv2.imread(os.path.join(ImageProcessingSettings.get_test_files_path(), 'marker_4X4_sp6_id0.png'))
+        cls._IMG_MARKER_0 = cv2.imread(os.path.join(ImageProcessingSettings.get_test_files_path(), 'marker_4X4_sp6_id0.png'))
+        cls._IMG_MARKER_0_TRANS = cv2.imread(os.path.join(ImageProcessingSettings.get_test_files_path(), 'marker_4X4_sp6_id0_transformed.png'))
 
     @classmethod
     def tearDownClass(cls):
@@ -21,9 +22,11 @@ class TestMarkerDetectPar(unittest.TestCase):
 
     def setUp(self):
         self.image = np.copy(self._IMAGE)
-        self.img_marker = np.copy(self._IMG_MARKER)
+        self.img_marker_0 = np.copy(self._IMG_MARKER_0)
+        self.img_marker_0_trans = np.copy(self._IMG_MARKER_0_TRANS)
         self.gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        self.gray_marker = cv2.cvtColor(self.img_marker, cv2.COLOR_BGR2GRAY)
+        self.gray_marker_0 = cv2.cvtColor(self.img_marker_0, cv2.COLOR_BGR2GRAY)
+        self.gray_marker_0_trans = cv2.cvtColor(self.img_marker_0_trans, cv2.COLOR_BGR2GRAY)
 
     def tearDown(self):
         self.image = None
@@ -191,16 +194,24 @@ class TestMarkerDetectPar(unittest.TestCase):
                                                          aruco_acc,
                                                          aruco.DetectorParameters_create())
 
+    def test_identify_one_candidate_equals_aruco_method(self):
+        candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
+        true_cand = aruco._identifyOneCandidate(FiducialMarker.get_dictionary(), self.gray_marker_0, candidates[9])
+
+    @unittest.skip("_extractBits: faulty Python binding")
     def test_extract_bits_equals_aruco_method(self):
-        candidates, contours = aruco._detectCandidates(self.gray_marker, aruco.DetectorParameters_create())
-        print(candidates[9])
-        # true_bits = aruco._extractBits(self.gray_marker, candidates[9], FiducialMarker.get_marker_size(),
-        #                                MarkerDetectPar.params[MarkerDetectPar.markerBorderBits],
-        #                                MarkerDetectPar.params[MarkerDetectPar.perspectiveRemovePixelPerCell],
-        #                                MarkerDetectPar.params[MarkerDetectPar.perspectiveRemoveIgnoredMarginPerCell],
-        #                                MarkerDetectPar.params[MarkerDetectPar.minOtsuStdDev])
-        test_bits = MarkerDetectPar._extract_bits(self.gray_marker, candidates[9])
-        # all_the_bits = [MarkerDetectPar._extract_bits(self.gray_marker, c) for c in candidates]
+        candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
+        true_bits = aruco._extractBits(self.gray_marker_0, candidates[9], FiducialMarker.get_marker_size(),
+                                       MarkerDetectPar.params[MarkerDetectPar.markerBorderBits],
+                                       MarkerDetectPar.params[MarkerDetectPar.perspectiveRemovePixelPerCell],
+                                       MarkerDetectPar.params[MarkerDetectPar.perspectiveRemoveIgnoredMarginPerCell],
+                                       MarkerDetectPar.params[MarkerDetectPar.minOtsuStdDev])
+        test_bits = MarkerDetectPar._extract_bits(self.gray_marker_0, candidates[9])
+        np.testing.assert_array_equal(true_bits, test_bits)
+
+    def test_extract_bits_for_marker_0(self):
+        candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
+        test_bits = MarkerDetectPar._extract_bits(self.gray_marker_0, candidates[9])
         np.testing.assert_array_equal(test_bits, np.array([[0, 0, 0, 0, 0, 0],
                                                            [0, 1, 0, 1, 1, 0],
                                                            [0, 0, 1, 0, 1, 0],
@@ -208,6 +219,15 @@ class TestMarkerDetectPar(unittest.TestCase):
                                                            [0, 0, 0, 1, 0, 0],
                                                            [0, 0, 0, 0, 0, 0]]))
 
+    def test_extract_bits_for_marker_0_transformed(self):
+        candidates, _ = aruco._detectCandidates(self.gray_marker_0_trans, aruco.DetectorParameters_create())
+        test_bits = MarkerDetectPar._extract_bits(self.gray_marker_0_trans, candidates[9])
+        np.testing.assert_array_equal(test_bits, np.array([[0, 0, 0, 0, 0, 0],
+                                                           [0, 1, 0, 1, 1, 0],
+                                                           [0, 0, 1, 0, 1, 0],
+                                                           [0, 0, 0, 1, 1, 0],
+                                                           [0, 0, 0, 1, 0, 0],
+                                                           [0, 0, 0, 0, 0, 0]]))
 
     # ~~STEP 3 FUNCTIONS~~
 

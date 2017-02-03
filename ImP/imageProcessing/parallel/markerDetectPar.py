@@ -386,47 +386,61 @@ class MarkerDetectPar:
         assert cls.params[cls.markerBorderBits] > 0
 
         # Get bits
+        candidate_bits = cls._extract_bits(gray, corners)
+        pass
 
     @classmethod
     def _extract_bits(cls, gray, corners):
         """
-
-        :param gray:
-        :param corners:
-        :return:
+        Extract the bits encoding the ID of the marker given the image and the marker's corners.
+        First finds the perspective transformation matrix from the marker's "original" coordinates relative to the
+        given image, then uses the transformation matrix to transform the entire image such that the marker's
+        perspective is removed. Then performs thresholding on the marker (if appropriate) and counts the pixels in each
+        cell (spatial area of one bit) to determine if "1" or "0".
+        :param gray: grayscale image with the marker in question; undergoes a perspective transformation such that the
+            original marker's perspective is removed, and analysis can occur
+        :param corners: corner points of the marker in the grayscale image; must be in correct order (clockwise), such
+            that the mapping from the marker's original coordinates to the marker's grayscale image coordinates is
+            calculated correctly
+        :return: 2-dimensional array of binary values representing the marker; for a 4x4 marker with default detector
+            params, bits would be (4 inner bits + 2 border bits)^2 = 36 bits
         """
         # Initialize variables
-        markerSize = FiducialMarker.get_marker_size()
-        markerBorderBits = cls.params[cls.markerBorderBits]
-        cellSize = cls.params[cls.perspectiveRemovePixelPerCell]
-        cellMarginRate = cls.params[cls.perspectiveRemoveIgnoredMarginPerCell]
-        minStdDevOtsu = cls.params[cls.minOtsuStdDev]
+        markerSize = FiducialMarker.get_marker_size()  # size of inner region of marker (area containing ID information)
+        markerBorderBits = cls.params[cls.markerBorderBits]  # size of marker border
+        cellSize = cls.params[cls.perspectiveRemovePixelPerCell]  # size of "cell", area consisting of one bit of info.
+        cellMarginRate = cls.params[cls.perspectiveRemoveIgnoredMarginPerCell]  # cell margin
+        minStdDevOtsu = cls.params[cls.minOtsuStdDev]  # min. std. dev. needed to run Otsu thresholding
+
         # Run assertions
         assert len(gray.shape) == 2
         assert len(corners) == 4
         assert markerBorderBits > 0 and cellSize > 0 and cellMarginRate >= 0 and cellMarginRate <= 1
         assert minStdDevOtsu >= 0
 
-        # Number of bits in marker
+        # Determine new dimensions of perspective-removed marker
         markerSizeWithBorders = markerSize + 2*markerBorderBits
         cellMarginPixels = int(cellMarginRate * cellSize)
         resultImgSize = int(markerSizeWithBorders * cellSize)
+        # Initialize corner matrix of perspective-removed marker to calculate perspective transformation matrix
         resultImgCorners = np.array([[0                , 0                ],
                                      [resultImgSize - 1, 0                ],
                                      [resultImgSize - 1, resultImgSize - 1],
                                      [0                , resultImgSize - 1]], dtype=np.float32)
-        # Get transformation and warp image
+
+        # Get transformation and apply to original imageimage
         transformation = cv2.getPerspectiveTransform(corners, resultImgCorners)
         result_img = cv2.warpPerspective(gray, transformation, (resultImgSize, resultImgSize), flags=cv2.INTER_NEAREST)
 
-        # Initialize image containing bits output
+        # Initialize matrix containing bits output
         bits = np.zeros((markerSizeWithBorders, markerSizeWithBorders), dtype=np.int8)
 
-        # Check if standard deviation enough to apply Otsu thresholding
-        # If not enough, probably means all bits are same color (black or white)
         # Remove some border to avoid noise from perspective transformation
         # Remember that image matrices are stored row-major-order, [y][x]
         inner_region = result_img[int(cellSize/2):int(-cellSize/2), int(cellSize/2):int(-cellSize/2)]
+
+        # Check if standard deviation enough to apply Otsu thresholding
+        # If not enough, probably means all bits are same color (black or white)
         mean, stddev = cv2.meanStdDev(inner_region)
         if stddev < minStdDevOtsu:
             return bits.fill(1) if mean > 127 else bits
