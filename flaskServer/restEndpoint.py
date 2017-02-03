@@ -13,6 +13,7 @@ from werkzeug import secure_filename
 
 from controller.settings import ControllerSettings
 from jobs.aeroCubeEvent import ImageEvent, ResultEvent, AeroCubeEvent
+from jobs.aeroCubeJob import AeroCubeJob, AeroCubeJobEventNode
 from jobs.aeroCubeSignal import *
 from jobs.bundle import Bundle
 from jobs.jobHandler import JobHandler
@@ -60,19 +61,19 @@ def on_send_event(event):
                 print(e)
 
 
-def on_enqueue_event():
+def on_enqueue_job():
     # Do we need anything here?
     pass
 
 
-def on_dequeue_event():
+def on_dequeue_job():
     # Do we need anything here?
     pass
 
 
 handler.set_start_event_observer(on_send_event)
-handler.set_job_enqueue_observer(on_enqueue_event)
-handler.set_job_dequeue_observer(on_dequeue_event)
+handler.set_job_enqueue_observer(on_enqueue_job)
+handler.set_job_dequeue_observer(on_dequeue_job)
 
 
 class PhotoUpload(Resource):
@@ -98,12 +99,17 @@ class PhotoUpload(Resource):
         filepath = os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER'])
         file.save(filepath + filename)
         # Create Event
-        bundle = Bundle()
-        bundle.insert_string('FILE_PATH', filepath + filename)
-        bundle.insert_string('EXT_STORAGE_TARGET', 'FIREBASE')
-        new_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, bundle)
-        # Enqueue Event
-        handler.enqueue_job(new_event)
+        image_bundle = Bundle()
+        image_bundle.insert_string('FILE_PATH', filepath + filename)
+        storage_bundle = Bundle()
+        storage_bundle.insert_string('EXT_STORAGE_TARGET', 'FIREBASE')
+        image_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, image_bundle)
+        # TODO: Create Event for storage
+        root_event_node = AeroCubeJobEventNode(image_event)
+        # TODO: Add event for storage as OK node to root_event_node
+        new_job = AeroCubeJob(root_event_node)
+        # Enqueue Job
+        handler.enqueue_job(new_job)
         return {'upload status': 'file upload successful'}
 
 api.add_resource(PhotoUpload, '/api/uploadImage')
