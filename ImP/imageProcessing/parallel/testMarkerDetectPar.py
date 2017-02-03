@@ -194,9 +194,13 @@ class TestMarkerDetectPar(unittest.TestCase):
                                                          aruco_acc,
                                                          aruco.DetectorParameters_create())
 
+    @unittest.skip("_identify_one_candidate: faulty Python binding, C++ assertion fails for valid Python-side input")
     def test_identify_one_candidate_equals_aruco_method(self):
         candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
         true_cand = aruco._identifyOneCandidate(FiducialMarker.get_dictionary(), self.gray_marker_0, candidates[9])
+
+    def test_identify_one_candidate_returns_proper_id(self):
+        pass
 
     @unittest.skip("_extractBits: faulty Python binding")
     def test_extract_bits_equals_aruco_method(self):

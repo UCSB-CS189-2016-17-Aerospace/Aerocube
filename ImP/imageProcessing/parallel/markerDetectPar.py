@@ -381,12 +381,21 @@ class MarkerDetectPar:
 
     @classmethod
     def _identify_one_candidate(cls, dictionary, gray, corners):
+        markerBorderBits = cls.params[cls.markerBorderBits]
         assert len(corners) is 4
         assert gray is not None
-        assert cls.params[cls.markerBorderBits] > 0
+        assert markerBorderBits > 0
 
-        # Get bits
+        # Get bits, and ensure there are not too many erroneous bits
         candidate_bits = cls._extract_bits(gray, corners)
+        max_errors_in_border = int(dictionary.markerSize * dictionary.markerSize * markerBorderBits)
+        border_errors = cls._get_border_errors(candidate_bits, dictionary.markerSize, markerBorderBits)
+        if border_errors > max_errors_in_border:
+            return False
+
+        # Take inner bits for marker identification with beautiful Python slicing (god damn!)
+        inner_bits = candidate_bits[markerBorderBits:-markerBorderBits, markerBorderBits:-markerBorderBits]
+        
         pass
 
     @classmethod
