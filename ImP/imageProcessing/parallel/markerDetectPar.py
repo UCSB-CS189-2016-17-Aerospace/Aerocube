@@ -333,7 +333,7 @@ class MarkerDetectPar:
         # remove the smaller candidate of the pair
         for i in range(len(candidates)):
             for j in range(i+1, len(candidates)):
-                minimumPerimeter = int(min(len(contours[i]), len(contours[j])))
+                minimumPerimeter = float(min(len(contours[i]), len(contours[j])))
                 minMarkerDistancePixels = minimumPerimeter * minMarkerDistanceRate
                 # Because the corners (guaranteed clockwise) of i can have 4 different combinations with the
                 # corners of j, we must repeat this process 4 times
