@@ -319,10 +319,10 @@ class MarkerDetectPar:
     def _filter_too_close_candidates(cls, candidates, contours):
         """
         Modifies the given arrays of markers, filtering out candidate markers that are
-        too close to each other.
+        too close to each other. Does not modify the original params.
         :param candidates: list of candidates, each represented by four Points, with values Point(x,y)
-        :param contours: ???
-        :return: candidates, contours
+        :param contours: list of contours, with points stored as ints
+        :return: candidates, contours filtered by conditions described in comments
         """
         minMarkerDistanceRate = cls.params[cls.minMarkerDistanceRate]
         assert minMarkerDistanceRate >= 0

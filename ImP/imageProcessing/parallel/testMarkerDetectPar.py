@@ -91,6 +91,14 @@ class TestMarkerDetectPar(unittest.TestCase):
 
     # ~~STEP 1 FUNCTIONS~~
 
+    def test_detect_candidates_equals_aruco_method(self):
+        candidates, contours = MarkerDetectPar._detect_candidates(self.gray)
+        cand_out = list()
+        cont_out = list()
+
+        retval = aruco._detectCandidates(self.gray, cand_out, cont_out, aruco.DetectorParameters_create())
+        pass
+
     def test_detect_initial_candidates_equals_aruco_method(self):
         # TODO: (14,) instead of (32,) being returned
         test_vals = MarkerDetectPar._detect_initial_candidates(self.gray)
