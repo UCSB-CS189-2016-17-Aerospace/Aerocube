@@ -3,7 +3,7 @@
 # Build with CUDA
 # Disable precompiled headers to save space
 # Disable tests, performance tests, and examples
-cmake -DOPENCV_EXTRA_MODULES_PATH=/usr/local/lib/opencv_contrib/modules/ \
+cmake -DOPENCV_EXTRA_MODULES_PATH=/Users/gustavo/Documents/Github/opencv_contrib/modules/ \
     -D WITH_CUDA=ON \
     -D ENABLE_PRECOMPILED_HEADERS=OFF \
     -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -D BUILD_EXAMPLES=OFF \
