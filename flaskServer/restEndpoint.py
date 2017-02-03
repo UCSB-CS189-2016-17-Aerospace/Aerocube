@@ -36,7 +36,7 @@ client.connect_to_controller()
 # define handlers for EventHandler instance
 
 
-def on_send_event(event):
+def on_send_event(jobHandler, event):
     """
     :param event:
     """
@@ -52,7 +52,7 @@ def on_send_event(event):
             print('RestEndpoint.on_send_event: Warning: Received message that is not instance of ResultEvent')
         else:
             try:
-                event_resolved = handler.resolve_event(result_event)
+                event_resolved = jobHandler.resolve_event(result_event)
                 if event_resolved:
                     break
                 else:
@@ -61,12 +61,12 @@ def on_send_event(event):
                 print(e)
 
 
-def on_enqueue_job():
+def on_enqueue_job(job):
     # Do we need anything here?
     pass
 
 
-def on_dequeue_job():
+def on_dequeue_job(job):
     # Do we need anything here?
     pass
 

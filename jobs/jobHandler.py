@@ -271,7 +271,7 @@ class JobHandler(object):
         if self._on_start_event is not None:
             print('JobHandler._start_event: Starting event: \r\n{}\r\n'.format(self._peek_current_event()))
             self._state = JobHandler.State.PENDING
-            self._on_start_event(self._peek_current_event())
+            self._on_start_event(self, self._peek_current_event())
             print('JobHandler._start_event: State changed to {}'.format(self._state))
         else:
             raise NotImplementedError('ERROR: Must call set_start_event_observer before an event can be sent')
