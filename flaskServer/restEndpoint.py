@@ -19,7 +19,23 @@ from .settings import FlaskServerSettings
 _handler = None
 _client = None
 
-# Flask app constructor
+
+def initialize_endpoint():
+    """
+    Initializes module members (handler, client, Flask app).
+    Should only be called once.
+    :return: (handler, client, app, api)
+    """
+    # Instantiate and set JobHandler functions
+    job_handler = get_job_handler()
+    job_handler.set_start_event_observer(on_send_event)
+    job_handler.set_job_enqueue_observer(on_enqueue_job)
+    job_handler.set_job_dequeue_observer(on_dequeue_job)
+    # Instantiate TcpClient
+    client = get_tcp_client()
+    # Instantiate Flask app
+    app, api = create_flask_app()
+    return job_handler, client, app, api
 
 
 def create_flask_app():
@@ -31,7 +47,8 @@ def create_flask_app():
     app = Flask(__name__)
     api = Api(app)
     CORS(app)
-    app.config['UPLOAD_FOLDER'] = FlaskServerSettings.get_static_img_dir()
+    app.config[PhotoUpload.UPLOAD_FOLDER] = FlaskServerSettings.get_static_img_dir()
+    api.add_resource(PhotoUpload, '/api/uploadImage')
     return app, api
 
 
@@ -112,8 +129,8 @@ class PhotoUpload(Resource):
     Handles GET and POST requests for the Flask Server.
     Constructed each time a request is handled. Therefore, it cannot persist any state across requests.
     """
-    _PHOTO = 'photo'
-    _UPLOAD_FOLDER = 'UPLOAD_FOLDER'
+    PHOTO = 'photo'
+    UPLOAD_FOLDER = 'UPLOAD_FOLDER'
 
     def __init__(self):
         print("Constructor is called!")
@@ -132,9 +149,9 @@ class PhotoUpload(Resource):
             * Send an event to the EventHandler to initiate an ImP operation
         :return:
         """
-        file = request.files[self._PHOTO]
+        file = request.files[self.PHOTO]
         filename = secure_filename(file.filename)
-        filepath = app.config[self._UPLOAD_FOLDER]
+        filepath = app.config[self.UPLOAD_FOLDER]
         full_file_path = filepath + filename
         file.save(full_file_path)
 
@@ -155,16 +172,7 @@ class PhotoUpload(Resource):
         return {'upload status': 'file upload successful'}
 
 if __name__ == "__main__":
-    # Get and set attributes for Job Handler
-    job_handler = get_job_handler()
-    job_handler.set_start_event_observer(on_send_event)
-    job_handler.set_job_enqueue_observer(on_enqueue_job)
-    job_handler.set_job_dequeue_observer(on_dequeue_job)
-    # Instantiate tcp_client
-    client = get_tcp_client()
-    # Instantiate Flask app
-    app, api = create_flask_app()
-    api.add_resource(PhotoUpload, '/api/uploadImage')
+    job_handler, client, app, api = initialize_endpoint()
     # Run Flask app
     # NOTE: cannot run with debug=True, as it will cause the module to re-run
     # and mess up imported files
