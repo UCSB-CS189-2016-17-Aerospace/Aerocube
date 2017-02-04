@@ -1,9 +1,3 @@
-"""
-TODO: handler (EventHandler instance) is referenced nowhere but w/in PhotoUpload;
-    should it be moved inside of PhotoUpload, or be passed as a parameter?
-TODO: client (TcpClient instance) is referenced nowhere but in on_send_event, and
-    seems it should be passed as a parameter instead of referenced as a global
-"""
 import os
 from flask import Flask, request
 from flask_cors import CORS
@@ -30,7 +24,8 @@ _client = None
 
 def create_flask_app():
     """
-
+    Creates a Flask app and api. Does NOT exhibit singleton behavior -- if called after a Flask app has
+    already been instantiated, it will simply create a new Flask app.
     :return: (app, api)
     """
     app = Flask(__name__)
