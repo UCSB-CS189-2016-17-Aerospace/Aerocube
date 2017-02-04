@@ -5,7 +5,6 @@ TODO: client (TcpClient instance) is referenced nowhere but in on_send_event, an
     seems it should be passed as a parameter instead of referenced as a global
 """
 import os
-
 from flask import Flask, request
 from flask_cors import CORS
 from flask_restful import Resource, Api
@@ -21,27 +20,69 @@ from tcpService.settings import TcpSettings
 from tcpService.tcpClient import TcpClient
 from .settings import FlaskServerSettings
 
-app = Flask(__name__)
-api = Api(app)
-CORS(app)
+# Module-level references to "singleton" objects
 
-app.config['UPLOAD_FOLDER'] = FlaskServerSettings.get_static_img_dir()
+_handler = None
+_client = None
 
-handler = JobHandler()
-client = TcpClient(ControllerSettings.IP_ADDR(),
-                   ControllerSettings.PORT(),
-                   TcpSettings.BUFFER_SIZE())
-client.connect_to_controller()
-
-# define handlers for EventHandler instance
+# Flask app constructor
 
 
-def on_send_event(jobHandler, event):
+def create_flask_app():
+    """
+
+    :return: (app, api)
+    """
+    app = Flask(__name__)
+    api = Api(app)
+    CORS(app)
+    app.config['UPLOAD_FOLDER'] = FlaskServerSettings.get_static_img_dir()
+    return app, api
+
+
+# Functions to initialize singleton variables
+
+
+def get_job_handler():
+    """
+    If module reference to handler already points to instantiated handler, simply return it.
+    Otherwise, create a new one.
+    Useful for REST-related classes that do not persist state between requests (and, therefore, require a
+    reference to the handler each time).
+    :return: Job Handler object; creates new one if does not already exist
+    """
+    # Get _handler from outside function scope
+    global _handler
+    if _handler is None:
+        _handler = JobHandler()
+    return _handler
+
+
+def get_tcp_client():
+    """
+    If module reference to client already points to instantiated TcpClient, simply return it.
+    Otherwise, create a new one.
+    :return: TcpClient object; creates new one if does not already exist
+    """
+    # Get _client from outside function scope
+    global _client
+    if _client is None:
+        _client = TcpClient(ControllerSettings.IP_ADDR(),
+                            ControllerSettings.PORT(),
+                            TcpSettings.BUFFER_SIZE())
+        _client.connect_to_controller()
+    return _client
+
+# Handlers for EventHandler instance
+
+
+def on_send_event(job_handler, event):
     """
     :param event:
     """
     print('RestEndpoint.on_send_event: Started event about to send: \r\n{}\r\n'.format(event))
     # Send through TCP Client
+    client = get_tcp_client()
     client.send_to_controller(event.to_json())
     # Check State
     # Receive Events until EventHandler.resolve_event() returns true
@@ -52,7 +93,7 @@ def on_send_event(jobHandler, event):
             print('RestEndpoint.on_send_event: Warning: Received message that is not instance of ResultEvent')
         else:
             try:
-                event_resolved = jobHandler.resolve_event(result_event)
+                event_resolved = job_handler.resolve_event(result_event)
                 if event_resolved:
                     break
                 else:
@@ -71,17 +112,16 @@ def on_dequeue_job(job):
     pass
 
 
-handler.set_start_event_observer(on_send_event)
-handler.set_job_enqueue_observer(on_enqueue_job)
-handler.set_job_dequeue_observer(on_dequeue_job)
-
-
 class PhotoUpload(Resource):
     """
     Handles GET and POST requests for the Flask Server.
+    Constructed each time a request is handled. Therefore, it cannot persist any state across requests.
     """
     _PHOTO = 'photo'
     _UPLOAD_FOLDER = 'UPLOAD_FOLDER'
+
+    def __init__(self):
+        print("Constructor is called!")
 
     def get(self):
         """
@@ -116,13 +156,21 @@ class PhotoUpload(Resource):
         # TODO: Add event for storage as OK node to root_event_node
         new_job = AeroCubeJob(root_event_node)
         # Enqueue Job
-        handler.enqueue_job(new_job)
+        get_job_handler().enqueue_job(new_job)
         return {'upload status': 'file upload successful'}
 
-api.add_resource(PhotoUpload, '/api/uploadImage')
-
-
 if __name__ == "__main__":
+    # Get and set attributes for Job Handler
+    job_handler = get_job_handler()
+    job_handler.set_start_event_observer(on_send_event)
+    job_handler.set_job_enqueue_observer(on_enqueue_job)
+    job_handler.set_job_dequeue_observer(on_dequeue_job)
+    # Instantiate tcp_client
+    client = get_tcp_client()
+    # Instantiate Flask app
+    app, api = create_flask_app()
+    api.add_resource(PhotoUpload, '/api/uploadImage')
+    # Run Flask app
     # NOTE: cannot run with debug=True, as it will cause the module to re-run
     # and mess up imported files
     app.run(debug=False, port=FlaskServerSettings.PORT(), ssl_context='adhoc')
