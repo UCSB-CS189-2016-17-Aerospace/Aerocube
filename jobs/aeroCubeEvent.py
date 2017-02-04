@@ -157,6 +157,19 @@ class ImageEvent(AeroCubeEvent):
 
     def is_valid_signal(self, signal):
         return signal in ImageEventSignal
+
+
+class StorageEvent(AeroCubeEvent):
+    EXT_STORAGE_TARGET = 'EXT_STORAGE_TARGET'
+
+    def __init__(self, storage_signal, bundle=Bundle(), created_at=time.time(), id=None):
+        if storage_signal is StorageEventSignal.STORE_EXTERNALLY and bundle.strings(self.EXT_STORAGE_TARGET) is None:
+            raise AttributeError("Store external event must have external storage target!")
+        super().__init__(bundle, storage_signal, created_at, id)
+
+    def is_valid_signal(self, signal):
+        return signal in StorageEventSignal
+
 """
 Payload examples for ResultEvent or variants:
 * Error message

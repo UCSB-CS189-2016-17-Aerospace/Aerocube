@@ -12,6 +12,12 @@ class ImageEventSignal(Enum):
     def __str__(self):
         return str(self.value)
 
+class StorageEventSignal(Enum):
+    STORE_INTERNALLY       = 0.00030001
+    STORE_EXTERNALLY       = 0.00030002
+
+    def __str__(self):
+        return str(self.value)
 
 class ResultEventSignal(Enum):
     OK                     = 0x00020000
