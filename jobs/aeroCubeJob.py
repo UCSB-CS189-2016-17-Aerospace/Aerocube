@@ -104,11 +104,13 @@ class AeroCubeJob:
     def is_finished(self):
         return self._current_node is None
 
-    def update_current_node(self, result_event):
+    def update_current_node(self, result_event, merge_payload=False):
         """
         Updates the current node property and returns the updated node's event.
         If the current node is a leaf node, returns None
         :param result_event: the result_event corresponding to the current node
+        :param merge_payload: if set to True, merges the bundle of the current bundle with the
+            next node's event's bundle
         """
         # Check if event is a proper event (ResultEvent)
         if not isinstance(result_event, ResultEvent):
@@ -116,7 +118,11 @@ class AeroCubeJob:
         # Check if ResultEvent is for the current calling event
         if self.current_event.uuid != result_event.payload.strings(ResultEvent.CALLING_EVENT_UUID):
             raise AttributeError('AeroCubeJob.update_and_retrieve_next_event: ERROR: result event with CALLING_EVENT_UUID:{} received not for current calling event:{}'.format(result_event.payload.strings(ResultEvent.CALLING_EVENT_UUID), self.current_event.uuid))
+        # Merge bundle if param is set to True before moving to next node
+        replaced_node = self._current_node
         self._current_node = self._current_node.next_event_node(result_event)
+        if merge_payload is True:
+            self._current_node.event.merge_payload(replaced_node.event.payload)
 
     # Constructors -- use to construct specific type of AeroCubeJobs
 
@@ -131,4 +137,10 @@ class AeroCubeJob:
         :param starting_bundle:
         :return:
         """
+        # Create events
+        ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
+        StorageEvent(StorageEventSignal.STORE_INTERNALLY)
+        StorageEvent(StorageEventSignal.STORE_EXTERNALLY)
+        # Wrap events around event nodes
+        # Create and return Job object
         pass
