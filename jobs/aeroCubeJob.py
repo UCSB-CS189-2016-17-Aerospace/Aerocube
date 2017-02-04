@@ -127,20 +127,35 @@ class AeroCubeJob:
     # Constructors -- use to construct specific type of AeroCubeJobs
 
     @staticmethod
-    def create_image_upload_job(starting_bundle):
+    def create_image_upload_job(img_path, int_storage=False, ext_store_target=None):
         # TODO: add error event nodes
+        # TODO: add error handling for improper args?
         """
         Sequence of events
         1. ImageEvent - identify AeroCubes
         2. StorageEvent - store internally
         3. StorageEvent - store externally
-        :param starting_bundle:
+        :param img_path:
+        :param int_storage:
+        :param ext_store_target:
         :return:
         """
-        # Create events
-        ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
-        StorageEvent(StorageEventSignal.STORE_INTERNALLY)
-        StorageEvent(StorageEventSignal.STORE_EXTERNALLY)
-        # Wrap events around event nodes
-        # Create and return Job object
-        pass
+        # Create bundles and events in reverse order to build node tree
+        if ext_store_target is not None:
+            ext_store_bundle = Bundle()
+            ext_store_bundle.insert_string(StorageEvent.EXT_STORAGE_TARGET, ext_store_target)
+            ext_store_node = AeroCubeJobEventNode(StorageEvent(StorageEventSignal.STORE_EXTERNALLY, ext_store_bundle))
+        if int_storage is True:
+            int_store_event = StorageEvent(StorageEventSignal.STORE_INTERNALLY)
+            if ext_store_target is not None:
+                int_store_node = AeroCubeJobEventNode(int_store_event, ok_event_node=ext_store_node)
+            else:
+                int_store_node = AeroCubeJobEventNode(int_store_event)
+        img_bundle = Bundle()
+        img_bundle.insert_string(ImageEvent.FILE_PATH, img_path)
+        img_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, img_bundle)
+        if int_storage is True:
+            img_node = AeroCubeJobEventNode(img_event, ok_event_node=int_store_node)
+        else:
+            img_node = AeroCubeJobEventNode(img_event)
+        return AeroCubeJob(img_node)

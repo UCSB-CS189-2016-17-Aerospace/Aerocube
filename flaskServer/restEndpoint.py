@@ -5,13 +5,14 @@ from flask_restful import Resource, Api
 from werkzeug import secure_filename
 
 from controller.settings import ControllerSettings
-from jobs.aeroCubeEvent import ImageEvent, ResultEvent, AeroCubeEvent
+from jobs.aeroCubeEvent import ImageEvent, ResultEvent, AeroCubeEvent, StorageEvent
 from jobs.aeroCubeJob import AeroCubeJob, AeroCubeJobEventNode
 from jobs.aeroCubeSignal import *
 from jobs.bundle import Bundle
 from jobs.jobHandler import JobHandler
 from tcpService.settings import TcpSettings
 from tcpService.tcpClient import TcpClient
+from externalComm.commClass import FirebaseComm
 from .settings import FlaskServerSettings
 
 # Module-level references to "singleton" objects
@@ -155,18 +156,10 @@ class PhotoUpload(Resource):
         full_file_path = filepath + filename
         file.save(full_file_path)
 
-        # Create Event
-        image_bundle = Bundle()
-        image_bundle.insert_string(ImageEvent.FILE_PATH, full_file_path)
-
-        storage_bundle = Bundle()
-        storage_bundle.insert_string('EXT_STORAGE_TARGET', 'FIREBASE')
-
-        image_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, image_bundle)
-        # TODO: Create Event for storage
-        root_event_node = AeroCubeJobEventNode(image_event)
-        # TODO: Add event for storage as OK node to root_event_node
-        new_job = AeroCubeJob(root_event_node)
+        # Create Job
+        new_job = AeroCubeJob.create_image_upload_job(full_file_path,
+                                                      int_storage=True,
+                                                      ext_store_target='FIREBASE')
         # Enqueue Job
         get_job_handler().enqueue_job(new_job)
         return {'upload status': 'file upload successful'}
