@@ -146,3 +146,23 @@ class TestAeroCubeJob(unittest.TestCase):
         self._JOB.current_event.payload.insert_string(ImageEvent.FILE_PATH, 'file_path')
         self._JOB.update_current_node(result_event)
         self.assertRaises(Exception, self._JOB.current_event.payload.strings, ImageEvent.FILE_PATH)
+
+
+class TestAeroCubeJobConstructors(unittest.TestCase):
+    def test_create_image_upload_job(self):
+        img_path = "my_phony_path"
+        job = AeroCubeJob.create_image_upload_job(img_path,
+                                                  int_storage=True,
+                                                  ext_store_target='FIREBASE')
+        self.assertIsNotNone(job)
+        self.assertIsInstance(job.root_event, ImageEvent)
+        self.assertEqual(job.root_event.payload.strings(ImageEvent.FILE_PATH), img_path)
+
+        int_store_node = job._current_node.event_signal_map[ResultEventSignal.OK]
+        self.assertIsInstance(int_store_node.event, StorageEvent)
+        self.assertEqual(int_store_node.event.signal, StorageEventSignal.STORE_INTERNALLY)
+
+        ext_store_node = int_store_node.event_signal_map[ResultEventSignal.OK]
+        self.assertIsInstance(ext_store_node.event, StorageEvent)
+        self.assertEqual(ext_store_node.event.signal, StorageEventSignal.STORE_EXTERNALLY)
+        self.assertEqual(ext_store_node.event.payload.strings(StorageEvent.EXT_STORAGE_TARGET), 'FIREBASE')
