@@ -124,6 +124,8 @@ class TestAeroCubeJob(unittest.TestCase):
         self.assertRaises(AttributeError, self._JOB.update_current_node, result_event)
 
     def test_update_node_updates_current_node(self):
+        # TODO: all self._IMAGE_EVENT* have the same UUID; is this expected behavior? I feel like it's certainly
+        # unwanted. This test should be failing, as self._IMAGE_EVENT is not the proper event to respond to.
         result_event = ResultEvent(ResultEventSignal.WARN, self._IMAGE_EVENT.uuid)
         job = AeroCubeJob(self._IMAGE_EVENT_WARN_NODE)
         job.update_current_node(result_event)
@@ -139,6 +141,7 @@ class TestAeroCubeJob(unittest.TestCase):
         self.assertIsNotNone(self._JOB.current_event.payload.strings(ImageEvent.FILE_PATH))
 
     def test_update_node_does_not_alter_next_payload_if_flag_not_set(self):
+        # TODO: test is failing
         result_event = ResultEvent(ResultEventSignal.OK, self._JOB.current_event.uuid)
         self._JOB.current_event.payload.insert_string(ImageEvent.FILE_PATH, 'file_path')
         self._JOB.update_current_node(result_event)
