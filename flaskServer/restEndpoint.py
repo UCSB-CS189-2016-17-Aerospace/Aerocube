@@ -80,6 +80,9 @@ class PhotoUpload(Resource):
     """
     Handles GET and POST requests for the Flask Server.
     """
+    _PHOTO = 'photo'
+    _UPLOAD_FOLDER = 'UPLOAD_FOLDER'
+
     def get(self):
         """
         Returns a success message on GET requests to verify a working connection.
@@ -94,15 +97,19 @@ class PhotoUpload(Resource):
             * Send an event to the EventHandler to initiate an ImP operation
         :return:
         """
-        file = request.files['photo']
+        file = request.files[self._PHOTO]
         filename = secure_filename(file.filename)
-        filepath = os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER'])
-        file.save(filepath + filename)
+        filepath = app.config[self._UPLOAD_FOLDER]
+        full_file_path = filepath + filename
+        file.save(full_file_path)
+
         # Create Event
         image_bundle = Bundle()
-        image_bundle.insert_string('FILE_PATH', filepath + filename)
+        image_bundle.insert_string(ImageEvent.FILE_PATH, full_file_path)
+
         storage_bundle = Bundle()
         storage_bundle.insert_string('EXT_STORAGE_TARGET', 'FIREBASE')
+
         image_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES, image_bundle)
         # TODO: Create Event for storage
         root_event_node = AeroCubeJobEventNode(image_event)

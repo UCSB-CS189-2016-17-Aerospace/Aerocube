@@ -146,9 +146,12 @@ class AeroCubeEvent(metaclass=ABCMeta):
 
 class ImageEvent(AeroCubeEvent):
     """
-    Payload includes:
-    * path to image
+    Payload members:
+    * _FILE_PATH (string)
+    :cvar _FILE_PATH: payload key; path to file for image event
     """
+    FILE_PATH = 'FILE_PATH'
+
     def __init__(self, image_signal, bundle=Bundle(), created_at=time.time(), id=None):
         super().__init__(bundle, image_signal, created_at, id)
 
