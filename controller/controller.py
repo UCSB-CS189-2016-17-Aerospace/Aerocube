@@ -2,8 +2,8 @@
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 from dataStorage.dataStorage import store
 from externalComm.externalComm import process
-from jobs.aeroCubeEvent import AeroCubeEvent, ImageEvent, ResultEvent
-from jobs.aeroCubeSignal import ImageEventSignal, ResultEventSignal
+from jobs.aeroCubeEvent import AeroCubeEvent, ImageEvent, StorageEvent, ResultEvent
+from jobs.aeroCubeSignal import ImageEventSignal, StorageEventSignal, ResultEventSignal
 from jobs.bundle import Bundle
 from tcpService.settings import TcpSettings
 from tcpService.tcpServer import TcpServer
@@ -65,7 +65,7 @@ class Controller:
     def initiate_scan(self, scan_id, payload):
         print('Controller.initiate_scan: Initiate Scan')
         # print(payload)
-        file_path = payload.strings('FILE_PATH')
+        file_path = payload.strings(ImageEvent.FILE_PATH)
         print('Controller.initiate_scan: Payload FILE_PATH is {}'.format(file_path))
         results = self.scan_image(file_path=file_path)
         print('Controller.initiate_scan: Results Received, sending ResultEvent')
@@ -76,7 +76,7 @@ class Controller:
         self.store_locally(path=str(scan_id), data=results)
         serializable_results = (list(map((lambda c: c.tolist()), results[0])),
                                 results[1].tolist())
-        self.store_data_externally(database=payload.strings('EXT_STORAGE_TARGET'),
+        self.store_data_externally(database=payload.strings(StorageEvent.EXT_STORAGE_TARGET),
                                    scan_id=str(scan_id).split('.')[0],
                                    data=serializable_results,
                                    img_path=file_path)

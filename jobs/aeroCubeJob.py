@@ -118,3 +118,17 @@ class AeroCubeJob:
             raise AttributeError('AeroCubeJob.update_and_retrieve_next_event: ERROR: result event with CALLING_EVENT_UUID:{} received not for current calling event:{}'.format(result_event.payload.strings(ResultEvent.CALLING_EVENT_UUID), self.current_event.uuid))
         self._current_node = self._current_node.next_event_node(result_event)
 
+    # Constructors -- use to construct specific type of AeroCubeJobs
+
+    @staticmethod
+    def create_image_upload_job(starting_bundle):
+        # TODO: add error event nodes
+        """
+        Sequence of events
+        1. ImageEvent - identify AeroCubes
+        2. StorageEvent - store internally
+        3. StorageEvent - store externally
+        :param starting_bundle:
+        :return:
+        """
+        pass
