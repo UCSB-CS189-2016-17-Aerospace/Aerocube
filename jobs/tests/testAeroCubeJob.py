@@ -64,14 +64,18 @@ class TestAeroCubeJobEventNode(unittest.TestCase):
 class TestAeroCubeJob(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls._IMAGE_EVENT = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
-        cls._IMAGE_EVENT_LEAF_NODE = AeroCubeJobEventNode(cls._IMAGE_EVENT)
-        cls._IMAGE_EVENT_OK_NODE = AeroCubeJobEventNode(cls._IMAGE_EVENT, ok_event_node=cls._IMAGE_EVENT_LEAF_NODE)
-        # IMAGE_EVENT_WARN_NODE's tree has height 2 (3 layers of nodes)
-        cls._IMAGE_EVENT_WARN_NODE = AeroCubeJobEventNode(cls._IMAGE_EVENT, warn_event_node=cls._IMAGE_EVENT_OK_NODE)
-        cls._IMAGE_EVENT_ERR_NODE = AeroCubeJobEventNode(cls._IMAGE_EVENT, err_event_node=cls._IMAGE_EVENT_LEAF_NODE)
+        pass
 
     def setUp(self):
+        self._IMAGE_EVENT = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
+        self._IMAGE_EVENT_1 = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
+        self._IMAGE_EVENT_2 = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
+        self._IMAGE_EVENT_3 = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
+        self._IMAGE_EVENT_LEAF_NODE = AeroCubeJobEventNode(self._IMAGE_EVENT)
+        self._IMAGE_EVENT_OK_NODE = AeroCubeJobEventNode(self._IMAGE_EVENT_1, ok_event_node=self._IMAGE_EVENT_LEAF_NODE)
+        # IMAGE_EVENT_WARN_NODE's tree has height 2 (3 layers of nodes)
+        self._IMAGE_EVENT_WARN_NODE = AeroCubeJobEventNode(self._IMAGE_EVENT_2, warn_event_node=self._IMAGE_EVENT_OK_NODE)
+        self._IMAGE_EVENT_ERR_NODE = AeroCubeJobEventNode(self._IMAGE_EVENT_3, err_event_node=self._IMAGE_EVENT_LEAF_NODE)
         self._JOB = AeroCubeJob(self._IMAGE_EVENT_OK_NODE)
 
     def tearDown(self):
@@ -127,3 +131,15 @@ class TestAeroCubeJob(unittest.TestCase):
         second_result_event = ResultEvent(ResultEventSignal.OK, self._IMAGE_EVENT.uuid)
         job.update_current_node(second_result_event)
         self.assertEqual(job.current_event, self._IMAGE_EVENT)
+
+    def test_update_node_alters_next_payload_if_flag_set(self):
+        result_event = ResultEvent(ResultEventSignal.OK, self._JOB.current_event.uuid)
+        self._JOB.current_event.payload.insert_string(ImageEvent.FILE_PATH, 'file_path')
+        self._JOB.update_current_node(result_event, merge_payload=True)
+        self.assertIsNotNone(self._JOB.current_event.payload.strings(ImageEvent.FILE_PATH))
+
+    def test_update_node_does_not_alter_next_payload_if_flag_not_set(self):
+        result_event = ResultEvent(ResultEventSignal.OK, self._JOB.current_event.uuid)
+        self._JOB.current_event.payload.insert_string(ImageEvent.FILE_PATH, 'file_path')
+        self._JOB.update_current_node(result_event)
+        self.assertRaises(Exception, self._JOB.current_event.payload.strings, ImageEvent.FILE_PATH)
