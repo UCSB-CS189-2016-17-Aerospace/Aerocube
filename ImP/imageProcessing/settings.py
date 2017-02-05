@@ -11,6 +11,6 @@ class ImageProcessingSettings():
     @staticmethod
     def get_marker_length():
         """
-        :return: fiducial marker side length (in centimeters)
+        :return: fiducial marker side length (in meters)
         """
-        return 2.6
+        return 0.026

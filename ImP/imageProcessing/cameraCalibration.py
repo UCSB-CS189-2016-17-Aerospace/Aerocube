@@ -21,13 +21,15 @@ class CameraCalibration():
         """
         _Calibration = namedtuple('_Calibration', 'RET_VAL \
                                                    CAMERA_MATRIX \
-                                                   DIST_COEFFS')
+                                                   DIST_COEFFS \
+                                                   FOCAL_LENGTH')
         ANDREW_IPHONE = _Calibration(
             RET_VAL=3.551523274640683,
             CAMERA_MATRIX=np.array([[3.48275636e+03, 0.00000000e+00, 2.02069885e+03],
                                     [0.00000000e+00, 3.52274282e+03, 1.51346685e+03],
                                     [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]]),
-            DIST_COEFFS=np.array([[-4.58647345e-02, 1.73122392e+00, -3.30440816e-03, -7.78486275e-04, -7.00795983e+00]])
+            DIST_COEFFS=np.array([[-4.58647345e-02, 1.73122392e+00, -3.30440816e-03, -7.78486275e-04, -7.00795983e+00]]),
+            FOCAL_LENGTH=0.029
         )
          
         GUS_GOPRO = _Calibration(
@@ -35,7 +37,8 @@ class CameraCalibration():
             CAMERA_MATRIX=np.array([[1.22554451e+03, 0.00000000e+00, 1.46553617e+03],
                                     [0.00000000e+00, 1.29778987e+03, 1.31391637e+03],
                                     [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]]),
-            DIST_COEFFS=np.array([[-0.47054741,  2.05210803, -0.04170817,  0.0051407 , -3.94055482]])
+            DIST_COEFFS=np.array([[-0.47054741,  2.05210803, -0.04170817,  0.0051407 , -3.94055482]]),
+            FOCAL_LENGTH=-1.0
         ) 
 
     @staticmethod

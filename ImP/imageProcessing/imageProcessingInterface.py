@@ -115,18 +115,17 @@ class ImageProcessor:
                                                        dist_coeffs)
         return (rvecs, tvecs)
 
-    def _find_distance(self, corners):
-        focal_length = .029  ## todo remove this line to setting or something
-        marker_size = .03  ## todo remove this line to setting or something
-        distResults = []
+    def _find_distance(self, corners, focal_length):
+        marker_size = ImageProcessingSettings.get_marker_length()
+        dist_results = list()
         for marker in corners:
             pixelLength1 = abs(marker[0][0]-marker[1][0])
             pixelLength2 = abs(marker[2][0]-marker[3][0])
             pixlength = (pixelLength1+pixelLength2)/2
             # using formula from http://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
-            dist=marker_size*focal_length/pixlength
-            distResults.append(dist)
-        return distResults
+            dist = marker_size*focal_length/pixlength
+            dist_results.append(dist)
+        return dist_results
 
     def _find_position(self):
         pass
