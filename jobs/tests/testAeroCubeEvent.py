@@ -1,6 +1,6 @@
 import unittest
 
-from jobs.aeroCubeEvent import ImageEvent, ResultEvent, SystemEvent
+from jobs.aeroCubeEvent import ImageEvent, StorageEvent, ResultEvent, SystemEvent
 from jobs.aeroCubeSignal import *
 from jobs.bundle import Bundle, BundleKeyError
 
@@ -109,6 +109,23 @@ class TestAeroCubeEvent(unittest.TestCase):
     @unittest.expectedFailure
     def test_merge_payload_invalid_arg(self):
         self.fail()
+
+    def test_storage_event_parse_storage_keys(self):
+        scan_id = "123456789"
+        scan_corners = [[11., 12.],
+                        [13., 14.],
+                        [15., 16.],
+                        [17., 18.]]
+        scan_marker_ids = [[0]]
+        payload = Bundle()
+        payload.insert_string(ImageEvent.SCAN_ID, scan_id)
+        payload.insert_iterable(ImageEvent.SCAN_CORNERS, scan_corners)
+        payload.insert_iterable(ImageEvent.SCAN_MARKER_IDS, scan_marker_ids)
+        payload.insert_iterable(StorageEvent.INT_STORE_PAYLOAD_KEYS, ['strings:' + ImageEvent.SCAN_ID,
+                                                                      'iterables:' + ImageEvent.SCAN_CORNERS,
+                                                                      'iterables:' + ImageEvent.SCAN_MARKER_IDS])
+        event = StorageEvent(StorageEventSignal.STORE_INTERNALLY, payload)
+        self.assertEqual(event.parse_storage_keys(), [scan_id, scan_corners, scan_marker_ids])
 
 
 class TestAeroCubeSignal(unittest.TestCase):

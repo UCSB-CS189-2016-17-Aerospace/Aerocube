@@ -24,7 +24,7 @@ class Controller:
         self._dispatcher = {
             ImageEventSignal.IDENTIFY_AEROCUBES: self.scan_image,
             StorageEventSignal.STORE_INTERNALLY: self.store_internally,
-            StorageEventSignal.STORE_EXTERNALLY: self.store_data_externally
+            StorageEventSignal.STORE_EXTERNALLY: self.store_externally
         }
         self.calling_event = None
 
@@ -72,9 +72,9 @@ class Controller:
             result_signal = ResultEventSignal.OK
             # Prepare bundle from original
             result_bundle = img_event.payload
-            result_bundle.insert_string(ImageEvent.SCAN_ID, str(img_event.created_at))
-            result_bundle.insert_raw(ImageEvent.SCAN_CORNERS, corners)
-            result_bundle.insert_raw(ImageEvent.SCAN_MARKER_IDS, marker_ids)
+            result_bundle.insert_string(ImageEvent.SCAN_ID, str(img_event.created_at).split('.')[0])
+            result_bundle.insert_iterable(ImageEvent.SCAN_CORNERS, corners)
+            result_bundle.insert_iterable(ImageEvent.SCAN_MARKER_IDS, marker_ids)
             print('Controller.scan_image: Done with setting bundle : {}'.format(str(result_bundle)))
         except Exception as ex:
             print('Controller.scan_image: ImP Failed')
@@ -93,25 +93,29 @@ class Controller:
         """
         print('Controller.store_internally: Storing data locally')
         # TODO: data is hardcoded, need to find way for StorageEvent to indicate what should be stored
-        data = (store_event.payload.strings(ImageEvent.SCAN_ID),
-                store_event.payload.raws(ImageEvent.SCAN_CORNERS),
-                store_event.payload.raws(ImageEvent.SCAN_MARKER_IDS))
+        data = store_event.parse_storage_keys()
+        print(data)
         store(store_event.payload.strings(ImageEvent.SCAN_ID),
               data)
-        return ResultEventSignal.ERROR, store_event.payload
-        # return ResultEventSignal.OK, store_event.payload
+        return ResultEventSignal.OK, store_event.payload
 
-    def store_data_externally(self, database, scan_id, data, img_path):
+    def store_externally(self, store_event):
+        database = store_event.payload.strings(StorageEvent.EXT_STORAGE_TARGET)
+        scan_id = store_event.payload.strings(ImageEvent.SCAN_ID)
+        data = store_event.parse_storage_keys()
+        img_data = store_event.payload.strings(ImageEvent.FILE_PATH)
         try:
             print('Controller: Storing data externally')
-            external_write(database=database, scanID=scan_id, data=data)
+            external_write(database=database, scanID=scan_id,
+                           data=data, testing=True)
             print('Controller: Storing image externally')
-            external_store_img(database=database, scanID=scan_id, data=img_path)
+            external_store_img(database=database, scanID=scan_id,
+                               srcImage=img_data, testing=True)
             print('Controller: Successfully stored externally, sending ResultEvent')
-            self.return_status(ResultEventSignal.EXT_COMM_OP_OK)
-        except ValueError:
-            print('Controller.store_data_externally: External storage failed')
-            self.return_status(ResultEventSignal.EXT_COMM_OP_FAILED)
+            return ResultEventSignal.OK, store_event.payload
+        except ValueError as ex:
+            print('Controller.store_data_externally: External storage failed with args {}'.format(ex.args))
+            return ResultEventSignal.ERROR, store_event.payload
 
     def initiate_scan(self, scan_id, payload):
         print('Controller.initiate_scan: Initiate Scan')
