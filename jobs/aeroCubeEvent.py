@@ -82,6 +82,9 @@ class AeroCubeEvent(metaclass=ABCMeta):
         elif class_name == SystemEvent.__name__:
             signal = SystemEventSignal(signal_int)
             event = SystemEvent(system_signal=signal, bundle=bundle, created_at=created_at, id=uuid)
+        elif class_name == StorageEvent.__name__:
+            signal = StorageEventSignal(signal_int)
+            event = StorageEvent(storage_signal=signal, bundle=bundle, created_at=created_at, id=uuid)
         else:
             raise TypeError('AeroCubeEvent.construct_from_json: ERROR: {} is not a valid subclass of AeroCubeEvent'.format(class_name))
         return event
@@ -166,6 +169,7 @@ class StorageEvent(AeroCubeEvent):
     INT_STORAGE_REL_PATH = 'INT_STORAGE_REL_PATH'
     INT_STORE_PAYLOAD_KEYS = 'INT_STORE_PAYLOAD_KEYS'
     EXT_STORAGE_TARGET = 'EXT_STORAGE_TARGET'
+    EXT_STORE_PAYLOAD_KEYS = 'EXT_STORE_PAYLOAD_KEYS'
 
     def __init__(self, storage_signal, bundle=Bundle(), created_at=time.time(), id=None):
         if storage_signal is StorageEventSignal.STORE_EXTERNALLY and bundle.strings(self.EXT_STORAGE_TARGET) is None:

@@ -108,9 +108,9 @@ def on_send_event(job_handler, event):
             try:
                 event_resolved = job_handler.resolve_event(result_event)
                 if event_resolved:
-                    break
-                else:
                     continue
+                else:
+                    print('RestEndpoint.on_send_event: Warning: unexpected unsuccessful event resolve!')
             except JobHandler.NotAllowedInStateException as e:
                 print(e)
 

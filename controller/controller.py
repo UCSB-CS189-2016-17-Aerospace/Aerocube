@@ -1,4 +1,4 @@
-# import settings
+import numpy as np
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 from dataStorage.dataStorage import store
 from externalComm.externalComm import external_write, external_store_img
@@ -7,7 +7,7 @@ from jobs.aeroCubeSignal import ImageEventSignal, StorageEventSignal, ResultEven
 from jobs.bundle import Bundle
 from tcpService.settings import TcpSettings
 from tcpService.tcpServer import TcpServer
-from .settings import ControllerSettings
+from controller.settings import ControllerSettings
 
 
 class Controller:
@@ -22,7 +22,7 @@ class Controller:
                                  TcpSettings.BUFFER_SIZE())
         # All functions must return tuple of type (ResultEventSignal, bundle)
         self._dispatcher = {
-            ImageEventSignal.IDENTIFY_AEROCUBES: self.initiate_scan,
+            ImageEventSignal.IDENTIFY_AEROCUBES: self.scan_image,
             StorageEventSignal.STORE_INTERNALLY: self.store_internally,
             StorageEventSignal.STORE_EXTERNALLY: self.store_data_externally
         }
@@ -36,16 +36,18 @@ class Controller:
     def dispatcher(self):
         return self._dispatcher
 
-    def return_status(self, status, bundle):
+    def return_status(self, status, result_bundle, event):
         """
         Returns status back to event handler
         :param status: status signal
-        :param bundle: needs to be set before response is sent
+        :param result_bundle: needs to be set before response is sent
         :return: void
         """
         # return
         print('Controller.return_status: Status is {}'.format(status))
-        result_event = ResultEvent(result_signal=status, calling_event_uuid=self.calling_event.uuid)
+        result_event = ResultEvent(result_signal=status,
+                                   calling_event_uuid=self.calling_event.uuid,
+                                   bundle=result_bundle)
         print('Controller.return_status: Sending ResultEvent: \r\n{}\r\n'.format(result_event))
         self.server.send_response(result_event.to_json())
 
@@ -63,18 +65,25 @@ class Controller:
             print('Controller.scan_image: Finding fiducial markers')
             # TODO: replace with imp.scan_image(signal)
             corners, marker_ids = imp._find_fiducial_markers()
+            # Ensure data is JSONifiable
+            corners, marker_ids = np.array(corners).tolist(), np.array(marker_ids).tolist()
+            print('Controller.scan_image: Done with scan!')
             # Set result signal to OK
             result_signal = ResultEventSignal.OK
             # Prepare bundle from original
-            results_bundle = img_event.payload
-            results_bundle.insert_string(ImageEvent.SCAN_ID, img_event.created_at)
-            results_bundle.insert_raw(ImageEvent.SCAN_CORNERS, corners)
-            results_bundle.insert_raw(ImageEvent.SCAN_MARKER_IDS, marker_ids)
-        except Exception:
+            result_bundle = img_event.payload
+            result_bundle.insert_string(ImageEvent.SCAN_ID, str(img_event.created_at))
+            result_bundle.insert_raw(ImageEvent.SCAN_CORNERS, corners)
+            result_bundle.insert_raw(ImageEvent.SCAN_MARKER_IDS, marker_ids)
+            print('Controller.scan_image: Done with setting bundle : {}'.format(str(result_bundle)))
+        except Exception as ex:
             print('Controller.scan_image: ImP Failed')
-            results_signal = ResultEventSignal.ERROR
-            results_bundle = img_event.payload
-        return results_signal, results_bundle
+            template = "An exception of type {0} occured. Arguments:\n{1!r}"
+            message = template.format(type(ex).__name__, ex.args)
+            print(message)
+            result_signal = ResultEventSignal.ERROR
+            result_bundle = img_event.payload
+        return result_signal, result_bundle
 
     def store_internally(self, store_event):
         """
@@ -82,14 +91,15 @@ class Controller:
         :param store_event:
         :return:
         """
-        print('Controller.store_locally: Storing data locally')
+        print('Controller.store_internally: Storing data locally')
         # TODO: data is hardcoded, need to find way for StorageEvent to indicate what should be stored
-        data = (store_event.payload.raw(ImageEvent.SCAN_ID),
-                store_event.payload.raw(ImageEvent.SCAN_CORNERS),
-                store_event.payload.raw(ImageEvent.SCAN_MARKER_IDS))
-        store(store.event.payload.strings(StorageEvent.INT_STORAGE_REL_PATH),
+        data = (store_event.payload.strings(ImageEvent.SCAN_ID),
+                store_event.payload.raws(ImageEvent.SCAN_CORNERS),
+                store_event.payload.raws(ImageEvent.SCAN_MARKER_IDS))
+        store(store_event.payload.strings(ImageEvent.SCAN_ID),
               data)
-        return ResultEventSignal.OK, store_event.payload
+        return ResultEventSignal.ERROR, store_event.payload
+        # return ResultEventSignal.OK, store_event.payload
 
     def store_data_externally(self, database, scan_id, data, img_path):
         try:
@@ -130,15 +140,15 @@ class Controller:
         while 1:
             # Parse received data and rehydrate AeroCubeEvent object
             json_string = self.server.receive_data()
-            event = AeroCubeEvent.construct_from_json(json_string)
-            # Set as calling event
-            self.calling_event = event
-            print('Controller.run: Received Event: \r\n{}\r\n'.format(event))
+            rcved_event = AeroCubeEvent.construct_from_json(json_string)
+            # Set as calling rcved_event
+            self.calling_event = rcved_event
+            print('Controller.run: Received Event: \r\n{}\r\n'.format(rcved_event))
             try:
-                status, bundle = self.dispatcher[event.signal](event)
-                self.return_status(status, bundle)
+                status, bundle = self.dispatcher[rcved_event.signal](rcved_event)
+                self.return_status(status, bundle, rcved_event)
             except KeyError:
-                print('Controller.run: No function found to handle event of type \r\n{}\r\n'.format(event.signal))
+                print('Controller.run: No function found to handle rcved_event of type \r\n{}\r\n'.format(rcved_event.signal))
             except Exception as ex:
                 # all other exceptions
                 # TODO: how to handle?

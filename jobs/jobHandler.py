@@ -233,7 +233,7 @@ class JobHandler(object):
         """
         if self._can_state_resolve():
             # Modify JobHandler queue (assuming state is valid)
-            self._peek_current_job().update_current_node(event)
+            self._peek_current_job().update_current_node(event, merge_payload=True)
             print('JobHandler.resolve_event: Resolved Event: \r\n{}\r\n'.format(event))
             # Check if the job is finished
             if self._peek_current_job().is_finished:
