@@ -106,10 +106,10 @@ def on_send_event(job_handler, event):
             print('RestEndpoint.on_send_event: Warning: Received message that is not instance of ResultEvent')
         else:
             try:
-                event_resolved = job_handler.resolve_event(result_event)
-                if event_resolved:
-                    continue
-                else:
+                event_resolved, job_resolved = job_handler.resolve_event(result_event)
+                if job_resolved:
+                    break
+                elif not event_resolved:
                     print('RestEndpoint.on_send_event: Warning: unexpected unsuccessful event resolve!')
             except JobHandler.NotAllowedInStateException as e:
                 print(e)
@@ -122,7 +122,7 @@ def on_enqueue_job(job):
 
 def on_dequeue_job(job):
     # Do we need anything here?
-    pass
+    print('restEndpoint.on_dequeue_job: Job has dequeued: {}'.format(str(job)))
 
 
 class PhotoUpload(Resource):

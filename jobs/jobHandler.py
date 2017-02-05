@@ -232,22 +232,24 @@ class JobHandler(object):
         :return: if event is resolved/finished, return true; else, return false
         """
         if self._can_state_resolve():
+            job_resolved = False
             # Modify JobHandler queue (assuming state is valid)
             self._peek_current_job().update_current_node(event, merge_payload=True)
             print('JobHandler.resolve_event: Resolved Event: \r\n{}\r\n'.format(event))
             # Check if the job is finished
             if self._peek_current_job().is_finished:
+                job_resolved = True
                 self._dequeue_job()
 
             # Update state
             self._resolve_state()
             print('JobHandler.resolve_event: State changed to {}'.format(self._state))
-            return True
+            return True, job_resolved
         else:
             # Do not modify JobHandler state or queue, but log ResultEvent
             print('JobHandler.resolve_event: ResultEvent (not resolved): \r\n{}\r\n'.format(event))
             # Return False to indicate calling_event not finished
-            return False
+            return False, False
 
     def _can_state_resolve(self):
         # Check if state is valid

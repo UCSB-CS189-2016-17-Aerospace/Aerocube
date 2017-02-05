@@ -179,6 +179,14 @@ class StorageEvent(AeroCubeEvent):
     def is_valid_signal(self, signal):
         return signal in StorageEventSignal
 
+    def parse_storage_keys(self):
+        type_key_pairs = None
+        if self.signal is StorageEventSignal.STORE_INTERNALLY:
+            type_key_pairs = self.payload.iterables(self.INT_STORE_PAYLOAD_KEYS)
+        elif self.signal is StorageEventSignal.STORE_EXTERNALLY:
+            type_key_pairs = self.payload.iterables(self.EXT_STORE_PAYLOAD_KEYS)
+        # TODO: get each bundle key's proper value by calling the correct getter
+
 """
 Payload examples for ResultEvent or variants:
 * Error message
