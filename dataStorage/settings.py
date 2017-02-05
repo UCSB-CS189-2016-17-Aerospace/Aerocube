@@ -1,6 +1,6 @@
-
-storageDirectory = ''
+import os
+storageDirectory = 'scanInformation'
 
 
 def get_storage_directory():
-    return storageDirectory
+    return os.path.join(os.path.dirname(__file__), storageDirectory)

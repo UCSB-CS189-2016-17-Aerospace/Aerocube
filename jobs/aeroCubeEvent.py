@@ -151,6 +151,9 @@ class ImageEvent(AeroCubeEvent):
     :cvar _FILE_PATH: payload key; path to file for image event
     """
     FILE_PATH = 'FILE_PATH'
+    SCAN_ID = 'SCAN_ID'
+    SCAN_CORNERS = 'SCAN_CORNERS'
+    SCAN_MARKER_IDS = 'SCAN_MARKER_IDS'
 
     def __init__(self, image_signal, bundle=Bundle(), created_at=time.time(), id=None):
         super().__init__(bundle, image_signal, created_at, id)
@@ -160,6 +163,7 @@ class ImageEvent(AeroCubeEvent):
 
 
 class StorageEvent(AeroCubeEvent):
+    INT_STORAGE_REL_PATH = 'INT_STORAGE_REL_PATH'
     EXT_STORAGE_TARGET = 'EXT_STORAGE_TARGET'
 
     def __init__(self, storage_signal, bundle=Bundle(), created_at=time.time(), id=None):
