@@ -74,9 +74,10 @@ class AeroCubeJob:
             uuid.uuid5(uuid.NAMESPACE_OID, "{}-{}".format(self.__class__.__name__, self._created_at)).hex
 
     def __str__(self):
+        current_node_uuid = self._current_node.event_uuid if not self.is_finished else None
         return "Job UUID: {}; Root Event UUID: {}; Current Event UUID: {}".format(self._uuid,
                                                                                   self._root_event_node.event_uuid,
-                                                                                  self._current_node.event_uuid)
+                                                                                  current_node_uuid)
 
     def __eq__(self, other):
         return self._uuid == other.uuid
@@ -120,7 +121,7 @@ class AeroCubeJob:
             raise AttributeError('AeroCubeJob.update_and_retrieve_next_event: ERROR: result event with CALLING_EVENT_UUID:{} received not for current calling event:{}'.format(result_event.payload.strings(ResultEvent.CALLING_EVENT_UUID), self.current_event.uuid))
         # Merge bundle if param is set to True before moving to next node
         self._current_node = self._current_node.next_event_node(result_event)
-        if merge_payload is True:
+        if merge_payload is True and not self.is_finished:
             self._current_node.event.merge_payload(result_event.payload)
 
     # Constructors -- use to construct specific type of AeroCubeJobs
