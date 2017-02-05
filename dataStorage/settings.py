@@ -1,5 +1,5 @@
 import os
-storageDirectory = 'scanInformation'
+storageDirectory = 'scanInformation/'
 
 
 def get_storage_directory():
