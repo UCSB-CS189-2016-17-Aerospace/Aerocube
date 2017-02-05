@@ -181,7 +181,7 @@ class StorageEvent(AeroCubeEvent):
 
     def parse_storage_keys(self):
         type_key_pairs = None
-        data = list()
+        data = dict()
         if self.signal is StorageEventSignal.STORE_INTERNALLY:
             type_key_pairs = self.payload.iterables(self.INT_STORE_PAYLOAD_KEYS)
         elif self.signal is StorageEventSignal.STORE_EXTERNALLY:
@@ -189,7 +189,7 @@ class StorageEvent(AeroCubeEvent):
         # TODO: get each bundle key's proper value by calling the correct getter
         for pair in type_key_pairs:
             bundle_type, key = pair.split(':')
-            data.append(getattr(self.payload, bundle_type)(key))
+            data[key] = getattr(self.payload, bundle_type)(key)
         return data
 
 """
