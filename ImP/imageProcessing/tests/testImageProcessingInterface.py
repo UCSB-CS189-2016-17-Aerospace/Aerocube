@@ -146,6 +146,12 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
         imp = ImageProcessor(self.TEST_NO_MARKER.img_path)
         self.assertEqual([], imp._identify_aerocubes())
 
+    def test_find_distance(self):
+        imp = ImageProcessor(self.TEST_JETSON_SINGLE_MARKER.img_path)
+        corners, ids = imp._find_fiducial_markers()
+        dist = imp._find_distance(corners[0], CameraCalibration.PredefinedCalibration.ANDREW_IPHONE.FOCAL_LENGTH)
+        self.assertGreater(dist[0], 0.5)
+
     def test_scan_image(self):
         # get hard-coded results
         corners = self.TEST_SINGLE_MARKER.corners

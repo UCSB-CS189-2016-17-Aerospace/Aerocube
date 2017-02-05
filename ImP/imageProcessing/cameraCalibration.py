@@ -29,7 +29,7 @@ class CameraCalibration():
                                     [0.00000000e+00, 3.52274282e+03, 1.51346685e+03],
                                     [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]]),
             DIST_COEFFS=np.array([[-4.58647345e-02, 1.73122392e+00, -3.30440816e-03, -7.78486275e-04, -7.00795983e+00]]),
-            FOCAL_LENGTH=0.029
+            FOCAL_LENGTH=0.00265  # iPhone 6s has focal length of 2.65mm
         )
          
         GUS_GOPRO = _Calibration(
