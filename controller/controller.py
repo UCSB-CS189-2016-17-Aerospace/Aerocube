@@ -93,11 +93,11 @@ class Controller:
 
     def store_data_externally(self, database, scan_id, data, img_path):
         try:
-            print('Controller.store_data_externally: Storing data externally')
-            process(func='-w', database=database, location='scans', scanID=scan_id, data=data, testing=True)
-            print('Controller.store_data_externally: Storing image externally')
-            process(func='-iw', database=database, location='scans', scanID=scan_id, data=img_path, testing=True)
-            print('Controller.store_data_externally: Successfully stored externally, sending ResultEvent')
+            print('Controller: Storing data externally')
+            external_write(database=database, scanID=scan_id, data=data)
+            print('Controller: Storing image externally')
+            external_store_img(database=database, scanID=scan_id, data=img_path)
+            print('Controller: Successfully stored externally, sending ResultEvent')
             self.return_status(ResultEventSignal.EXT_COMM_OP_OK)
         except ValueError:
             print('Controller.store_data_externally: External storage failed')

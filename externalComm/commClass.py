@@ -4,6 +4,9 @@ import pyrebase
 
 class Comm():
     __metaclass__ = ABCMeta
+    @property
+    def name(self):
+        raise NotImplementedError
 
     @abstractmethod
     def read(self, location, id): pass
@@ -24,6 +27,8 @@ class Comm():
 class FirebaseComm(Comm):
     # using secret token as authentication but if we want to change to using login use this instead
     # user=self.auth.sign_in_with_email_and_password('yourfirenation@gmail.com','yourfirenation')
+    NAME = "firebase"
+
     def __init__(self, testing=False):
         if testing:
             config = {
@@ -46,40 +51,41 @@ class FirebaseComm(Comm):
         self.storage = self.firebase.storage()
 
     def read(self, location, id):
-        '''
+        """
         :param location: where it is stored
         :param id: ID what you are looking for
         :return: data at location or none
-        '''
+        """
         result = self.db.child(location).child(id).get(self.token)
         print(result.val())
         return result.val()
 
-    def write(self, location,id, data):
-        '''
+    def write(self, location, id, data):
+        """
         :param location: where to store
         :param id: name of scan
         :param data: all data
         :return:
-        '''
+        """
         if location is None:
             result = self.db.child(id).set(data=data, token=self.token)
         else:
             result = self.db.child(location).child(id).set(data=data, token=self.token)
 
     def delete(self, location, id):
-        '''
+        """
         :param location:
         :param id:
         :return:
-        '''
+        """
         self.db.child(location).child(id).remove(token=self.token)
-    def imageStore(self,id,srcImage):
-        '''
+
+    def imageStore(self, id, srcImage):
+        """
         :param id: id of scan
         :param srcImage: location of source image
         :return:
-        '''
+        """
         auth = self.firebase.auth()
         user = auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
         self.storage.child('image').child(id+'.jpg').put(srcImage, token=user['idToken'])

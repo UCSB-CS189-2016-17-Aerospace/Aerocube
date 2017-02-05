@@ -45,7 +45,7 @@ for (int i = 0; i < nMarkers; i++) {
              _rvecs.getMat(i), _tvecs.getMat(i))
 ```
 #### rvec
-solvePnP's outputs of ```rvec``` is a rotation matrix that has been converted to a rotation vector by using [Rodrigues()](http://docs.opencv.org/3.0-beta/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html#rodrigues).
+solvePnP's outputs of ```rvec``` is a rotation matrix that has been converted to a rotation vector by using [Rodrigues()](http://docs.opencv.org/3.0-beta/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html#rodrigues). Note that it is in a [**compact** representation of Rodrigues notation](http://stackoverflow.com/questions/12933284/rodrigues-into-eulerangles-and-vice-versa), allowing it to be stored in three values instead of the normal four (scalar and vector). 
 
 #### tvec
 * [OpenCV: solvePnP tvec units and axes directions](http://stackoverflow.com/questions/17423302/opencv-solvepnp-tvec-units-and-axes-directions)
@@ -53,6 +53,7 @@ solvePnP's outputs of ```rvec``` is a rotation matrix that has been converted to
 ## Quaternion
 #### Information on Quaternions
 * [Euler to Quaternion - Sample Orientations](http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/steps/index.htm)
+* [YouTube Video: Quaternion Rotation](https://www.youtube.com/watch?v=4mXL751ko0w&t=1s)
 
 #### Translating to the Quaternion
 * [Wikipedia: Euler axis/angle to quaternion](https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions#Euler_axis.2Fangle_.E2.86.94_quaternion)
