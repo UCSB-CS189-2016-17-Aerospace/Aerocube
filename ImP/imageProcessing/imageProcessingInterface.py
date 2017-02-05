@@ -117,13 +117,19 @@ class ImageProcessor:
 
     def _find_distance(self, corners, focal_length):
         marker_size = ImageProcessingSettings.get_marker_length()
+        cam_mat = CameraCalibration.PredefinedCalibration.ANDREW_IPHONE.CAMERA_MATRIX
+        print(cam_mat)
+        m = (cam_mat[0][0]/focal_length + cam_mat[1][1]/focal_length)/2
+        # TODO: need to convert m for different sized resolutions
+        print(m)
         dist_results = list()
         for marker in corners:
+            # TODO: can use diaganols instead
             pixelLength1 = math.sqrt(math.pow(marker[0][0] - marker[1][0], 2) + math.pow(marker[0][1] - marker[1][1], 2))
             pixelLength2 = math.sqrt(math.pow(marker[2][0] - marker[3][0], 2) + math.pow(marker[2][1] - marker[3][1], 2))
             pixlength = (pixelLength1+pixelLength2)/2
             # using formula from http://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
-            dist = marker_size*focal_length/pixlength
+            dist = marker_size*focal_length/(pixlength/m)
             dist_results.append(dist)
         return dist_results
 
