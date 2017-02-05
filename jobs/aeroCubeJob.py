@@ -147,13 +147,15 @@ class AeroCubeJob:
             ext_store_bundle.insert_string(StorageEvent.EXT_STORAGE_TARGET, ext_store_target)
             ext_store_bundle.insert_iterable(StorageEvent.EXT_STORE_PAYLOAD_KEYS, ['strings:' + ImageEvent.SCAN_ID,
                                                                                    'iterables:' + ImageEvent.SCAN_CORNERS,
-                                                                                   'iterables:' + ImageEvent.SCAN_MARKER_IDS])
+                                                                                   'iterables:' + ImageEvent.SCAN_MARKER_IDS,
+                                                                                   'iterables:' + ImageEvent.SCAN_POSES])
             ext_store_node = AeroCubeJobEventNode(StorageEvent(StorageEventSignal.STORE_EXTERNALLY, ext_store_bundle))
         if int_storage is True:
             int_store_bundle = Bundle()
             int_store_bundle.insert_iterable(StorageEvent.INT_STORE_PAYLOAD_KEYS, ['strings:' + ImageEvent.SCAN_ID,
                                                                                    'iterables:' + ImageEvent.SCAN_CORNERS,
-                                                                                   'iterables:' + ImageEvent.SCAN_MARKER_IDS])
+                                                                                   'iterables:' + ImageEvent.SCAN_MARKER_IDS,
+                                                                                   'iterables:' + ImageEvent.SCAN_POSES])
             int_store_event = StorageEvent(StorageEventSignal.STORE_INTERNALLY, int_store_bundle)
             if ext_store_target is not None:
                 int_store_node = AeroCubeJobEventNode(int_store_event, ok_event_node=ext_store_node)

@@ -157,6 +157,7 @@ class ImageEvent(AeroCubeEvent):
     SCAN_ID = 'SCAN_ID'
     SCAN_CORNERS = 'SCAN_CORNERS'
     SCAN_MARKER_IDS = 'SCAN_MARKER_IDS'
+    SCAN_POSES = 'SCAN_POSES'
 
     def __init__(self, image_signal, bundle=Bundle(), created_at=time.time(), id=None):
         super().__init__(bundle, image_signal, created_at, id)

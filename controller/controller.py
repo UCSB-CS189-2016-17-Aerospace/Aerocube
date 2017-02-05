@@ -64,7 +64,7 @@ class Controller:
             imp = ImageProcessor(file_path)
             print('Controller.scan_image: Finding fiducial markers')
             # TODO: replace with imp.scan_image(signal)
-            corners, marker_ids = imp._find_fiducial_markers()
+            corners, marker_ids, poses = imp._find_fiducial_markers()
             # Ensure data is JSONifiable
             corners, marker_ids = np.array(corners).tolist(), np.array(marker_ids).tolist()
             print('Controller.scan_image: Done with scan!')
@@ -75,6 +75,7 @@ class Controller:
             result_bundle.insert_string(ImageEvent.SCAN_ID, str(img_event.created_at).split('.')[0])
             result_bundle.insert_iterable(ImageEvent.SCAN_CORNERS, corners)
             result_bundle.insert_iterable(ImageEvent.SCAN_MARKER_IDS, marker_ids)
+            result_bundle.insert_iterable(ImageEvent.SCAN_POSES, poses)
             print('Controller.scan_image: Done with setting bundle : {}'.format(str(result_bundle)))
         except Exception as ex:
             print('Controller.scan_image: ImP Failed')
