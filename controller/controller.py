@@ -117,27 +117,6 @@ class Controller:
             print('Controller.store_data_externally: External storage failed with args {}'.format(ex.args))
             return ResultEventSignal.ERROR, store_event.payload
 
-    def initiate_scan(self, scan_id, payload):
-        print('Controller.initiate_scan: Initiate Scan')
-        # print(payload)
-        file_path = payload.strings(ImageEvent.FILE_PATH)
-        print('Controller.initiate_scan: Payload FILE_PATH is {}'.format(file_path))
-        results = self.scan_image(file_path=file_path)
-        print('Controller.initiate_scan: Results Received, sending ResultEvent')
-        self.return_status(ResultEventSignal.IMP_OPERATION_OK)
-        print('Controller.initiate_scan: Scanning results received')
-        print('Controller.initiate_scan: \r\n{}\r\n'.format(results))
-        # payload.strings('FILE_PATH') should be the path to the image
-        self.store_internally(path=str(scan_id), data=results)
-        serializable_results = (list(map((lambda c: c.tolist()), results[0])),
-                                results[1].tolist())
-        self.store_data_externally(database=payload.strings(StorageEvent.EXT_STORAGE_TARGET),
-                                   scan_id=str(scan_id).split('.')[0],
-                                   data=serializable_results,
-                                   img_path=file_path)
-        # payload.strings('EXT_STORAGE_TARGET') should be the database
-        self.return_status(ResultEventSignal.IDENT_AEROCUBES_FIN)
-
     def run(self):
         self.server.accept_connection()
         print('Controller.run: Connection accepted')
