@@ -128,6 +128,7 @@ class AeroCubeJob:
 
     @staticmethod
     def create_image_upload_job(img_path, int_storage=False, ext_store_target=None):
+        # TODO: there has to be a more graceful way to do this
         # TODO: add error event nodes
         # TODO: add error handling for improper args?
         """
@@ -146,7 +147,11 @@ class AeroCubeJob:
             ext_store_bundle.insert_string(StorageEvent.EXT_STORAGE_TARGET, ext_store_target)
             ext_store_node = AeroCubeJobEventNode(StorageEvent(StorageEventSignal.STORE_EXTERNALLY, ext_store_bundle))
         if int_storage is True:
-            int_store_event = StorageEvent(StorageEventSignal.STORE_INTERNALLY)
+            int_store_bundle = Bundle()
+            int_store_bundle.insert_raw(StorageEvent.INT_STORE_PAYLOAD_KEYS, [ImageEvent.SCAN_ID,
+                                                                              ImageEvent.SCAN_CORNERS,
+                                                                              ImageEvent.SCAN_MARKER_IDS])
+            int_store_event = StorageEvent(StorageEventSignal.STORE_INTERNALLY, int_store_bundle)
             if ext_store_target is not None:
                 int_store_node = AeroCubeJobEventNode(int_store_event, ok_event_node=ext_store_node)
             else:

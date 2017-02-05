@@ -164,6 +164,7 @@ class ImageEvent(AeroCubeEvent):
 
 class StorageEvent(AeroCubeEvent):
     INT_STORAGE_REL_PATH = 'INT_STORAGE_REL_PATH'
+    INT_STORE_PAYLOAD_KEYS = 'INT_STORE_PAYLOAD_KEYS'
     EXT_STORAGE_TARGET = 'EXT_STORAGE_TARGET'
 
     def __init__(self, storage_signal, bundle=Bundle(), created_at=time.time(), id=None):

@@ -1,4 +1,5 @@
 import unittest
+import numpy as np
 
 from jobs.aeroCubeJob import *
 
@@ -161,6 +162,8 @@ class TestAeroCubeJobConstructors(unittest.TestCase):
         int_store_node = job._current_node.event_signal_map[ResultEventSignal.OK]
         self.assertIsInstance(int_store_node.event, StorageEvent)
         self.assertEqual(int_store_node.event.signal, StorageEventSignal.STORE_INTERNALLY)
+        np.testing.assert_equal(int_store_node.event.payload.raws(StorageEvent.INT_STORE_PAYLOAD_KEYS),
+                                [ImageEvent.SCAN_ID, ImageEvent.SCAN_CORNERS, ImageEvent.SCAN_MARKER_IDS])
 
         ext_store_node = int_store_node.event_signal_map[ResultEventSignal.OK]
         self.assertIsInstance(ext_store_node.event, StorageEvent)

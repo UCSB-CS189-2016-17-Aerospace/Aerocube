@@ -1,7 +1,7 @@
 # import settings
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 from dataStorage.dataStorage import store
-from externalComm.externalComm import process
+from externalComm.externalComm import external_write, external_store_img
 from jobs.aeroCubeEvent import AeroCubeEvent, ImageEvent, StorageEvent, ResultEvent
 from jobs.aeroCubeSignal import ImageEventSignal, StorageEventSignal, ResultEventSignal
 from jobs.bundle import Bundle
