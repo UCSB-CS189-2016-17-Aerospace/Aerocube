@@ -35,7 +35,7 @@ class CameraCalibration():
             CAMERA_MATRIX=np.array([[1.22554451e+03, 0.00000000e+00, 1.46553617e+03],
                                     [0.00000000e+00, 1.29778987e+03, 1.31391637e+03],
                                     [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]]),
-            DIST_COEFFS=np.array([[-0.47054741,  2.05210803, -0.04170817,  0.0051407 , -3.94055482]])
+            DIST_COEFFS=np.array([[-0.47054741,  2.05210803, -0.04170817,  0.0051407, -3.94055482]])
         ) 
 
     @staticmethod
@@ -108,7 +108,5 @@ if __name__ == '__main__':
                  os.path.join(test_files_path, "andrew_iphone_calibration_photo_1.jpg"),
                  os.path.join(test_files_path, "andrew_iphone_calibration_photo_2.jpg"),
                  os.path.join(test_files_path, "andrew_iphone_calibration_photo_3.jpg")]
-
-
     img_arr = [cv2.imread(img) for img in img_paths]
     print(CameraCalibration.get_calibration_matrices(board, img_arr))

@@ -20,7 +20,8 @@ print(quaternions)
 print(tvecs)
 img = imp.draw_fiducial_markers(corners, ids)
 imp._img_mat = img
-img = imp.draw_axis(cal.CAMERA_MATRIX, cal.DIST_COEFFS, quaternions[0], tvecs[0])
-imp._img_mat = img
-img = imp.draw_axis(cal.CAMERA_MATRIX, cal.DIST_COEFFS, quaternions[1], tvecs[1])
-cv2.imwrite("ImP/output_files/GOPR0040_results_with_axes.JPG", img)
+img1 = imp.draw_axis(cal.CAMERA_MATRIX, cal.DIST_COEFFS, quaternions[0], tvecs[0])
+cv2.imwrite("ImP/output_files/GOPR0040_results_with_axes_img1.JPG", img1)
+imp._img_mat = img1
+img2 = imp.draw_axis(cal.CAMERA_MATRIX, cal.DIST_COEFFS, quaternions[1], tvecs[1])
+cv2.imwrite("ImP/output_files/GOPR0040_results_with_axes_img2.JPG", img2)
