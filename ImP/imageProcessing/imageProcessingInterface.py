@@ -113,23 +113,28 @@ class ImageProcessor:
                                                        marker_length,
                                                        camera_matrix,
                                                        dist_coeffs)
-        return (rvecs, tvecs)
+        return rvecs, tvecs
 
-    def _find_distance(self, corners, focal_length):
+    def _find_distance(self, corners, cal):
+        """
+        Find the distance of an array of markers (represented by their corners).
+        References:
+        * http://stackoverflow.com/questions/14038002/opencv-how-to-calculate-distance-between-camera-and-object-using-image
+        * http://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
+        :param corners: array of markers, each represented by their four corner points
+        :param cal: calibration information of the camera used for the image
+        :return: distance in meters
+        """
         marker_size = ImageProcessingSettings.get_marker_length()
-        cam_mat = CameraCalibration.PredefinedCalibration.ANDREW_IPHONE.CAMERA_MATRIX
-        print(cam_mat)
-        m = (cam_mat[0][0]/focal_length + cam_mat[1][1]/focal_length)/2
+        m = (cal.CAMERA_MATRIX[0][0]/cal.FOCAL_LENGTH + cal.CAMERA_MATRIX[1][1]/cal.FOCAL_LENGTH)/2
         # TODO: need to convert m for different sized resolutions
-        print(m)
         dist_results = list()
         for marker in corners:
-            # TODO: can use diaganols instead
-            pixelLength1 = math.sqrt(math.pow(marker[0][0] - marker[1][0], 2) + math.pow(marker[0][1] - marker[1][1], 2))
-            pixelLength2 = math.sqrt(math.pow(marker[2][0] - marker[3][0], 2) + math.pow(marker[2][1] - marker[3][1], 2))
-            pixlength = (pixelLength1+pixelLength2)/2
-            # using formula from http://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
-            dist = marker_size*focal_length/(pixlength/m)
+            # TODO: can use diagonals instead
+            pixel_length1 = math.sqrt(math.pow(marker[0][0] - marker[1][0], 2) + math.pow(marker[0][1] - marker[1][1], 2))
+            pixel_length2 = math.sqrt(math.pow(marker[2][0] - marker[3][0], 2) + math.pow(marker[2][1] - marker[3][1], 2))
+            pixlength = (pixel_length1+pixel_length2)/2
+            dist = marker_size * cal.FOCAL_LENGTH / (pixlength/m)
             dist_results.append(dist)
         return dist_results
 
