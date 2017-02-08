@@ -15,7 +15,7 @@ class ImageProcessor:
     Instantiated with an image, provides the ability to process the image in various
     ways, most often by passing it AeroCubeSignal enum objects.
     :cvar _DICTIONARY: Aruco dictionary meant to be accessed only internally
-    :ivar _img_mat: holds the matrix represnetation of an image
+    :ivar _img_mat: holds the matrix representation of an image
     :ivar _dispatcher: dictionary mapping AeroCubeSignals to functions
     """
     _DICTIONARY = AeroCubeMarker.get_dictionary()
