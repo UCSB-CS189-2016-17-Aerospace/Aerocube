@@ -19,6 +19,7 @@ quaternions = [imp.rodrigues_to_quaternion(r) for r in rvecs]
 print(quaternions)
 print(tvecs)
 img = imp.draw_fiducial_markers(corners, ids)
+assert img.shape == imp._img_mat.shape
 imp._img_mat = img
 img1 = imp.draw_axis(cal.CAMERA_MATRIX, cal.DIST_COEFFS, quaternions[0], tvecs[0])
 cv2.imwrite("ImP/output_files/GOPR0040_results_with_axes_img1.JPG", img1)
