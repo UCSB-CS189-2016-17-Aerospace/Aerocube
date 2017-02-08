@@ -151,8 +151,8 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
         corners, ids = imp._find_fiducial_markers()
         dist = imp._find_distance(corners[0], CameraCalibration.PredefinedCalibration.ANDREW_IPHONE)
         print(dist)
-        self.assertGreater(dist[0], 0.5)
-        self.assertLess(dist[0], 1.5)
+        self.assertGreater(dist[0], 0.8)
+        self.assertLess(dist[0], 1.0)
 
     def test_scan_image(self):
         # get hard-coded results

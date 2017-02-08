@@ -125,16 +125,19 @@ class ImageProcessor:
         :param cal: calibration information of the camera used for the image
         :return: distance in meters
         """
-        marker_size = ImageProcessingSettings.get_marker_length()
+        # Find m (pixels per unit of measurement)
         m = (cal.CAMERA_MATRIX[0][0]/cal.FOCAL_LENGTH + cal.CAMERA_MATRIX[1][1]/cal.FOCAL_LENGTH)/2
-        # TODO: need to convert m for different sized resolutions
+        # Scale m for current resolution (if necessary), taking y information from original image and current
+        m_for_res = self._img_mat.shape[0] * (m / cal.IMG_RES[0])
+        # Initialize variables for loop
         dist_results = list()
+        marker_size = ImageProcessingSettings.get_marker_length()
         for marker in corners:
             # TODO: can use diagonals instead
             pixel_length1 = math.sqrt(math.pow(marker[0][0] - marker[1][0], 2) + math.pow(marker[0][1] - marker[1][1], 2))
             pixel_length2 = math.sqrt(math.pow(marker[2][0] - marker[3][0], 2) + math.pow(marker[2][1] - marker[3][1], 2))
             pixlength = (pixel_length1+pixel_length2)/2
-            dist = marker_size * cal.FOCAL_LENGTH / (pixlength/m)
+            dist = marker_size * cal.FOCAL_LENGTH / (pixlength/m_for_res)
             dist_results.append(dist)
         return dist_results
 
