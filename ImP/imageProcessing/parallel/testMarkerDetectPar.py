@@ -5,7 +5,7 @@ from cv2 import aruco
 import numpy as np
 from ImP.imageProcessing.parallel.markerDetectPar import *
 from ImP.imageProcessing.settings import ImageProcessingSettings
-
+from cv2 import d
 
 class TestMarkerDetectPar(unittest.TestCase):
 
@@ -169,13 +169,14 @@ class TestMarkerDetectPar(unittest.TestCase):
         # Assert equality
         np.testing.assert_allclose(test_cand, true_cand)
         np.testing.assert_array_equal(true_cand, true_cont)
-
+    
     def test_filter_too_close_candidates_does_not_alter_params(self):
         candidates, contours = aruco._detectInitialCandidates(self.gray)
         cand_copy, cont_copy = np.copy(candidates), np.copy(contours)
         MarkerDetectPar._filter_too_close_candidates(candidates, contours)
         np.testing.assert_allclose(candidates, cand_copy)
         np.testing.assert_array_equal(contours, cont_copy)
+
 
     # ~~STEP 2 FUNCTIONS~~
 

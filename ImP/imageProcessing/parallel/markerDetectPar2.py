@@ -1,80 +1,77 @@
-#import math
+import math
 import cv2
-#import numpy as np
-#import numba
-#from numba import cuda
-#Sfrom ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
+import numpy as np
+import numba
+from numba import cuda
+from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 
 class MarkerDetectPar:
 
-
-	
-
     def _filterDetectedMarkers(self, corners, ids):
         """
-            corners: type vector< vector< Point2f > >
+        corners: type vector< vector< Point2f > >
         ids: vector< int >
         """
 
-        # check that corners size is equal to id size
+        # check that corners size is equal to id size, not sure if assert is done correctly
         assert len(corners) == len(id)
 
-        # if corners is empty return 0
-        if(len(corners) == 0): return 0
+        if len(corners) == 0:
+            return 0
+
+        # mark markers that will be deleted, initializes array all set to false ?
+        toRemove = [False] * len(corners)
+        atLeastOneRemove = False
 
         # remove repeated markers with same id, if one contains the other
-        i =0
-        while(i < len(corners)):
-            j = i +1
-            while(j < len(corners)):
-                if(ids[i] != ids[j]): 
-                    break
-                
+        for i in range(len(corners)-1):
+            for j in range(1, len(corners)):
+                if ids[i] == ids[j]:
+                    return 0
+
                 # check if first marker is inside second
                 inside = True
                 for p in range(4):
                     point = corners[j][p]
-                    #stil not implemented pointPolygonTest
-                    if(cv2.pointPolygonTest(corners[i],point,False)<0):
+                    if cv2.pointPolygontest(corners[i], point, False) < 0:
                         inside = False
                         break
-                if(inside):
+
+                if inside:
                     toRemove[j] = True
                     atLeastOneRemove = True
-                    break
-                
-                inside = True
+                    continue
 
+                # check the second marker
+                inside = True
                 for p in range(4):
                     point = corners[i][p]
-                    if(cv2.pointPolygonTest(corners[j], point,False)<0):
+                    if cv2.pointPolygonTest(corners[j], point, False) < 0:
                         inside = False
                         break
-                if(inside):
+
+                if inside:
                     toRemove[i] = True
                     atLeastOneRemove = True
-                    break        
+                    continue
 
-                
-            i+=1
-
-        # need to parse the output 
         if atLeastOneRemove:
-            filteredCorners = corners[0]
-            filteredIds = ids[0]
+            filteredCorners = corners
+            filteredIds = ids
+            place_hold = 0
+            for i in range(len(toRemove)):
+                if not toRemove[i]:
+                    filteredCorners[i+1] = corners[i]
+                    filteredIds[i+1] = ids[i]
+                    place_hold = i+1
+            '''
+            Below is my attempt at recreating the following c++ code:
+            _ids.erase(filteredIds, _ids.end());
+            _corners.erase(filteredCorners, _corners.end());
+            Not sure if I understood it correctly.
+            '''
+            for element in range(place_hold, len(corners)):
+                del filteredCorners[element]
 
-            for g in range(len(toRemove)):
-                if not toRemove[g]:
-                    pass
-
-                    
-
-
-
-
-
-
-    def _copyVector2Output(self, vec, out):
-        pass
-
-
+            for element in range(place_hold, len(ids)):
+                del filteredIds[element]
