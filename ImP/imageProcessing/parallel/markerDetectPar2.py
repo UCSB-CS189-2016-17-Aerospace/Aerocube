@@ -7,6 +7,19 @@ from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 
 class MarkerDetectPar:
 
+    def detectMarkers(self):
+        pass 
+        # Step 1
+        # Step 2
+        # Step 3
+        # self._filterDetectedMarkers()
+        # below is yet to do
+        # _copyVector2Output()
+        #  Mat(ids).copyTo(_ids);
+        # Step 4
+
+
+
     def _filterDetectedMarkers(self, corners, ids):
         """
         corners: type vector< vector< Point2f > >

@@ -181,6 +181,8 @@ class TestMarkerDetectPar(unittest.TestCase):
     # ~~STEP 2 FUNCTIONS~~
 
     # ~~STEP 3 FUNCTIONS~~
+    def test_filter_detected_markers(self):
+        pass
 
     # ~~STEP 4 FUNCTIONS~~
 
