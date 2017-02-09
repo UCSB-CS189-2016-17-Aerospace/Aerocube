@@ -1,5 +1,6 @@
 import math
 import cv2
+from cv2 import aruco
 import numpy as np
 import numba
 from numba import cuda
@@ -169,7 +170,8 @@ class MarkerDetectPar:
         # ~~STEP 1~~: Detect marker candidates
         candidates, contours = cls._detect_candidates(gray_img)
 
-        # STEP 2
+        # ~~STEP 2~~: Identify marker candidates, filtering out candidates without properly set bits
+        accepted, ids, rejected = cls._identify_candidates(gray_img, candidates, dictionary)
 
         # STEP 3
 
@@ -360,12 +362,178 @@ class MarkerDetectPar:
         cont_out = [c for i, c in enumerate(contours) if to_remove[i] is False]
         return cand_out, cont_out
 
-
     # ~~STEP 2 FUNCTIONS~~
-    @classmethod
-    def _identify_candidates(cls, gray, candidates, contours, dictionary):
 
-        return ids, accepted, rejected
+    @classmethod
+    def _identify_candidates(cls, gray, candidates, dictionary):
+        """
+        Iterates through given array of candidates and extracts the "bits" of the candidate marker by Otsu thresholding.
+        Rejects the candidate if bits are not properly set or identifiable by the dictionary. Additionally, reverses any
+        rotation applied to each candidate's corner points before returning them from this function.
+        :param gray: grayscale image containing the candidate corner points
+        :param candidates: list of each candidate's corner points, with shape (4, 2) and type np.float32
+        :param dictionary: dictionary used to analyze and identify each candidate marker
+        :return: (accepted, ids, rejected)
+            * accepted - list of accepted candidates, with the corner points rotated to reflect their proper order
+                according to the dictionary
+            * ids - list of ids of the respective candidates, identified by the dictionary
+            * rejected - list of rejected candidates (e.g., due to too many erroneous border bits, improper data bits,
+                rejection by the dictionary)
+        """
+        # Assert that image is not none and gray
+        assert gray is not None
+        assert gray.size is not 0 and len(gray.shape) == 2
+        # Initialize variables
+        accepted = list()
+        ids = list()
+        rejected = list()
+        # Analyze each candidate
+        for i in range(len(candidates)):
+            valid, corners, cand_id = cls._identify_one_candidate(dictionary, gray, candidates[i])
+            if valid:
+                accepted.append(corners)
+                ids.append(cand_id)
+            else:
+                rejected.append(corners)
+
+        return accepted, ids, rejected
+
+    @classmethod
+    def _identify_one_candidate(cls, dictionary, gray, corners):
+        """
+        Given a grayscale image and the candidate corners (i.e., corner points), extract the bits of the candidate from
+        the image if possible and use the dictionary to identify the candidate. If successful, reverse any rotation
+        applied to the ordering of the corner points (to standardize the order of the corners) and return with the ID.
+        Else, return False, and return original corners and invalid ID.
+        :param dictionary: dictionary used to identify extracted bits from the corners in the image
+        :param gray: grayscale image that contains the corner points of the candidate
+        :param corners: corner points of the candidate with shape (4,2); recall that Points are stored as [x][y]
+        :return: (valid_candidate, corners, id)
+            * valid_candidate - indicates whether the given candidate is valid or not, due to:
+                1. too many erroneous bits (white bits) in candidate marker border (assumed to be all black bits)
+                2. dictionary fails to identify the candidate marker
+            * corners - corners of the identified candidate, rotated if the dictionary detects a rotation occurred;
+                else, if candidate identified invalid, original corners returned
+            * id - id of the identified candidate; if invalid candidate, set to -1
+        """
+        markerBorderBits = cls.params[cls.markerBorderBits]
+        assert len(corners) is 4
+        assert gray is not None
+        assert markerBorderBits > 0
+
+        # Get bits, and ensure there are not too many erroneous bits
+        candidate_bits = cls._extract_bits(gray, corners)
+        max_errors_in_border = int(dictionary.markerSize * dictionary.markerSize * markerBorderBits)
+        border_errors = cls._get_border_errors(candidate_bits, dictionary.markerSize, markerBorderBits)
+        if border_errors > max_errors_in_border:
+            return False, corners, -1
+
+        # Take inner bits for marker identification with beautiful Python slicing (god damn!)
+        inner_bits = candidate_bits[markerBorderBits:-markerBorderBits, markerBorderBits:-markerBorderBits]
+        retval, cand_id, rotation = dictionary.identify(inner_bits, cls.params[cls.errorCorrectionRate])
+        if retval is False:
+            return False, corners, -1
+        else:
+            # Shift corner positions to correct rotation before returning
+            return True, np.roll(corners, rotation), cand_id
+        pass
+
+    @classmethod
+    def _extract_bits(cls, gray, corners):
+        """
+        Extract the bits encoding the ID of the marker given the image and the marker's corners.
+        First finds the perspective transformation matrix from the marker's "original" coordinates relative to the
+        given image, then uses the transformation matrix to transform the entire image such that the marker's
+        perspective is removed. Then performs thresholding on the marker (if appropriate) and counts the pixels in each
+        cell (spatial area of one bit) to determine if "1" or "0".
+        :param gray: grayscale image with the marker in question; undergoes a perspective transformation such that the
+            original marker's perspective is removed, and analysis can occur
+        :param corners: corner points of the marker in the grayscale image; must be in correct order (clockwise), such
+            that the mapping from the marker's original coordinates to the marker's grayscale image coordinates is
+            calculated correctly
+        :return: 2-dimensional array of binary values representing the marker; for a 4x4 marker with default detector
+            params, bits would be (4 inner bits + 2 border bits)^2 = 36 bits
+        """
+        # Initialize variables
+        markerSize = FiducialMarker.get_marker_size()  # size of inner region of marker (area containing ID information)
+        markerBorderBits = cls.params[cls.markerBorderBits]  # size of marker border
+        cellSize = cls.params[cls.perspectiveRemovePixelPerCell]  # size of "cell", area consisting of one bit of info.
+        cellMarginRate = cls.params[cls.perspectiveRemoveIgnoredMarginPerCell]  # cell margin
+        minStdDevOtsu = cls.params[cls.minOtsuStdDev]  # min. std. dev. needed to run Otsu thresholding
+
+        # Run assertions
+        assert len(gray.shape) == 2
+        assert len(corners) == 4
+        assert markerBorderBits > 0 and cellSize > 0 and cellMarginRate >= 0 and cellMarginRate <= 1
+        assert minStdDevOtsu >= 0
+
+        # Determine new dimensions of perspective-removed marker
+        markerSizeWithBorders = markerSize + 2*markerBorderBits
+        cellMarginPixels = int(cellMarginRate * cellSize)
+        resultImgSize = int(markerSizeWithBorders * cellSize)
+        # Initialize corner matrix of perspective-removed marker to calculate perspective transformation matrix
+        resultImgCorners = np.array([[0                , 0                ],
+                                     [resultImgSize - 1, 0                ],
+                                     [resultImgSize - 1, resultImgSize - 1],
+                                     [0                , resultImgSize - 1]], dtype=np.float32)
+
+        # Get transformation and apply to original imageimage
+        transformation = cv2.getPerspectiveTransform(corners, resultImgCorners)
+        result_img = cv2.warpPerspective(gray, transformation, (resultImgSize, resultImgSize), flags=cv2.INTER_NEAREST)
+
+        # Initialize matrix containing bits output
+        bits = np.zeros((markerSizeWithBorders, markerSizeWithBorders), dtype=np.int8)
+
+        # Remove some border to avoid noise from perspective transformation
+        # Remember that image matrices are stored row-major-order, [y][x]
+        inner_region = result_img[int(cellSize/2):int(-cellSize/2), int(cellSize/2):int(-cellSize/2)]
+
+        # Check if standard deviation enough to apply Otsu thresholding
+        # If not enough, probably means all bits are same color (black or white)
+        mean, stddev = cv2.meanStdDev(inner_region)
+        if stddev < minStdDevOtsu:
+            bits.fill(1) if mean > 127 else bits
+            return bits
+
+        # Because standard deviation is high enough, threshold using Otsu
+        _, result_img = cv2.threshold(result_img, 125, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        for y in range(markerSizeWithBorders):
+            for x in range(markerSizeWithBorders):
+                # Get each individual square of each cell, excluding the margin pixels
+                yStart = y * cellSize + cellMarginPixels
+                yEnd = yStart + cellSize - 2 * cellMarginPixels
+                xStart = x * cellSize + cellMarginPixels
+                xEnd = xStart + cellSize - 2 * cellMarginPixels
+                square = result_img[yStart:yEnd, xStart:xEnd]
+                if cv2.countNonZero(square) > (square.size / 2):
+                    bits[y][x] = 1
+        return bits
+
+    @classmethod
+    def _get_border_errors(cls, bits, marker_size, border_size):
+        """
+        Return number of erroneous bits in border (i.e., number of white bits in border).
+        :param bits: 2-dimensional matrix of binary values, representing the bits (incl. border) of a marker
+        :param marker_size: size of the marker, in terms of bits
+        :param border_size: size of the marker border, in terms of bits
+        :return: total count of white bits found in border
+        """
+        size_with_borders = marker_size + 2 * border_size
+        assert marker_size > 0 and bits.shape == (size_with_borders, size_with_borders)
+
+        # Iterate through border bits, counting number of white bits
+        # Remember that bits (as with all image matrices) are stored row-major-order, where img[y][x]
+        total_errors = 0
+        for y in range(size_with_borders):
+            for k in range(border_size):
+                if bits[y][k] != 0: total_errors += 1
+                if bits[y][size_with_borders - 1 - k] != 0: total_errors += 1
+        for x in range(border_size, size_with_borders - border_size):
+            for k in range(border_size):
+                if bits[k][x] != 0: total_errors += 1
+                if bits[size_with_borders - 1 - k][x] != 0: total_errors += 1
+
+        return total_errors
 
     # ~~STEP 3 FUNCTIONS~~
 
