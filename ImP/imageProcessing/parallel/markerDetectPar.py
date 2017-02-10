@@ -174,7 +174,7 @@ class MarkerDetectPar:
         accepted, ids, rejected = cls._identify_candidates(gray_img, candidates, dictionary)
 
         # STEP 3
-
+        candidates, ids = cls._filter_detected_markers(candidates, ids)
         # STEP 4
 
     # ~~STEP 1 FUNCTIONS~~
@@ -596,10 +596,12 @@ class MarkerDetectPar:
             Not sure if I understood it correctly.
             '''
             for element in range(place_hold, len(corners)):
-                del filteredCorners[element]
+                del corners[element]
 
             for element in range(place_hold, len(ids)):
-                del filteredIds[element]
+                del ids[element]
+
+        return corners, ids
 
     @classmethod
     def _copy_vector_to_output(cls, vec, out):
