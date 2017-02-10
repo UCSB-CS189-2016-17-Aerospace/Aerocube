@@ -558,7 +558,7 @@ class MarkerDetectPar:
                 inside = True
                 for p in range(4):
                     point = corners[j][p]
-                    if cv2.pointPolygontest(corners[i], point, False) < 0:
+                    if cv2.pointPolygonTest(corners[i], point, False) < 0:
                         inside = False
                         break
 
