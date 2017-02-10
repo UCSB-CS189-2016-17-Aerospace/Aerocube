@@ -8,7 +8,7 @@ from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 class MarkerDetectPar:
 
     def detectMarkers(self):
-        pass 
+        pass
         # Step 1
         # Step 2
         # Step 3
