@@ -38,5 +38,9 @@
 *.pyc
 *__pycache__
 
+
+# Log files
+*.log
+
 # IDE-related files
 .idea/*
