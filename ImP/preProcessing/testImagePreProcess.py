@@ -8,19 +8,12 @@ class ImagePreProcessTestCase(unittest.TestCase):
     def setUp(self):
         """
         pathForTestImage is for image similarity
-
         pathForNewImage is for image similarity
-
         pathForSimilarImage is for image similarity
-
         self.processor is for all of these
-
-        -------
-
+        -----------------------------------------
         pathForDark is for darken_image testcase,
-
         self.processor2 can be used for both, so same image essentially
-
         """
         self.directory = testSettings.get_test_files_path()
         self.pathForTestImage = os.path.join(self.directory,'im1.JPG')

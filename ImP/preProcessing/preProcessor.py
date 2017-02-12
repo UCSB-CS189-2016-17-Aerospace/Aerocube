@@ -22,7 +22,7 @@ class PreProcessor:
     def is_similar(self, pathToOtherImage):
         existingImage = cv2.imread(pathToOtherImage)
         difference = cv2.subtract(self.image, existingImage)
-        self.pilImage.close()
+        # self.pilImage.close()
         return np.mean(difference) <= self.image_similarity_threshold
 
     def darken_image(self, darkFactor):
