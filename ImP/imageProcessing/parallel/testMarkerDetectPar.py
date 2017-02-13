@@ -6,7 +6,6 @@ import numpy as np
 from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker
 from ImP.imageProcessing.parallel.markerDetectPar import *
 from ImP.imageProcessing.settings import ImageProcessingSettings
-from cv2 import d
 
 class TestMarkerDetectPar(unittest.TestCase):
 
@@ -318,13 +317,25 @@ class TestMarkerDetectPar(unittest.TestCase):
                                                             MarkerDetectPar.params[MarkerDetectPar.markerBorderBits])
         self.assertEqual(test_err_count, true_err_count)
 
-
-
     # ~~STEP 3 FUNCTIONS~~
+
     def test_filter_detected_markers(self):
-        pass
+        # No Python implementation -- test if sensible results
+        # Create corners for testing; make sure it is of type float32, or OpenCV will get angry in cv2.pointPolygonTest
+        corners = np.array([[[1., 1.], [1., 5.], [5., 5.], [5., 1.]], [[2., 2.], [2., 4.], [4., 4.], [4., 2.]]],
+                           dtype=np.float32)
+        ids_diff = np.array([1, 2])
+        ids_same = np.array([1, 1])
+        test_corners, test_ids = MarkerDetectPar._filter_detected_markers(corners, ids_diff)
+        np.testing.assert_allclose(test_corners, corners)
+        np.testing.assert_array_equal(test_ids, ids_diff)
+        test_corners, test_ids = MarkerDetectPar._filter_detected_markers(corners, ids_same)
+        np.testing.assert_allclose(test_corners, np.array([[[1., 1.], [1., 5.], [5., 5.], [5., 1.]]]))
+        np.testing.assert_array_equal(test_ids, [1])
 
     # ~~STEP 4 FUNCTIONS~~
+
+    # Non-existent cause we don't have to implement -- yeah!
 
 if __name__ == '__main__':
     unittest.main()

@@ -173,9 +173,14 @@ class MarkerDetectPar:
         # ~~STEP 2~~: Identify marker candidates, filtering out candidates without properly set bits
         accepted, ids, rejected = cls._identify_candidates(gray_img, candidates, dictionary)
 
-        # STEP 3
+        # ~~STEP 3~~: Filter detected markers
         candidates, ids = cls._filter_detected_markers(candidates, ids)
-        # STEP 4
+
+        # ~~STEP 4~~: Do corner refinement (if necessary)
+        # Params default to False, so this is going to stay un-implemented!
+
+        return candidates, ids
+
 
     # ~~STEP 1 FUNCTIONS~~
 
@@ -538,70 +543,57 @@ class MarkerDetectPar:
     # ~~STEP 3 FUNCTIONS~~
     @classmethod
     def _filter_detected_markers(cls, corners, ids):
-        # check that corners size is equal to id size, not sure if assert is done correctly
+        """
+        Filter markers that share the same ID by
+        :param corners:
+        :param ids:
+        :return: (corners, ids) tuple
+        """
+        # Check that corners size is equal to id size, not sure if assert is done correctly
         assert len(corners) == len(ids)
 
+        # If no markers detected, return immediately
         if len(corners) == 0:
-            return 0
+            return corners, ids
 
-        # mark markers that will be deleted, initializes array all set to false ?
-        toRemove = [False] * len(corners)
-        atLeastOneRemove = False
+        # Mark markers that will be deleted, initializes array all set to false
+        to_remove = np.array([False] * len(corners))
 
-        # remove repeated markers with same id, if one contains the other
+        # Remove repeated markers with same id, or if one contains the other (double border bug)
         for i in range(len(corners) - 1):
             for j in range(1, len(corners)):
-                if ids[i] == ids[j]:
-                    return 0
-
-                # check if first marker is inside second
-                inside = True
-                for p in range(4):
-                    point = corners[j][p]
-                    if cv2.pointPolygonTest(corners[i], point, False) < 0:
-                        inside = False
-                        break
-
-                if inside:
-                    toRemove[j] = True
-                    atLeastOneRemove = True
+                if ids[i] != ids[j]:
                     continue
+                else:
+                    # Remove one of two identical (same ID) markers
+                    # Check if first marker is inside second
+                    inside = True
+                    for p in range(4):
+                        point = tuple(corners[j][p])
+                        if cv2.pointPolygonTest(corners[i], point, measureDist=False) < 0:
+                            inside = False
+                            break
+                    if inside:
+                        to_remove[j] = True
+                        continue
 
-                # check the second marker
-                inside = True
-                for p in range(4):
-                    point = corners[i][p]
-                    if cv2.pointPolygonTest(corners[j], point, False) < 0:
-                        inside = False
-                        break
+                    # check the second marker
+                    inside = True
+                    for p in range(4):
+                        point = tuple(corners[i][p])
+                        if cv2.pointPolygonTest(corners[j], point, measureDist=False) < 0:
+                            inside = False
+                            break
+                    if inside:
+                        to_remove[i] = True
+                        continue
 
-                if inside:
-                    toRemove[i] = True
-                    atLeastOneRemove = True
-                    continue
+        corners = np.array(corners)
+        ids = np.array(ids)
+        filtered_corners = corners[to_remove != True]
+        filtered_ids = ids[to_remove != True]
 
-        if atLeastOneRemove:
-            filteredCorners = corners
-            filteredIds = ids
-            place_hold = 0
-            for i in range(len(toRemove)):
-                if not toRemove[i]:
-                    filteredCorners[i + 1] = corners[i]
-                    filteredIds[i + 1] = ids[i]
-                    place_hold = i + 1
-            '''
-            Below is my attempt at recreating the following c++ code:
-            _ids.erase(filteredIds, _ids.end());
-            _corners.erase(filteredCorners, _corners.end());
-            Not sure if I understood it correctly.
-            '''
-            for element in range(place_hold, len(corners)):
-                del corners[element]
-
-            for element in range(place_hold, len(ids)):
-                del ids[element]
-
-        return corners, ids
+        return filtered_corners, filtered_ids
 
     @classmethod
     def _copy_vector_to_output(cls, vec, out):
