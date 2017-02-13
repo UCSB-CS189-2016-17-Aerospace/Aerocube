@@ -91,11 +91,18 @@ class TestMarkerDetectPar(unittest.TestCase):
     def test_cuda_warp_perspective_equals_warp_perspective(self):
         candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
         corners = candidates[9]
-
         src = self.gray_marker_0
-        M = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
-        # cv2.warpPerspective(src, M, , flags=cv2.INTER_NEAREST)
-        pass
+        M = np.array([[ 7.03145227e-03,  5.50015822e-02, -5.41421824e+00],
+                      [-6.65280496e-02, -4.24647125e-04,  2.78278338e+01],
+                      [ 6.38002118e-04, -2.75228447e-04,  1.00000000e+00]], dtype=np.float32)
+        result_img_size = 24
+        result_img_corners = np.array([[ 0.,  0.],
+                                       [23.,  0.],
+                                       [23., 23.],
+                                       [ 0., 23.]])
+        actual_dst = cv2.warpPerspective(src, M, (result_img_size, result_img_size), flags=cv2.INTER_NEAREST)
+        test_dst = MarkerDetectPar._cuda_warp_perspective(src, M, (result_img_size, result_img_size), flags=cv2.INTER_NEAREST)
+        np.testing.assert_allclose(actual_dst, test_dst)
 
     # PUBLIC FUNCTIONS
 
