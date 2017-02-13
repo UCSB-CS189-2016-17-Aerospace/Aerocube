@@ -6,6 +6,8 @@ import numpy as np
 from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker
 from ImP.imageProcessing.parallel.markerDetectPar import *
 from ImP.imageProcessing.settings import ImageProcessingSettings
+import ImP.imageProcessing.parallel.gpuWrapper as gpuWrapper
+
 
 class TestMarkerDetectPar(unittest.TestCase):
 
@@ -101,7 +103,7 @@ class TestMarkerDetectPar(unittest.TestCase):
                                        [23., 23.],
                                        [ 0., 23.]])
         actual_dst = cv2.warpPerspective(src, M, (result_img_size, result_img_size), flags=cv2.INTER_NEAREST)
-        test_dst = MarkerDetectPar._cuda_warp_perspective(src, M, (result_img_size, result_img_size), flags=cv2.INTER_NEAREST)
+        test_dst = gpuWrapper._cuda_warp_perspective(src, M, (result_img_size, result_img_size), flags=cv2.INTER_NEAREST)
         np.testing.assert_allclose(actual_dst, test_dst)
 
     # PUBLIC FUNCTIONS

@@ -2,50 +2,10 @@ import os
 import math
 import cv2
 from cv2 import aruco
-import ctypes
 import numpy as np
 import numba
 from numba import cuda as nb_cuda
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
-# Import and initialize PyCUDA
-import pycuda.driver as cuda
-import pycuda.autoinit
-from pycuda.compiler import SourceModule
-
-# Ctypes Wrappers for CUDA Libraries
-
-_SO_DIR = os.path.dirname(__file__)
-_MARKER_DETECT_PAR_GPU = ctypes.cdll.LoadLibrary(os.path.join(_SO_DIR, 'libMarkerDetectParGPU.so'))
-
-
-# Initialize warpPerspective
-
-
-class CV_SIZE(ctypes.Structure):
-    _fields_ = [
-        ('height', ctypes.c_float),
-        ('width', ctypes.c_float)
-    ]
-
-def _initialize_warp_perspective():
-    """
-    cv::cuda::warpPerspective function signature
-    * http://docs.opencv.org/trunk/db/d29/group__cudawarping.html#ga7a6cf95065536712de6b155f3440ccff
-    :return:
-    """
-    _func = _MARKER_DETECT_PAR_GPU.warpPerspectiveWrapper
-    _func.restype = ctypes.c_int32
-    c_float_p = ctypes.POINTER(ctypes.c_float)
-    _func.argtypes = [c_float_p,
-                      c_float_p,
-                      c_float_p,
-                      ctypes.POINTER(CV_SIZE),
-                      ctypes.c_int32]
-    return _func
-    pass
-
-# Assign wrapped functions to private module variables
-_func_warp_perspective = _initialize_warp_perspective()
 
 
 class MarkerDetectPar:
@@ -148,22 +108,6 @@ class MarkerDetectPar:
             winSize += 1
         maxValue = 255
         pass
-
-    @staticmethod
-    def _cuda_warp_perspective(src, M, dsize, flags=cv2.INTER_NEAREST):
-        # TODO: convert src and dst to GpuMat
-        # Get the warpPerspective function
-        warpPerspective = _func_warp_perspective
-        # Convert src, M to ctype-friendly format
-        c_float_p = ctypes.POINTER(ctypes.c_float)
-        src_ptr = src.astype(np.float32).ctypes.data_as(c_float_p)
-        M_ptr = M.astype(np.float32).ctypes.data_as(c_float_p)
-        # Create dst as ctype-friendly format
-        dst_ptr = np.zeros(src.shape, dtype=np.float32).ctypes.data_as(c_float_p)
-        # Convert dsize to specified format
-        cv_size = CV_SIZE(*dsize)
-        warpPerspective(src_ptr, dst_ptr, M_ptr, cv_size, flags)
-        return dst_ptr.astype(np.float32)
 
     # @classmethod
     # def cuda_hello_world_print(cls):
