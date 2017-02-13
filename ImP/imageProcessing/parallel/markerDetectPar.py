@@ -16,10 +16,11 @@ from pycuda.compiler import SourceModule
 
 _OPENCV_SO_DIR = "/usr/local/lib/opencv/build/lib"
 _CUDAWARPING = ctypes.cdll.LoadLibrary(os.path.join(_OPENCV_SO_DIR, "libopencv_cudawarping.so"))
-_func_warp_perspective = _initialize_warp_perspective()
 
 
 # Initialize warpPerspective
+
+
 def _initialize_warp_perspective():
     """
     cv::cuda::warpPerspective function signature
@@ -31,15 +32,22 @@ def _initialize_warp_perspective():
             ('height', ctypes.c_float),
             ('width', ctypes.c_float)
         ]
-    _func = _CUDAWARPING.warpPerspective
-    _func.restype = ctypes.c_int32
-    c_float_p = ctypes.POINTER(ctypes.c_float)
-    _func.argtypes = [c_float_p,
-                      c_float_p,
-                      c_float_p,
-                      ctypes.POINTER(CV_SIZE),
-                      ctypes.c_int32]
-    return _func
+    # _func = _CUDAWARPING.nppiWarpPerspective_32f_C
+    # _func.restype = ctypes.c_int32
+    # c_float_p = ctypes.POINTER(ctypes.c_float)
+    # _func.argtypes = [c_float_p,
+    #                   c_float_p,
+    #                   c_float_p,
+    #                   ctypes.POINTER(CV_SIZE),
+    #                   ctypes.c_int32]
+    # return _func
+    pass
+
+# Assign wrapped functions to private module variables
+_func_warp_perspective = _initialize_warp_perspective()
+
+
+
 
 class MarkerDetectPar:
     """
@@ -144,7 +152,16 @@ class MarkerDetectPar:
 
     @staticmethod
     def _cuda_warp_perspective(src, M, dsize, flags=cv2.INTER_NEAREST):
-        pass
+        # Get the warpPerspective function
+        warpPerspective = _func_warp_perspective
+        # Convert src, M to ctype-friendly format
+        c_float_p = ctypes.POINTER(ctypes.c_float)
+        src_ptr = src.astype(np.float32).ctypes.data_as(c_float_p)
+        M_ptr = M.astype(np.float32).ctypes.data_as(c_float_p)
+        # Create dst as ctype-friendly format
+        dst_ptr = np.zeros(src.shape, dtype=np.float32).ctypes.data_as(c_float_p)
+        warpPerspective(src_ptr, dst_ptr, M_ptr, dsize, flags)
+        return dst_ptr.astype(np.float32)
 
     # @classmethod
     # def cuda_hello_world_print(cls):
