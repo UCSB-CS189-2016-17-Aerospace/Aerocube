@@ -29,7 +29,7 @@ def _initialize_warp_perspective():
     :return:
     """
     _func = _MARKER_DETECT_PAR_GPU.warpPerspectiveWrapper
-    _func.restype = ctypes.c_int32
+    _func.restype = None
     _func.argtypes = [ctypes.c_void_p,
                       ctypes.c_void_p,
                       ctypes.c_void_p,
@@ -53,9 +53,9 @@ def _cuda_warp_perspective(src, M, dsize, flags=cv2.INTER_NEAREST):
     dst_gpu = pycuda.gpuarray.to_gpu(np.zeros(src.shape, dtype=np.float32))
     # Convert dsize to specified format
     cv_size = CV_SIZE(*dsize)
-    warpPerspective(int(src_gpu.gpudata),
-                    int(dst_gpu.gpudata),
-                    int(M_gpu.gpudata),
+    warpPerspective(src_gpu.ptr,
+                    dst_gpu.ptr,
+                    M_gpu.ptr,
                     cv_size,
-                    flags)
-    # return dst_gpu.astype(np.float32)
+                    ctypes.c_int32(flags))
+    return dst_gpu.get()
