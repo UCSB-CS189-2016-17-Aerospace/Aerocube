@@ -6,9 +6,9 @@ import numba
 from numba import cuda
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 # Import and initialize PyCUDA
-# import pycuda.driver as cuda
-# import pycuda.autoinit
-# from pycuda.compiler import SourceModule
+import pycuda.driver as cuda
+import pycuda.autoinit
+from pycuda.compiler import SourceModule
 
 
 class MarkerDetectPar:
