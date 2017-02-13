@@ -1,0 +1,2 @@
+project(MarkerDetectParGPU)
+add_executable(MarkerDetectParGPU markerDetectParGPU.cpp)
