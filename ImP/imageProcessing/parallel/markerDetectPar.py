@@ -1,15 +1,45 @@
+import os
 import math
 import cv2
 from cv2 import aruco
+import ctypes
 import numpy as np
 import numba
-from numba import cuda
+from numba import cuda as nb_cuda
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 # Import and initialize PyCUDA
 import pycuda.driver as cuda
 import pycuda.autoinit
 from pycuda.compiler import SourceModule
 
+# Ctypes Wrappers for CUDA Libraries
+
+_OPENCV_SO_DIR = "/usr/local/lib/opencv/build/lib"
+_CUDAWARPING = ctypes.cdll.LoadLibrary(os.path.join(_OPENCV_SO_DIR, "libopencv_cudawarping.so"))
+_func_warp_perspective = _initialize_warp_perspective()
+
+
+# Initialize warpPerspective
+def _initialize_warp_perspective():
+    """
+    cv::cuda::warpPerspective function signature
+    * http://docs.opencv.org/trunk/db/d29/group__cudawarping.html#ga7a6cf95065536712de6b155f3440ccff
+    :return:
+    """
+    class CV_SIZE(ctypes.Structure):
+        _fields_ = [
+            ('height', ctypes.c_float),
+            ('width', ctypes.c_float)
+        ]
+    _func = _CUDAWARPING.warpPerspective
+    _func.restype = ctypes.c_int32
+    c_float_p = ctypes.POINTER(ctypes.c_float)
+    _func.argtypes = [c_float_p,
+                      c_float_p,
+                      c_float_p,
+                      ctypes.POINTER(CV_SIZE),
+                      ctypes.c_int32]
+    return _func
 
 class MarkerDetectPar:
     """
@@ -97,7 +127,7 @@ class MarkerDetectPar:
                                      thresholdType=cv2.THRESH_BINARY_INV, blockSize=winSize, C=constant)
 
     @staticmethod
-    @cuda.jit(device=True)
+    @nb_cuda.jit(device=True)
     def _cuda_threshold(gray, winSize, constant=params[adaptiveThreshConstant]):
         """
         CUDA-accelerated implementation of threshold; should match _threshold's output.
@@ -110,6 +140,10 @@ class MarkerDetectPar:
         if winSize % 2 == 0:
             winSize += 1
         maxValue = 255
+        pass
+
+    @staticmethod
+    def _cuda_warp_perspective(src, M, dsize, flags=cv2.INTER_NEAREST):
         pass
 
     # @classmethod
@@ -137,14 +171,14 @@ class MarkerDetectPar:
         return x + y
 
     @staticmethod
-    @cuda.jit
+    @nb_cuda.jit
     def cuda_increment_by_one(an_array):
         # Thread id in a 1D block
-        tx = cuda.threadIdx.x
+        tx = nb_cuda.threadIdx.x
         # Block id in a 1D grid
-        ty = cuda.blockIdx.x
+        ty = nb_cuda.blockIdx.x
         # Block width, i.e. number of threads per block
-        bw = cuda.blockDim.x
+        bw = nb_cuda.blockDim.x
         # Compute flattened index inside the array
         pos = tx + ty * bw
         print(pos)

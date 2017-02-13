@@ -80,6 +80,14 @@ class TestMarkerDetectPar(unittest.TestCase):
         np.testing.assert_equal(MarkerDetectPar._threshold(self.gray, 3),
                                 aruco._threshold(self.gray, 3, thresh_const))
 
+    @unittest.expectedFailure
+    def test_otsu_equal_to_without_otsu_thresholding(self):
+        no_otsu_rv, no_otsu = cv2.threshold(self.gray, 125, 255, cv2.THRESH_BINARY)
+        otsu_rv, otsu = cv2.threshold(self.gray, 125, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        print(no_otsu_rv)
+        print(otsu_rv)
+        np.testing.assert_allclose(no_otsu, otsu)
+
     # PUBLIC FUNCTIONS
 
     def test_detector_parameters(self):
