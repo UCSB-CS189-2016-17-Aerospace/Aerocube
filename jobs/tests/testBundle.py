@@ -1,6 +1,7 @@
-import unittest
-from .bundle import Bundle, BundleKeyError
 import pickle
+import unittest
+
+from jobs.bundle import Bundle, BundleKeyError
 
 
 class TestBundle(unittest.TestCase):

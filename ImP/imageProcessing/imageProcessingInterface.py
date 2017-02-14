@@ -1,12 +1,15 @@
 import itertools
+
 import cv2
 from cv2 import aruco
+
+from jobs.aeroCubeSignal import ImageEventSignal
+from .aerocubeMarker import AeroCubeMarker, AeroCube
 import pyquaternion
 import math
 from .aerocubeMarker import AeroCubeMarker, AeroCubeFace, AeroCube
 from .cameraCalibration import CameraCalibration
 from .settings import ImageProcessingSettings
-from eventClass.aeroCubeSignal import ImageEventSignal
 
 
 class ImageProcessor:
@@ -27,7 +30,7 @@ class ImageProcessor:
         """
         self._img_mat = self._load_image(file_path)
         self._dispatcher = {
-            ImageEventSignal.IDENTIFY_AEROCUBES: self._identify_aerocubes
+            ImageEventSignal.IDENTIFY_AEROCUBES: self._identify_markers_for_storage
         }
 
     @staticmethod
@@ -90,6 +93,15 @@ class ImageProcessor:
             aerocubes.append(AeroCube(list(aerocube_markers)))
         return aerocubes
 
+    def _identify_markers_for_storage(self, *args, **kwargs):
+        corners, ids = self._find_fiducial_markers()
+        rvecs, tvecs = self._find_pose()
+        quaternions = [self.rodrigues_to_quaternion(r) for r in rvecs]
+        q_list = list()
+        for q in quaternions:
+            q_list.append({k: v for k, v in zip(['w', 'x', 'y', 'z'], q.elements)})
+        return corners, ids, q_list
+
     # TODO: needs tests and perhaps better-defined behavior
     def _find_pose(self):
         """
@@ -143,6 +155,10 @@ class ImageProcessor:
 
     def _find_position(self):
         pass
+
+    def _identify_aerocubes_temp(self, *args, **kwargs):
+        corners, ids = self._find_pose()
+
 
     def scan_image(self, img_signal, op_params=None):
         """

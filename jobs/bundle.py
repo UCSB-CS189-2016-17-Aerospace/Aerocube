@@ -1,6 +1,6 @@
-from numbers import Number
 import collections
 import json
+from numbers import Number
 
 
 class BundleKeyError(Exception):

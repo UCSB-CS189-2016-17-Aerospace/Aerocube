@@ -120,7 +120,5 @@ if __name__ == '__main__':
                  os.path.join(test_files_path, "andrew_iphone_calibration_photo_1.jpg"),
                  os.path.join(test_files_path, "andrew_iphone_calibration_photo_2.jpg"),
                  os.path.join(test_files_path, "andrew_iphone_calibration_photo_3.jpg")]
-
-
     img_arr = [cv2.imread(img) for img in img_paths]
     print(CameraCalibration.get_calibration_matrices(board, img_arr))

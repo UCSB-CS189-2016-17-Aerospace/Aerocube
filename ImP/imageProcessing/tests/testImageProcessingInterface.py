@@ -1,4 +1,7 @@
+import os
 import unittest
+from collections import namedtuple
+
 import cv2
 from cv2 import aruco
 import numpy as np
@@ -9,7 +12,7 @@ from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker, AeroCubeFace, Aer
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 from ImP.imageProcessing.settings import ImageProcessingSettings
 from ImP.imageProcessing.cameraCalibration import CameraCalibration
-from eventClass.aeroCubeSignal import ImageEventSignal
+from jobs.aeroCubeSignal import ImageEventSignal
 
 
 class TestImageProcessingInterfaceMethods(unittest.TestCase):
