@@ -1,8 +1,6 @@
 import itertools
-
 import cv2
 from cv2 import aruco
-
 from jobs.aeroCubeSignal import ImageEventSignal
 from .aerocubeMarker import AeroCubeMarker, AeroCube
 import pyquaternion
@@ -23,15 +21,13 @@ class ImageProcessor:
     """
     _DICTIONARY = AeroCubeMarker.get_dictionary()
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, cal=ImageProcessingSettings.get_default_calibration()):
         """
         Upon instantiation, use file_path to load the image for this ImageProcessor
         :param file_path: path to image to be processed
         """
         self._img_mat = self._load_image(file_path)
-        self._dispatcher = {
-            ImageEventSignal.IDENTIFY_AEROCUBES: self._identify_markers_for_storage
-        }
+        self._cal = cal
 
     @staticmethod
     def _load_image(file_path):
@@ -93,7 +89,7 @@ class ImageProcessor:
             aerocubes.append(AeroCube(list(aerocube_markers)))
         return aerocubes
 
-    def _identify_markers_for_storage(self, *args, **kwargs):
+    def identify_markers_for_storage(self):
         corners, ids = self._find_fiducial_markers()
         rvecs, tvecs = self._find_pose()
         quaternions = [self.rodrigues_to_quaternion(r) for r in rvecs]
@@ -117,9 +113,8 @@ class ImageProcessor:
         corners, _ = self._find_fiducial_markers()
         marker_length = AeroCubeMarker.MARKER_LENGTH
         # get camera calibration
-        cal = CameraCalibration.PredefinedCalibration.ANDREW_IPHONE
-        camera_matrix = cal.CAMERA_MATRIX
-        dist_coeffs = cal.DIST_COEFFS
+        camera_matrix = self._cal.CAMERA_MATRIX
+        dist_coeffs = self._cal.DIST_COEFFS
         # call aruco function
         rvecs, tvecs = aruco.estimatePoseSingleMarkers(corners,
                                                        marker_length,
@@ -127,7 +122,7 @@ class ImageProcessor:
                                                        dist_coeffs)
         return rvecs, tvecs
 
-    def _find_distance(self, corners, cal):
+    def _find_distance(self, corners):
         """
         Find the distance of an array of markers (represented by their corners).
         References:
@@ -137,6 +132,7 @@ class ImageProcessor:
         :param cal: calibration information of the camera used for the image
         :return: distance in meters
         """
+        cal = self._cal
         # Find m (pixels per unit of measurement)
         m = (cal.CAMERA_MATRIX[0][0]/cal.FOCAL_LENGTH + cal.CAMERA_MATRIX[1][1]/cal.FOCAL_LENGTH)/2
         # Scale m for current resolution (if necessary), taking y information from original image and current
@@ -159,34 +155,6 @@ class ImageProcessor:
     def _identify_aerocubes_temp(self, *args, **kwargs):
         corners, ids = self._find_pose()
 
-
-    def scan_image(self, img_signal, op_params=None):
-        """
-        Describes the higher-level process of processing an image to
-            (1) identify any AeroCubes, and
-            (2) determine their relative attitude and position
-        Takes the image signal param and passes it to the dispatcher, which calls a method depending on the signal given
-        :param img_signal: a valid signal (from ImageEventSignal) that indicates the operation requested
-        :param op_params: optional parameter where additional operation parameters can be given
-        :return: results from the function called within the dispatcher
-        """
-        if img_signal not in ImageEventSignal:
-            raise TypeError("Invalid signal for ImP")
-        try:
-            return self._dispatcher[img_signal](op_params)
-        except KeyError:
-            # img_signal is not defined for the dispatcher
-            # TODO: how to handle?
-            print("KeyError")
-            pass
-        except Exception as ex:
-            # all other exceptions
-            # TODO: how to handle?
-            template = "An exception of type {0} occured. Arguments:\n{1!r}"
-            message = template.format(type(ex).__name__, ex.args)
-            print(message)
-            pass
-
     def draw_fiducial_markers(self, corners, marker_IDs):
         """
         Returns an image matrix with the given corners and marker_IDs drawn onto the image
@@ -196,7 +164,7 @@ class ImageProcessor:
         """
         return aruco.drawDetectedMarkers(self._img_mat, corners, marker_IDs)
 
-    def draw_axis(self, cameraMatrix, distCoeffs, quaternion, tvec):
+    def draw_axis(self, quaternion, tvec):
         """
         Wrapper method that calls Aruco's draw axis method on a given marker.
         Can be used to visually verify the accuracy of pose.
@@ -207,7 +175,8 @@ class ImageProcessor:
         :return: img held by this ImageProcessor with the drawn axis
         """
         return aruco.drawAxis(self._img_mat,
-                              cameraMatrix, distCoeffs,
+                              self._cal.CAMERA_MATRIX,
+                              self._cal.DIST_COEFFS,
                               self.quaternion_to_rodrigues(quaternion),
                               tvec,
                               ImageProcessingSettings.get_marker_length())

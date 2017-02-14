@@ -1,6 +1,6 @@
 from enum import Enum
 import numpy as np
-from .settings import ImageProcessingSettings
+from ImP.imageProcessing.settings import ImageProcessingSettings
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker, IDOutOfDictionaryBoundError
 
 

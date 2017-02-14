@@ -1,4 +1,5 @@
 import os
+from ImP.imageProcessing.cameraCalibration import CameraCalibration
 
 
 class ImageProcessingSettings():
@@ -14,3 +15,7 @@ class ImageProcessingSettings():
         :return: fiducial marker side length (in meters)
         """
         return 0.026
+
+    @staticmethod
+    def get_default_calibration():
+        return CameraCalibration.PredefinedCalibration.ANDREW_IPHONE
