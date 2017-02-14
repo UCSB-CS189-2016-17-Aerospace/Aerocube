@@ -1,12 +1,15 @@
 import itertools
+
 import cv2
 from cv2 import aruco
+
+from jobs.aeroCubeSignal import ImageEventSignal
+from .aerocubeMarker import AeroCubeMarker, AeroCube
 import pyquaternion
 import math
 from .aerocubeMarker import AeroCubeMarker, AeroCubeFace, AeroCube
 from .cameraCalibration import CameraCalibration
 from .settings import ImageProcessingSettings
-from eventClass.aeroCubeSignal import ImageEventSignal
 
 
 class ImageProcessor:
@@ -15,7 +18,7 @@ class ImageProcessor:
     Instantiated with an image, provides the ability to process the image in various
     ways, most often by passing it AeroCubeSignal enum objects.
     :cvar _DICTIONARY: Aruco dictionary meant to be accessed only internally
-    :ivar _img_mat: holds the matrix represnetation of an image
+    :ivar _img_mat: holds the matrix representation of an image
     :ivar _dispatcher: dictionary mapping AeroCubeSignals to functions
     """
     _DICTIONARY = AeroCubeMarker.get_dictionary()
@@ -27,7 +30,7 @@ class ImageProcessor:
         """
         self._img_mat = self._load_image(file_path)
         self._dispatcher = {
-            ImageEventSignal.IDENTIFY_AEROCUBES: self._identify_aerocubes
+            ImageEventSignal.IDENTIFY_AEROCUBES: self._identify_markers_for_storage
         }
 
     @staticmethod
@@ -90,6 +93,15 @@ class ImageProcessor:
             aerocubes.append(AeroCube(list(aerocube_markers)))
         return aerocubes
 
+    def _identify_markers_for_storage(self, *args, **kwargs):
+        corners, ids = self._find_fiducial_markers()
+        rvecs, tvecs = self._find_pose()
+        quaternions = [self.rodrigues_to_quaternion(r) for r in rvecs]
+        q_list = list()
+        for q in quaternions:
+            q_list.append({k: v for k, v in zip(['w', 'x', 'y', 'z'], q.elements)})
+        return corners, ids, q_list
+
     # TODO: needs tests and perhaps better-defined behavior
     def _find_pose(self):
         """
@@ -113,10 +125,40 @@ class ImageProcessor:
                                                        marker_length,
                                                        camera_matrix,
                                                        dist_coeffs)
-        return (rvecs, tvecs)
+        return rvecs, tvecs
+
+    def _find_distance(self, corners, cal):
+        """
+        Find the distance of an array of markers (represented by their corners).
+        References:
+        * http://stackoverflow.com/questions/14038002/opencv-how-to-calculate-distance-between-camera-and-object-using-image
+        * http://www.pyimagesearch.com/2015/01/19/find-distance-camera-objectmarker-using-python-opencv/
+        :param corners: array of markers, each represented by their four corner points
+        :param cal: calibration information of the camera used for the image
+        :return: distance in meters
+        """
+        # Find m (pixels per unit of measurement)
+        m = (cal.CAMERA_MATRIX[0][0]/cal.FOCAL_LENGTH + cal.CAMERA_MATRIX[1][1]/cal.FOCAL_LENGTH)/2
+        # Scale m for current resolution (if necessary), taking y information from original image and current
+        m_for_res = self._img_mat.shape[0] * (m / cal.IMG_RES[0])
+        # Initialize variables for loop
+        dist_results = list()
+        marker_size = ImageProcessingSettings.get_marker_length()
+        for marker in corners:
+            # TODO: can use diagonals instead
+            pixel_length1 = math.sqrt(math.pow(marker[0][0] - marker[1][0], 2) + math.pow(marker[0][1] - marker[1][1], 2))
+            pixel_length2 = math.sqrt(math.pow(marker[2][0] - marker[3][0], 2) + math.pow(marker[2][1] - marker[3][1], 2))
+            pixlength = (pixel_length1+pixel_length2)/2
+            dist = marker_size * cal.FOCAL_LENGTH / (pixlength/m_for_res)
+            dist_results.append(dist)
+        return dist_results
 
     def _find_position(self):
         pass
+
+    def _identify_aerocubes_temp(self, *args, **kwargs):
+        corners, ids = self._find_pose()
+
 
     def scan_image(self, img_signal, op_params=None):
         """

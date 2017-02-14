@@ -36,7 +36,7 @@ class TestImageUpload(unittest.TestCase):
         except subprocess.TimeoutExpired:
             self.fail("Image upload timed out!")
 
-        self.assertEqual(output.splitlines()[-1].decode(), self._UPLOAD_STATUS_SUCCESS)
+        self.assertEqual(self._UPLOAD_STATUS_SUCCESS, output.splitlines()[-1].decode())
 
     def tearDown(self):
         """

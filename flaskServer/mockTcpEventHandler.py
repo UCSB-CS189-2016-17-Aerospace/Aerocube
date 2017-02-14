@@ -1,4 +1,4 @@
-from tcpClient import TcpClient
+from tcpService.tcpClient import TcpClient
 
 
 def main():

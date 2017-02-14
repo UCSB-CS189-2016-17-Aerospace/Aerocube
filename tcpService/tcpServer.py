@@ -1,5 +1,5 @@
 import socket
-from eventClass.aeroCubeEvent import AeroCubeEvent
+
 from .tcpUtils import TcpUtil
 
 

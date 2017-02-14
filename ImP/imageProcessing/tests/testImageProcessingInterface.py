@@ -1,4 +1,7 @@
+import os
 import unittest
+from collections import namedtuple
+
 import cv2
 from cv2 import aruco
 import numpy as np
@@ -9,7 +12,7 @@ from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker, AeroCubeFace, Aer
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 from ImP.imageProcessing.settings import ImageProcessingSettings
 from ImP.imageProcessing.cameraCalibration import CameraCalibration
-from eventClass.aeroCubeSignal import ImageEventSignal
+from jobs.aeroCubeSignal import ImageEventSignal
 
 
 class TestImageProcessingInterfaceMethods(unittest.TestCase):
@@ -145,6 +148,14 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
     def test_identify_aerocubes_none(self):
         imp = ImageProcessor(self.TEST_NO_MARKER.img_path)
         self.assertEqual([], imp._identify_aerocubes())
+
+    def test_find_distance(self):
+        imp = ImageProcessor(self.TEST_JETSON_SINGLE_MARKER.img_path)
+        corners, ids = imp._find_fiducial_markers()
+        dist = imp._find_distance(corners[0], CameraCalibration.PredefinedCalibration.ANDREW_IPHONE)
+        print(dist)
+        self.assertGreater(dist[0], 0.8)
+        self.assertLess(dist[0], 1.0)
 
     def test_scan_image(self):
         # get hard-coded results
