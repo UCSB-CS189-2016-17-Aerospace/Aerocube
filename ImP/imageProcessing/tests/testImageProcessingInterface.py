@@ -1,7 +1,6 @@
 import os
 import unittest
 from collections import namedtuple
-
 import cv2
 from cv2 import aruco
 import numpy as np
@@ -152,19 +151,21 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
     def test_find_distance(self):
         imp = ImageProcessor(self.TEST_JETSON_SINGLE_MARKER.img_path)
         corners, ids = imp._find_fiducial_markers()
-        dist = imp._find_distance(corners[0], CameraCalibration.PredefinedCalibration.ANDREW_IPHONE)
+        dist = imp._find_distance(corners[0])
         print(dist)
         self.assertGreater(dist[0], 0.8)
         self.assertLess(dist[0], 1.0)
 
-    def test_scan_image(self):
+    def test_identify_markers_for_storage(self):
+        # TODO: needs to be rewritten for new method
+        self.fail()
         # get hard-coded results
         corners = self.TEST_SINGLE_MARKER.corners
         marker_list = [AeroCubeMarker(0, AeroCubeFace.ZENITH, corners[0])]
         aerocube_list = [AeroCube(marker_list)]
         # get ImP results
         imp = ImageProcessor(self.TEST_SINGLE_MARKER.img_path)
-        scan_results = imp.scan_image(ImageEventSignal.IDENTIFY_AEROCUBES)
+        scan_results = imp.identify_markers_for_storage()
         # assert equality
         self.assertTrue(np.array_equal(aerocube_list, scan_results))
 
@@ -179,9 +180,7 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
     def test_draw_axis(self):
         imp = ImageProcessor(self.TEST_JETSON_SINGLE_MARKER.img_path)
         rvecs, tvecs = imp._find_pose()
-        img = imp.draw_axis(CameraCalibration.PredefinedCalibration.ANDREW_IPHONE.CAMERA_MATRIX,
-                            CameraCalibration.PredefinedCalibration.ANDREW_IPHONE.DIST_COEFFS,
-                            imp.rodrigues_to_quaternion(rvecs[0]), tvecs[0])
+        img = imp.draw_axis(imp.rodrigues_to_quaternion(rvecs[0]), tvecs[0])
         self.assertIsNotNone(img)
 
     # pose representation conversions

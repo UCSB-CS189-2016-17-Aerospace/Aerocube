@@ -3,8 +3,8 @@ from cv2 import aruco
 import numpy as np
 import os
 from collections import namedtuple
-from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker
 from ImP.imageProcessing.settings import ImageProcessingSettings
+from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker
 
 
 class CameraCalibration:
@@ -49,6 +49,10 @@ class CameraCalibration:
             FOCAL_LENGTH=-1.0,
             IMG_RES=(2040, 2720)
         ) 
+
+    @staticmethod
+    def get_default_calibration():
+        return CameraCalibration.PredefinedCalibration.ANDREW_IPHONE
 
     @staticmethod
     def get_charucoboard():
