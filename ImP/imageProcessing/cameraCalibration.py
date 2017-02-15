@@ -51,6 +51,10 @@ class CameraCalibration:
         ) 
 
     @staticmethod
+    def get_default_calibration():
+        return CameraCalibration.PredefinedCalibration.ANDREW_IPHONE
+
+    @staticmethod
     def get_charucoboard():
         """
         Create a Charuco (chessboard Aruco) board using pre-set params.

@@ -21,7 +21,7 @@ class ImageProcessor:
     """
     _DICTIONARY = AeroCubeMarker.get_dictionary()
 
-    def __init__(self, file_path, cal=ImageProcessingSettings.get_default_calibration()):
+    def __init__(self, file_path, cal=CameraCalibration.get_default_calibration()):
         """
         Upon instantiation, use file_path to load the image for this ImageProcessor
         :param file_path: path to image to be processed
