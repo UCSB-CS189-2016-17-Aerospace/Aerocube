@@ -6,6 +6,7 @@ from .aerocubeMarker import AeroCubeMarker, AeroCube
 import pyquaternion
 import math
 from .aerocubeMarker import AeroCubeMarker, AeroCubeFace, AeroCube
+from .parallel.markerDetectPar import MarkerDetectPar
 from .cameraCalibration import CameraCalibration
 from .settings import ImageProcessingSettings
 
@@ -42,10 +43,11 @@ class ImageProcessor:
             raise OSError("cv2.imread returned None for path {}".format(file_path))
         return image
 
-    def _find_fiducial_markers(self):
+    def _find_fiducial_markers(self, parallel=False):
         """
         Identify fiducial markers in _img_mat
         Serves as an abstraction of the aruco method calls
+        :param parallel: optional param to attempt to use parallelized algorithm
         :return corners: an array of 3-D arrays
             each element is of the form [[[ 884.,  659.],
                                           [ 812.,  657.],
@@ -57,8 +59,11 @@ class ImageProcessor:
             and that elements must therefore be accessed as arr[idx][0], NOT arr[idx]
             If no markers found, marker_IDs == None
         """
-        (corners, marker_IDs, _) = aruco.detectMarkers(self._img_mat, dictionary=self._DICTIONARY)
-        return (corners, marker_IDs)
+        if parallel is True:
+            MarkerDetectPar.detect_markers_parallel(self._img_mat, dictionary=self._DICTIONARY)
+        else:
+            (corners, marker_IDs, _) = aruco.detectMarkers(self._img_mat, dictionary=self._DICTIONARY)
+        return corners, marker_IDs
 
     def _find_aerocube_markers(self):
         """

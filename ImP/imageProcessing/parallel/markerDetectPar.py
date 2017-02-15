@@ -159,7 +159,7 @@ class MarkerDetectPar:
         :return:
         """
         # Raise exception if image is empty
-        assert img
+        assert img is not None
 
         # Convert to grayscale (if necessary)
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

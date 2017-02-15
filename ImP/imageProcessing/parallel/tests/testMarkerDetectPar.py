@@ -121,6 +121,9 @@ class TestMarkerDetectPar(unittest.TestCase):
         self.assertRaises(AssertionError,
                           MarkerDetectPar._detect_candidates, None)
 
+    def test_detect_markers_parallel_does_not_break(self):
+        MarkerDetectPar.detect_markers_parallel(self._IMG_MARKER_0)
+
     # ~~STEP 1 FUNCTIONS~~
 
     def test_detect_candidates_equals_aruco_method(self):
