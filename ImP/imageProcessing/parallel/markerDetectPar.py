@@ -171,12 +171,12 @@ class MarkerDetectPar:
         accepted, ids, rejected = cls._identify_candidates(gray_img, candidates, dictionary)
 
         # ~~STEP 3~~: Filter detected markers
-        candidates, ids = cls._filter_detected_markers(candidates, ids)
+        filtered_candidates, ids = cls._filter_detected_markers(accepted, ids)
 
         # ~~STEP 4~~: Do corner refinement (if necessary)
         # Params default to False, so this is going to stay un-implemented!
 
-        return candidates, ids
+        return filtered_candidates, ids
 
 
     # ~~STEP 1 FUNCTIONS~~
