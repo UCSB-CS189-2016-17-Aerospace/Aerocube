@@ -60,9 +60,9 @@ class ImageProcessor:
             If no markers found, marker_IDs == None
         """
         if parallel is True:
-            MarkerDetectPar.detect_markers_parallel(self._img_mat, dictionary=self._DICTIONARY)
+            corners, marker_IDs = MarkerDetectPar.detect_markers_parallel(self._img_mat, dictionary=self._DICTIONARY)
         else:
-            (corners, marker_IDs, _) = aruco.detectMarkers(self._img_mat, dictionary=self._DICTIONARY)
+            corners, marker_IDs, _ = aruco.detectMarkers(self._img_mat, dictionary=self._DICTIONARY)
         return corners, marker_IDs
 
     def _find_aerocube_markers(self):
