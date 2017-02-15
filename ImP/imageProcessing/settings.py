@@ -14,3 +14,4 @@ class ImageProcessingSettings():
         :return: fiducial marker side length (in meters)
         """
         return 0.026
+
