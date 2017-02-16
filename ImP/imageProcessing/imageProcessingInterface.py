@@ -44,6 +44,8 @@ class ImageProcessor:
             raise OSError("cv2.imread returned None for path {}".format(file_path))
         return image
 
+    # Aruco entry points
+
     def _find_fiducial_markers(self, parallel=False):
         """
         Identify fiducial markers in _img_mat
@@ -104,6 +106,35 @@ class ImageProcessor:
         else:
             return [np.array([c]) for c in corners], np.array([[i] for i in ids])
 
+    def draw_fiducial_markers(self, corners, marker_IDs):
+        """
+        Returns an image matrix with the given corners and marker_IDs drawn onto the image
+        :param corners: marker corners
+        :param marker_IDs: fiducial marker IDs
+        :return: img with marker boundaries drawn and markers IDed
+        """
+        aruco_corners, aruco_ids = self._prepare_fiducial_arrays_for_aruco(corners, marker_IDs)
+        return aruco.drawDetectedMarkers(self._img_mat, aruco_corners, aruco_ids)
+
+    def draw_axis(self, quaternion, tvec):
+        """
+        Wrapper method that calls Aruco's draw axis method on a given marker.
+        Can be used to visually verify the accuracy of pose.
+        :param cameraMatrix: camera calibration matrix
+        :param distCoeffs: camera distortion coefficients
+        :param quaternion: pose represented as quaternion
+        :param tvec: translation vector, returned by Aruco's estimatePoseSingleMarker
+        :return: img held by this ImageProcessor with the drawn axis
+        """
+        return aruco.drawAxis(self._img_mat,
+                              self._cal.CAMERA_MATRIX,
+                              self._cal.DIST_COEFFS,
+                              self.quaternion_to_rodrigues(quaternion),
+                              tvec,
+                              ImageProcessingSettings.get_marker_length())
+
+    # AeroCube identification functions
+
     def _find_aerocube_markers(self):
         """
         Calls a private function to find all fiducial markers, then constructs
@@ -141,6 +172,8 @@ class ImageProcessor:
         for q in quaternions:
             q_list.append({k: v for k, v in zip(['w', 'x', 'y', 'z'], q.elements)})
         return corners, ids, q_list
+
+    # Pose and distance functions
 
     def _find_pose(self, corners):
         """
@@ -193,33 +226,6 @@ class ImageProcessor:
 
     def _find_position(self):
         pass
-
-    def draw_fiducial_markers(self, corners, marker_IDs):
-        """
-        Returns an image matrix with the given corners and marker_IDs drawn onto the image
-        :param corners: marker corners
-        :param marker_IDs: fiducial marker IDs
-        :return: img with marker boundaries drawn and markers IDed
-        """
-        aruco_corners, aruco_ids = self._prepare_fiducial_arrays_for_aruco(corners, marker_IDs)
-        return aruco.drawDetectedMarkers(self._img_mat, aruco_corners, aruco_ids)
-
-    def draw_axis(self, quaternion, tvec):
-        """
-        Wrapper method that calls Aruco's draw axis method on a given marker.
-        Can be used to visually verify the accuracy of pose.
-        :param cameraMatrix: camera calibration matrix
-        :param distCoeffs: camera distortion coefficients
-        :param quaternion: pose represented as quaternion
-        :param tvec: translation vector, returned by Aruco's estimatePoseSingleMarker
-        :return: img held by this ImageProcessor with the drawn axis
-        """
-        return aruco.drawAxis(self._img_mat,
-                              self._cal.CAMERA_MATRIX,
-                              self._cal.DIST_COEFFS,
-                              self.quaternion_to_rodrigues(quaternion),
-                              tvec,
-                              ImageProcessingSettings.get_marker_length())
 
     @staticmethod
     def rodrigues_to_quaternion(rodrigues):
