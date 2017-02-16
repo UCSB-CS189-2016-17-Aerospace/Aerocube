@@ -121,6 +121,11 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
         self.assertIsInstance(actual_corners, np.ndarray)
         self.assertIsInstance(actual_ids, np.ndarray)
 
+    def test_simplify_fiducial_marker_arrays_raises_properly(self):
+        markers = self.TEST_MULT_AEROCUBES
+        corners, ids = ImageProcessor._simplify_fiducial_marker_arrays(markers.corners, markers.IDs)
+        self.assertRaises(AssertionError, ImageProcessor._simplify_fiducial_marker_arrays, corners, ids)
+
     def test_translate_fiducial_markers_for_aruco(self):
         # No markers
         markers = self.TEST_NO_MARKER
@@ -149,6 +154,9 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
         self.assertEqual(np.shape(actual_corners), (2, 1, 4, 2))
         self.assertEqual(np.shape(actual_ids), (2, 1))
 
+    def test_translate_fiducial_markers_for_aruco_raises_properly(self):
+        markers = self.TEST_MULT_AEROCUBES
+        self.assertRaises(AssertionError, ImageProcessor._translate_fiducial_markers_for_aruco, markers.corners, markers.IDs)
 
     def test_find_aerocube_marker(self):
         # hard code results of operation

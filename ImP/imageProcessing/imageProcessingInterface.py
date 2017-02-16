@@ -95,7 +95,7 @@ class ImageProcessor:
         params corners and ids are empty Numpy arrays, return ([], None)
         :param corners: corners formatted as (N, 4, 2)
         :param ids: IDs formatted as (N,)
-        :return:
+        :return: (corners, ids)
         """
         assert len(corners) is 0 or len(np.shape(corners)) is 3
         assert len(ids) is 0 or len(np.shape(ids)) is 1
