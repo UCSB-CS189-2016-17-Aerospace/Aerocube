@@ -48,32 +48,61 @@ class ImageProcessor:
         """
         Identify fiducial markers in _img_mat
         Serves as an abstraction of the aruco method calls
+        Note that the default format of the arrays returned by Aruco are a bit cumbersome, and are being translated
+        into friendlier formats before being returned.
         :param parallel: optional param to attempt to use parallelized algorithm
         :return corners: an array of 3-D arrays
-            each element is of the form [[[ 884.,  659.],
-                                          [ 812.,  657.],
-                                          [ 811.,  585.],
-                                          [ 885.,  586.]]]
+            each element is of the shape (N, 4, 2), where N is the number of detected markers
             If no markers found, corners == []
         :return marker_IDs: an array of integers corresponding to the corners.
-            Note that the Aruco method returns a 1D numpy array of the form [[id1], [id2], ...],
-            and that elements must therefore be accessed as arr[idx][0], NOT arr[idx]
+            Note that the Aruco method returns a 1D numpy array of the form [id1, id2, ...],
+            and has the shape (N,)
             If no markers found, marker_IDs == None
         """
         if parallel is True:
             corners, marker_IDs = MarkerDetectPar.detect_markers_parallel(self._img_mat, dictionary=self._DICTIONARY)
         else:
             corners, marker_IDs, _ = aruco.detectMarkers(self._img_mat, dictionary=self._DICTIONARY)
-            # Each element of corners is of the shape (1, 4, 2) -- remove the unnecessary dimension by using
-            # np.squeeze(), but make sure we apply it selectively for the case where len(corners) == 1, because
-            # corners.shape == (1, 1, 4, 2)
-            if len(corners) == 1:
-                corners = np.array(corners).squeeze(axis=1)
-            else:
-                corners = np.array(corners).squeeze()
-            # Squeeze size of marker_IDs from (N, 1) to (N,)
-            marker_IDs = marker_IDs.squeeze()
+            corners, marker_IDs = self._simplify_fiducial_marker_arrays(corners, marker_IDs)
         return corners, marker_IDs
+
+    @staticmethod
+    def _simplify_fiducial_marker_arrays(corners, ids):
+        """
+        Translates the default arrays returned by Aruco's marker detection method into a simpler format.
+        Corners: (N, 1, 4, 2) --> (N, 4, 2)
+        IDs: (N, 1) --> (N,), same as 1-dimensional matrix/vector
+        Note that when no markers are found, Aruco returns [] for corners and None for ids. In this case,
+        return empty Numpy lists for both items.
+        :param corners: corners formatted as (N, 1, 4, 2)
+        :param ids: IDs formatted as (N, 1)
+        :return: (corners, ids)
+        """
+        assert len(corners) is 0 or len(np.shape(corners)) is 4
+        assert ids is None or len(np.shape(ids)) is 2
+        if len(corners) == 0:
+            return np.array(corners), np.array(list())
+        else:
+            return np.array(corners).squeeze(axis=1), ids.squeeze(axis=1)
+
+    @staticmethod
+    def _translate_fiducial_markers_for_aruco(corners, ids):
+        """
+        Translates simplified fiducial marker arrays to format usable by Aruco methods.
+        Corners: (N, 4, 2) --> (N, 1, 4, 2)
+        IDs: (N,) --> (N, 1)
+        Note that when no markers are found, Aruco returns [] for corners and None for ids. Therefore, if
+        params corners and ids are empty Numpy arrays, return ([], None)
+        :param corners: corners formatted as (N, 4, 2)
+        :param ids: IDs formatted as (N,)
+        :return:
+        """
+        assert len(corners) is 0 or len(np.shape(corners)) is 3
+        assert len(ids) is 0 or len(np.shape(ids)) is 1
+        if len(corners) == 0:
+            return [], None
+        else:
+            return [[c] for c in corners], [[i] for i in ids]
 
     def _find_aerocube_markers(self):
         """

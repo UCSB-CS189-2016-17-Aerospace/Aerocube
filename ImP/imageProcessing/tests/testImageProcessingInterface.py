@@ -91,6 +91,65 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
         self.assertTrue(np.array_equal(self.TEST_NO_MARKER.corners, test_corners))
         self.assertTrue(np.array_equal(self.TEST_NO_MARKER.IDs, test_ids))
 
+    def test_simplify_fiducial_marker_arrays(self):
+        # No markers
+        corners, ids = self.TEST_NO_MARKER.corners, self.TEST_NO_MARKER.IDs
+        actual_corners, actual_ids = ImageProcessor._simplify_fiducial_marker_arrays(corners, ids)
+        exp_corners, exp_ids = [], []
+        np.testing.assert_allclose(actual_corners, exp_corners)
+        np.testing.assert_array_equal(actual_ids, exp_ids)
+        self.assertIsInstance(actual_corners, np.ndarray)
+        self.assertIsInstance(actual_ids, np.ndarray)
+        # One marker
+        corners, ids = self.TEST_SINGLE_MARKER.corners, self.TEST_SINGLE_MARKER.IDs
+        actual_corners, actual_ids = ImageProcessor._simplify_fiducial_marker_arrays(corners, ids)
+        exp_corners, exp_ids = np.array(corners).squeeze(axis=1), np.array(ids).squeeze()
+        np.testing.assert_allclose(actual_corners, exp_corners)
+        np.testing.assert_array_equal(actual_ids, exp_ids)
+        self.assertEqual(np.shape(actual_corners), (1, 4, 2))
+        self.assertEqual(np.shape(actual_ids), (1,))
+        self.assertIsInstance(actual_corners, np.ndarray)
+        self.assertIsInstance(actual_ids, np.ndarray)
+        # Multiple markers
+        corners, ids = self.TEST_MULT_AEROCUBES.corners, self.TEST_MULT_AEROCUBES.IDs
+        actual_corners, actual_ids = ImageProcessor._simplify_fiducial_marker_arrays(corners, ids)
+        exp_corners, exp_ids = np.array(corners).squeeze(axis=1), np.array(ids).squeeze()
+        np.testing.assert_allclose(actual_corners, exp_corners)
+        np.testing.assert_array_equal(actual_ids, exp_ids)
+        self.assertEqual(np.shape(actual_corners), (2, 4, 2))
+        self.assertEqual(np.shape(actual_ids), (2,))
+        self.assertIsInstance(actual_corners, np.ndarray)
+        self.assertIsInstance(actual_ids, np.ndarray)
+
+    def test_translate_fiducial_markers_for_aruco(self):
+        # No markers
+        markers = self.TEST_NO_MARKER
+        corners, ids = ImageProcessor._simplify_fiducial_marker_arrays(markers.corners, markers.IDs)
+        actual_corners, actual_ids = ImageProcessor._translate_fiducial_markers_for_aruco(corners, ids)
+        exp_corners, exp_ids = [], None
+        np.testing.assert_allclose(actual_corners, exp_corners)
+        np.testing.assert_array_equal(actual_ids, exp_ids)
+        self.assertNotIsInstance(actual_ids, np.ndarray)
+        # One marker
+        markers = self.TEST_SINGLE_MARKER
+        corners, ids = ImageProcessor._simplify_fiducial_marker_arrays(markers.corners, markers.IDs)
+        actual_corners, actual_ids = ImageProcessor._translate_fiducial_markers_for_aruco(corners, ids)
+        exp_corners, exp_ids = [corners], [ids]
+        np.testing.assert_allclose(actual_corners, exp_corners)
+        np.testing.assert_array_equal(actual_ids, exp_ids)
+        self.assertEqual(np.shape(actual_corners), (1, 1, 4, 2))
+        self.assertEqual(np.shape(actual_ids), (1, 1))
+        # Multiple markers
+        markers = self.TEST_MULT_AEROCUBES
+        corners, ids = ImageProcessor._simplify_fiducial_marker_arrays(markers.corners, markers.IDs)
+        actual_corners, actual_ids = ImageProcessor._translate_fiducial_markers_for_aruco(corners, ids)
+        exp_corners, exp_ids = [[corners[0]], [corners[1]]], [[ids[0]], [ids[1]]]
+        np.testing.assert_allclose(actual_corners, exp_corners)
+        np.testing.assert_array_equal(actual_ids, exp_ids)
+        self.assertEqual(np.shape(actual_corners), (2, 1, 4, 2))
+        self.assertEqual(np.shape(actual_ids), (2, 1))
+
+
     def test_find_aerocube_marker(self):
         # hard code results of operation
         aerocube_ID = 0
