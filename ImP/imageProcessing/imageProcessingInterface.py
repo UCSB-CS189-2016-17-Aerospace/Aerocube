@@ -1,10 +1,11 @@
 import itertools
+import math
 import cv2
 from cv2 import aruco
+import numpy as np
+import pyquaternion
 from jobs.aeroCubeSignal import ImageEventSignal
 from .aerocubeMarker import AeroCubeMarker, AeroCube
-import pyquaternion
-import math
 from .aerocubeMarker import AeroCubeMarker, AeroCubeFace, AeroCube
 from .parallel.markerDetectPar import MarkerDetectPar
 from .cameraCalibration import CameraCalibration
@@ -63,6 +64,15 @@ class ImageProcessor:
             corners, marker_IDs = MarkerDetectPar.detect_markers_parallel(self._img_mat, dictionary=self._DICTIONARY)
         else:
             corners, marker_IDs, _ = aruco.detectMarkers(self._img_mat, dictionary=self._DICTIONARY)
+            # Each element of corners is of the shape (1, 4, 2) -- remove the unnecessary dimension by using
+            # np.squeeze(), but make sure we apply it selectively for the case where len(corners) == 1, because
+            # corners.shape == (1, 1, 4, 2)
+            if len(corners) == 1:
+                corners = np.array(corners).squeeze(axis=1)
+            else:
+                corners = np.array(corners).squeeze()
+            # Squeeze size of marker_IDs from (N, 1) to (N,)
+            marker_IDs = marker_IDs.squeeze()
         return corners, marker_IDs
 
     def _find_aerocube_markers(self):

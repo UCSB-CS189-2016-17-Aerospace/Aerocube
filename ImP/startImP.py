@@ -10,8 +10,8 @@ from ImP.imageProcessing.settings import ImageProcessingSettings
 import cv2
 from cv2 import aruco
 
-img_path = "ImP/imageProcessing/test_files/GOPR0040.JPG"
-imp = ImageProcessor(img_path, cal=CameraCalibration.PredefinedCalibration.GUS_GOPRO)
+img_path = "ImP/imageProcessing/test_files/capstone_class_photoshoot/SPACE_1.JPG"
+imp = ImageProcessor(img_path)
 corners, ids = imp._find_fiducial_markers()
 rvecs, tvecs = imp._find_pose()
 quaternions = [imp.rodrigues_to_quaternion(r) for r in rvecs]
