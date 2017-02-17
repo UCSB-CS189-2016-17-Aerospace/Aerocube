@@ -32,35 +32,6 @@ class TestMarkerDetectPar(unittest.TestCase):
     def tearDown(self):
         pass
 
-    # CUDA TEST FUNCTIONS
-
-    def test_numba_jit_add(self):
-        """
-        Test Numba's JIT decorator is working.
-        :return:
-        """
-        self.assertEqual(MarkerDetectPar.numba_jit_add(1, 2), 3)
-
-    def test_cuda_increment_by_one(self):
-        """
-        Test Numba's CUDA JIT decorator is working.
-        Note that array inputs to the CUDA function *must* be numpy arrays
-        so that Numba knows how to properly translate it into CUDA code.
-        :return:
-        """
-        # Initialize arr and copy of arr
-        arr = np.array([1, 2, 3])
-        print([x + 1 for x in arr])
-        new_arr = np.copy(arr)
-        # Launch the kernel
-        threadsperblock = 32
-        blockspergrid = (arr.size + threadsperblock - 1)
-        MarkerDetectPar.cuda_increment_by_one[blockspergrid, threadsperblock](new_arr)
-        print([x+1 for x in arr])
-        print(new_arr)
-        # Confirm results of Python and Cuda are equal
-        self.assertTrue(np.array_equal([x+1 for x in arr], new_arr))
-
     # HELPER FUNCTIONS
 
     def test_threshold_raise_on_small_window(self):

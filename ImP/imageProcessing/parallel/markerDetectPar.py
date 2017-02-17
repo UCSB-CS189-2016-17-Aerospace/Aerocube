@@ -3,8 +3,6 @@ import math
 import cv2
 from cv2 import aruco
 import numpy as np
-import numba
-from numba import cuda as nb_cuda
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 
 
@@ -127,26 +125,6 @@ class MarkerDetectPar:
     #         block=(400, 1, 1), grid=(1, 1)
     #     )
     #     print(dest - a * b)
-
-    @staticmethod
-    @numba.jit(nopython=True)
-    def numba_jit_add(x, y):
-        return x + y
-
-    @staticmethod
-    @nb_cuda.jit
-    def cuda_increment_by_one(an_array):
-        # Thread id in a 1D block
-        tx = nb_cuda.threadIdx.x
-        # Block id in a 1D grid
-        ty = nb_cuda.blockIdx.x
-        # Block width, i.e. number of threads per block
-        bw = nb_cuda.blockDim.x
-        # Compute flattened index inside the array
-        pos = tx + ty * bw
-        print(pos)
-        if pos < an_array.size:  # Check array boundaries
-            an_array[pos] += 1
 
     # PUBLIC FUNCTIONS
 
@@ -511,8 +489,8 @@ class MarkerDetectPar:
                     bits[y][x] = 1
         return bits
 
-    @classmethod
-    def _get_border_errors(cls, bits, marker_size, border_size):
+    @staticmethod
+    def _get_border_errors(bits, marker_size, border_size):
         """
         Return number of erroneous bits in border (i.e., number of white bits in border).
         :param bits: 2-dimensional matrix of binary values, representing the bits (incl. border) of a marker

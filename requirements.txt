@@ -9,7 +9,7 @@
 # * OpenCV
 # * CUDA
 # * PyCUDA -- see ImP/README for installation
-# * Anaconda Accelerate (for GPU-acceleration in Python)
+# * Anaconda Accelerate (for GPU-acceleration in Python) -- maybe not
 #
 ### Mathematical ###############
 numpy==1.11.2
