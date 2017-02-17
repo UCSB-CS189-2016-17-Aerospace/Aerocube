@@ -5,7 +5,11 @@
 
 // Use extern "C" to prevent C++ name-mangling, and allow easy find through Python ctypes
 extern "C" {
-    void warpPerspectiveWrapper(cv::InputArray _src, cv::OutputArray _dst, cv::InputArray _M, cv::Size dsize, int flags);
+    void warpPerspectiveWrapper(std::vector< std::vector <int> > *_src,
+                                std::vector< std::vector <int> > *_dst,
+                                std::vector< std::vector <int> > *_M,
+                                cv::Size dsize,
+                                int flags);
 }
 
 

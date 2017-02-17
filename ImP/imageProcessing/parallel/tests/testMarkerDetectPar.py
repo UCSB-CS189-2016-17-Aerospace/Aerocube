@@ -91,6 +91,7 @@ class TestMarkerDetectPar(unittest.TestCase):
         np.testing.assert_allclose(no_otsu, otsu)
 
     def test_cuda_warp_perspective_equals_warp_perspective(self):
+        self.fail()
         candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
         corners = candidates[9]
         src = self.gray_marker_0

@@ -17,8 +17,8 @@ _MARKER_DETECT_PAR_GPU = ctypes.cdll.LoadLibrary(os.path.join(_SO_DIR, 'libMarke
 
 class CV_SIZE(ctypes.Structure):
     _fields_ = [
-        ('height', ctypes.c_float),
-        ('width', ctypes.c_float)
+        ('height', ctypes.c_int32),
+        ('width', ctypes.c_int32)
     ]
 
 
@@ -43,19 +43,33 @@ _func_warp_perspective = _initialize_warp_perspective()
 
 
 def _cuda_warp_perspective(src, M, dsize, flags=cv2.INTER_NEAREST):
+    """
+
+    :param src:
+    :param M:
+    :param dsize:
+    :param flags:
+    :return:
+    """
+    pass
     # TODO: convert src and dst to GpuMat
     # Get the warpPerspective function
     warpPerspective = _func_warp_perspective
     # Convert src, M to ctype-friendly for mat
-    src_gpu = pycuda.gpuarray.to_gpu(src.astype(np.float32))
-    M_gpu = pycuda.gpuarray.to_gpu(M.astype(np.float32))
+    # src_gpu = pycuda.gpuarray.to_gpu(src.astype(np.float32))
+    # M_gpu = pycuda.gpuarray.to_gpu(M.astype(np.float32))
     # Create dst as ctype-friendly format
-    dst_gpu = pycuda.gpuarray.to_gpu(np.zeros(src.shape, dtype=np.float32))
+    dst = np.zeros(src.shape, dtype=np.float32)
+    dst_ctype = dst.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+    # dst_gpu = pycuda.gpuarray.to_gpu(np.zeros(src.shape, dtype=np.float32))
     # Convert dsize to specified format
-    cv_size = CV_SIZE(*dsize)
-    warpPerspective(src_gpu.ptr,
-                    dst_gpu.ptr,
-                    M_gpu.ptr,
+    cv_size = CV_SIZE()
+    cv_size.height = dsize[0]
+    cv_size.width = dsize[1]
+    # Call function
+    warpPerspective(src.astype(np.float32).ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+                    dst_ctype,
+                    M.astype(np.float32).ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
                     cv_size,
                     ctypes.c_int32(flags))
-    return dst_gpu.get()
+    return np.ctypeslib.as_array(dst_ctype)
