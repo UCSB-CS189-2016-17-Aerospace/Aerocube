@@ -9,6 +9,7 @@ import cv2
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 from ImP.imageProcessing.parallel.markerDetectPar import MarkerDetectPar
 from ImP.imageProcessing.settings import ImageProcessingSettings
+import ImP.imageProcessing.parallel.GpuWrapper as GpuWrapper
 
 
 class TestMarkerDetectParPerf(unittest.TestCase):
@@ -42,6 +43,9 @@ class TestMarkerDetectParPerf(unittest.TestCase):
 
         np.testing.assert_allclose(actual_corners, test_corners)
         np.testing.assert_array_equal(actual_ids, test_ids)
+
+    def test_warp_perspective(self):
+        GpuWrapper.cudaWarpPerspectiveWrapper()
 
 if __name__ == '__main__':
     unittest.main()

@@ -6,7 +6,7 @@ import numpy as np
 from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker
 from ImP.imageProcessing.parallel.markerDetectPar import *
 from ImP.imageProcessing.settings import ImageProcessingSettings
-import ImP.imageProcessing.parallel.gpuWrapper as gpuWrapper
+import ImP.imageProcessing.parallel.GpuWrapper as GpuWrapper
 
 
 class TestMarkerDetectPar(unittest.TestCase):
@@ -62,7 +62,7 @@ class TestMarkerDetectPar(unittest.TestCase):
         np.testing.assert_allclose(no_otsu, otsu)
 
     def test_cuda_warp_perspective_equals_warp_perspective(self):
-        self.fail()
+        # self.fail()
         candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
         corners = candidates[9]
         src = self.gray_marker_0
@@ -75,7 +75,14 @@ class TestMarkerDetectPar(unittest.TestCase):
                                        [23., 23.],
                                        [ 0., 23.]])
         actual_dst = cv2.warpPerspective(src, M, (result_img_size, result_img_size), flags=cv2.INTER_NEAREST)
-        test_dst = gpuWrapper._cuda_warp_perspective(src, M, (result_img_size, result_img_size), flags=cv2.INTER_NEAREST)
+        test_dst = GpuWrapper.cudaWarpPerspectiveWrapper(src.astype(dtype=np.uint8),
+                                                         M.astype(dtype=np.float32),
+                                                         (result_img_size, result_img_size),
+                                                         _flags=cv2.INTER_NEAREST)
+        test_host_dst = GpuWrapper.warpPerspectiveWrapper(src.astype(dtype=np.uint8),
+                                                          M.astype(dtype=np.float32),
+                                                          (result_img_size, result_img_size),
+                                                          _flags=cv2.INTER_NEAREST)
         np.testing.assert_allclose(actual_dst, test_dst)
 
     # PUBLIC FUNCTIONS

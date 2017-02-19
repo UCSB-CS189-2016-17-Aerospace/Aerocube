@@ -92,7 +92,6 @@ class MarkerDetectPar:
                                      thresholdType=cv2.THRESH_BINARY_INV, blockSize=winSize, C=constant)
 
     @staticmethod
-    @nb_cuda.jit(device=True)
     def _cuda_threshold(gray, winSize, constant=params[adaptiveThreshConstant]):
         """
         CUDA-accelerated implementation of threshold; should match _threshold's output.
