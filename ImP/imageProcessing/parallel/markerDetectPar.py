@@ -274,7 +274,13 @@ class MarkerDetectPar:
             cross_product = float(dx1*dy2 - dy1*dx2)
             # If cross_product is counter-clockwise, swap pt1 and pt3
             if cross_product < 0.0:
-                c[1], c[3] = c[3], c[1]
+                # Swap elements -- note that data must be copied over, as otherwise tmp will just
+                # be a reference pointing to c[3] (acting as another view into the data) instead of truly holding
+                # c[3]'s original value
+                # c[1], c[3] = c[3], c[1] does not work
+                tmp = np.copy(c[3])
+                c[3] = c[1]
+                c[1] = tmp
         return candidates
 
     @classmethod

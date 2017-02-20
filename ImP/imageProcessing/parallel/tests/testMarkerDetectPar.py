@@ -87,7 +87,21 @@ class TestMarkerDetectPar(unittest.TestCase):
         candidates, contours = MarkerDetectPar._detect_candidates(self.gray)
         aruco_cand, aruco_cont = aruco._detectCandidates(self.gray, aruco.DetectorParameters_create())
         np.testing.assert_allclose(candidates, aruco_cand)
-        np.testing.assert_array_equal(contours, aruco_cont)
+        try:
+            np.testing.assert_array_equal(contours, aruco_cont)
+        except AssertionError:
+            print("Arrays not equal -- try per-element / per-row comparison")
+            np.testing.assert_array_equal([np.array_equal(a, b) for a, b in zip(contours, aruco_cont)], [True]*len(contours))
+
+    def test_detect_candidates_equals_aruco_method_simple(self):
+        candidates, contours = MarkerDetectPar._detect_candidates(self.gray_marker_0)
+        aruco_cand, aruco_cont = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
+        np.testing.assert_allclose(candidates, aruco_cand)
+        try:
+            np.testing.assert_array_equal(contours, aruco_cont)
+        except AssertionError:
+            print("Arrays not equal -- try per-element / per-row comparison")
+            np.testing.assert_array_equal([np.array_equal(a, b) for a, b in zip(contours, aruco_cont)], [True]*len(contours))
 
     def test_detect_initial_candidates_equals_aruco_method(self):
         test_vals = MarkerDetectPar._detect_initial_candidates(self.gray)
@@ -144,6 +158,8 @@ class TestMarkerDetectPar(unittest.TestCase):
         candidates, _ = aruco._detectInitialCandidates(self.gray)
         cand_copy = np.copy(candidates)
         tmp = MarkerDetectPar._reorder_candidate_corners(candidates)
+        np.testing.assert_allclose(tmp, candidates)
+        self.assertEqual(np.array([np.array_equal(c[1], c[3]) for c in candidates]).sum(), 0)
         self.assertFalse(np.allclose(cand_copy, candidates))
         self.assertFalse(np.allclose(cand_copy, tmp))
         self.assertEqual(np.array(candidates).shape, cand_copy.shape)
