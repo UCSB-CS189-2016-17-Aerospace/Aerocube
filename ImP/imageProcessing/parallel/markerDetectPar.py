@@ -401,7 +401,7 @@ class MarkerDetectPar:
             return False, corners, -1
         else:
             # Shift corner positions to correct rotation before returning
-            return True, np.roll(corners, rotation), cand_id
+            return True, np.roll(corners, rotation, axis=0), cand_id
         pass
 
     @classmethod
