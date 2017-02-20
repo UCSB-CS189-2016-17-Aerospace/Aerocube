@@ -6,7 +6,9 @@ import numpy as np
 from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker
 from ImP.imageProcessing.parallel.markerDetectPar import *
 from ImP.imageProcessing.settings import ImageProcessingSettings
-import ImP.imageProcessing.parallel.GpuWrapper as GpuWrapper
+# Import the GpuWrapper and immediately initialize it
+import ImP.imageProcessing.parallel.cython.GpuWrapper as GpuWrapper
+GpuWrapper.init()
 
 
 class TestMarkerDetectPar(unittest.TestCase):
@@ -83,7 +85,16 @@ class TestMarkerDetectPar(unittest.TestCase):
                                                           M.astype(dtype=np.float32),
                                                           (result_img_size, result_img_size),
                                                           _flags=cv2.INTER_NEAREST)
-        np.testing.assert_allclose(actual_dst, test_dst)
+        np.testing.assert_array_equal(actual_dst, test_host_dst)
+        np.testing.assert_array_equal(actual_dst, test_dst)
+
+
+    def test_echo_from_cython(self):
+        M = np.array([[7.03145227e-03, 5.50015822e-02, -5.41421824e+00],
+                      [-6.65280496e-02, -4.24647125e-04, 2.78278338e+01],
+                      [6.38002118e-04, -2.75228447e-04, 1.00000000e+00]], dtype=np.float32)
+        test_M = GpuWrapper.echoPyObject(M)
+        np.testing.assert_allclose(M, test_M)
 
     # PUBLIC FUNCTIONS
 
