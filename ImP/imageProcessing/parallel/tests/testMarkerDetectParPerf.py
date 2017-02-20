@@ -17,6 +17,8 @@ GpuWrapper.init()
 class TestMarkerDetectParPerf(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        cls._IMAGE_PATH = os.path.join(ImageProcessingSettings.get_test_files_path(), 'jetson_test1.jpg')
+        cls._IMAGE = cv2.imread(cls._IMAGE_PATH)
         cls._IMG_MARKER_0_PATH = os.path.join(ImageProcessingSettings.get_test_files_path(), 'marker_4X4_sp6_id0.png')
         cls._IMG_MARKER_0 = cv2.imread(cls._IMG_MARKER_0_PATH)
 
@@ -25,6 +27,7 @@ class TestMarkerDetectParPerf(unittest.TestCase):
         pass
 
     def setUp(self):
+        self.image = np.copy(self._IMAGE)
         self.img_marker_0 = np.copy(self._IMG_MARKER_0)
         self.gray_marker_0 = cv2.cvtColor(self.img_marker_0, cv2.COLOR_BGR2GRAY)
 
@@ -34,7 +37,9 @@ class TestMarkerDetectParPerf(unittest.TestCase):
     # Test and profile entire algorithm
 
     def test_time_serial_vs_par(self):
-        imp = ImageProcessor(self._IMG_MARKER_0_PATH)
+        img_path = self._IMAGE_PATH
+
+        imp = ImageProcessor(img_path)
         pr = cProfile.Profile()
         pr.enable()
         actual_corners, actual_ids = imp._find_fiducial_markers()
@@ -57,6 +62,27 @@ class TestMarkerDetectParPerf(unittest.TestCase):
         np.testing.assert_array_equal(actual_ids, test_ids)
 
     # Test GPU-related methods
+
+    def test_cuda_cvt_color_gray(self):
+        pr = cProfile.Profile()
+        pr.enable()
+        actual_gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+        pr.disable()
+        s = io.StringIO()
+        ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+        ps.print_stats()
+        print(s.getvalue())
+
+        pr = cProfile.Profile()
+        pr.enable()
+        test_gray = GpuWrapper.cudaCvtColorGray(self.image)
+        pr.disable()
+        s = io.StringIO()
+        ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+        ps.print_stats()
+        print(s.getvalue())
+
+        np.testing.assert_allclose(actual_gray, test_gray)
 
     def test_cuda_warp_perspective_equals_warp_perspective(self):
         # self.fail()

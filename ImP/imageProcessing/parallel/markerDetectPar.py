@@ -106,25 +106,6 @@ class MarkerDetectPar:
         maxValue = 255
         pass
 
-    # @classmethod
-    # def cuda_hello_world_print(cls):
-    #     mod = SourceModule("""
-    #             __global__ void multiply_them(float *dest, float *a, float *b)
-    #             {
-    #                 const int i = threadIdx.x;
-    #                 dest[i] = a[i] * b[i];
-    #             }
-    #         """)
-    #     multiply_them = mod.get_function("multiply_them")
-    #     a = np.random.randn(400).astype(np.float32)
-    #     b = np.random.randn(400).astype(np.float32)
-    #     dest = np.zeros_like(a)
-    #     multiply_them(
-    #         cuda.Out(dest), cuda.In(a), cuda.In(b),
-    #         block=(400, 1, 1), grid=(1, 1)
-    #     )
-    #     print(dest - a * b)
-
     # PUBLIC FUNCTIONS
 
     @classmethod
@@ -568,9 +549,3 @@ class MarkerDetectPar:
         filtered_ids = ids[to_remove != True]
 
         return filtered_corners, filtered_ids
-
-    @classmethod
-    def _copy_vector_to_output(cls, vec, out):
-        pass
-
-                # ~~STEP 4 FUNCTIONS~~
