@@ -59,10 +59,16 @@ class TestMarkerDetectPar(unittest.TestCase):
 
     @unittest.expectedFailure
     def test_otsu_equal_to_without_otsu_thresholding(self):
+        """
+        Thresholding w/ Otsu vs. thresholding w/out Otsu gives a mismatch of 4.438% on the test image. If this is an
+        acceptable margin of error and does not affect the end results, the thresholding calls with Otsu thresholding
+        could be replaced with CUDA-accelerated thresholding techniques that do not support Otsu.
+        :return:
+        """
         no_otsu_rv, no_otsu = cv2.threshold(self.gray, 125, 255, cv2.THRESH_BINARY)
         otsu_rv, otsu = cv2.threshold(self.gray, 125, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-        print(no_otsu_rv)
-        print(otsu_rv)
+        # print(no_otsu_rv)
+        # print(otsu_rv)
         np.testing.assert_allclose(no_otsu, otsu)
 
     # PUBLIC FUNCTIONS
@@ -102,7 +108,7 @@ class TestMarkerDetectPar(unittest.TestCase):
         try:
             np.testing.assert_array_equal(contours, aruco_cont)
         except AssertionError:
-            print("Arrays not equal -- try per-element / per-row comparison")
+            print("_detect_candidates: arrays not equal -- try per-element / per-row comparison")
             np.testing.assert_array_equal([np.array_equal(a, b) for a, b in zip(contours, aruco_cont)], [True]*len(contours))
 
     def test_detect_candidates_equals_aruco_method_simple(self):
@@ -112,7 +118,7 @@ class TestMarkerDetectPar(unittest.TestCase):
         try:
             np.testing.assert_array_equal(contours, aruco_cont)
         except AssertionError:
-            print("Arrays not equal -- try per-element / per-row comparison")
+            print("_detect_candidates: arrays not equal -- try per-element / per-row comparison")
             np.testing.assert_array_equal([np.array_equal(a, b) for a, b in zip(contours, aruco_cont)], [True]*len(contours))
 
     def test_detect_initial_candidates_equals_aruco_method(self):
@@ -128,7 +134,6 @@ class TestMarkerDetectPar(unittest.TestCase):
         However, contour matrices with ints should be tested with array_equal.
         :return:
         """
-        # TODO: Assert equal for non-empty contours array fails for some reason
         params = MarkerDetectPar.params
         aruco_params = (params[MarkerDetectPar.minMarkerPerimeterRate],
                        params[MarkerDetectPar.maxMarkerPerimeterRate],
@@ -141,14 +146,24 @@ class TestMarkerDetectPar(unittest.TestCase):
         test_contours_thresh_3 = MarkerDetectPar._find_marker_contours(thresh_3)
         true_contours_thresh_3 = aruco._findMarkerContours(thresh_3, *aruco_params)
         np.testing.assert_allclose(test_contours_thresh_3[0], true_contours_thresh_3[0])
-        np.testing.assert_array_equal(test_contours_thresh_3[1], true_contours_thresh_3[1])
+        try:
+            np.testing.assert_array_equal(test_contours_thresh_3[1], true_contours_thresh_3[1])
+        except AssertionError:
+            print("_find_marker_contours: arrays not equal -- try per-element / per-row comparison")
+            np.testing.assert_array_equal([np.array_equal(a, b) for a, b in zip(test_contours_thresh_3[1], true_contours_thresh_3[1])],
+                                          [True]*len(test_contours_thresh_3[1]))
         # thresh with winSize = 13
         thresh_13 = cv2.adaptiveThreshold(self.gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV,
                                           13, params[MarkerDetectPar.adaptiveThreshConstant])
         test_contours_thresh_13 = MarkerDetectPar._find_marker_contours(thresh_13)
         true_contours_thresh_13 = aruco._findMarkerContours(thresh_13, *aruco_params)
         np.testing.assert_allclose(test_contours_thresh_13[0], true_contours_thresh_13[0])
-        np.testing.assert_array_equal(test_contours_thresh_13[1], true_contours_thresh_13[1])
+        try:
+            np.testing.assert_array_equal(test_contours_thresh_13[1], true_contours_thresh_13[1])
+        except AssertionError:
+            print("_find_marker_contours: arrays not equal -- try per-element / per-row comparison")
+            np.testing.assert_array_equal([np.array_equal(a, b) for a, b in zip(test_contours_thresh_13[1], true_contours_thresh_13[1])],
+                                          [True]*len(test_contours_thresh_13[1]))
 
     def test_assert_find_marker_contours_does_not_modify_thresh(self):
         params = MarkerDetectPar.params
@@ -158,9 +173,8 @@ class TestMarkerDetectPar(unittest.TestCase):
         MarkerDetectPar._find_marker_contours(thresh)
         np.testing.assert_equal(thresh, thresh_copy)
 
-    @unittest.skip("Aruco Python binding could be inadequate")
+    @unittest.skip("_reorderCandidatesCorners: Python binding inadequate")
     def test_reorder_candidate_corners_equals_aruco_method(self):
-        # TODO: Aruco call is failing; could try to rewrite Aruco function signature, but that seems risky
         candidates, _ = aruco._detectInitialCandidates(self.gray)
         aruco._reorderCandidatesCorners(candidates)
         np.testing.assert_array_equal(MarkerDetectPar._reorder_candidate_corners(candidates),
@@ -176,7 +190,7 @@ class TestMarkerDetectPar(unittest.TestCase):
         self.assertFalse(np.allclose(cand_copy, tmp))
         self.assertEqual(np.array(candidates).shape, cand_copy.shape)
 
-    @unittest.skip("Aruco Python binding failing")
+    @unittest.skip("_filterTooCloseCandidates: faulty Python binding")
     def test_filter_too_close_candidates_equals_aruco_method(self):
         candidates, contours = aruco._detectInitialCandidates(self.gray)
         # Use own method to simulate reordering of corners, since Aruco function is not working
@@ -200,7 +214,7 @@ class TestMarkerDetectPar(unittest.TestCase):
 
     # ~~STEP 2 FUNCTIONS~~
 
-    @unittest.skip("Faulty Python binding")
+    @unittest.skip("_identifyCandidates: faulty Python binding")
     def test_identify_candidates_equals_aruco_method(self):
         candidates, contours = aruco._detectCandidates(self.gray, aruco.DetectorParameters_create())
         aruco_acc, aruco_rej, aruco_ids = list(), list(), list()
@@ -272,9 +286,11 @@ class TestMarkerDetectPar(unittest.TestCase):
     def test_identify_one_candidate_returns_proper_id(self):
         candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
         retval = MarkerDetectPar._identify_one_candidate(FiducialMarker.get_dictionary(), self.gray_marker_0, candidates[9])
-        print(retval)
+        self.assertTrue(retval[0])
+        self.assertEqual(retval[2], 0)
         retval = MarkerDetectPar._identify_one_candidate(FiducialMarker.get_dictionary(), self.gray_marker_0, candidates[0])
-        print(retval)
+        self.assertFalse(retval[0])
+        self.assertEqual(retval[2], -1)
 
     @unittest.skip("_extractBits: faulty Python binding")
     def test_extract_bits_equals_aruco_method(self):
