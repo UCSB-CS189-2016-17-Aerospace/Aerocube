@@ -6,6 +6,7 @@ Definition file for GpuWrapper.pyx.
 Mainly definitions of C/C++ code to be used in GpuWrapper.
 """
 
+# References PyObject to OpenCV object conversion code borrowed from OpenCV's own conversion file, cv2.cpp
 cdef extern from 'pyopencv_converter.cpp':
     cdef PyObject* pyopencv_from(const Mat& m)
     cdef bool pyopencv_to(PyObject* o, Mat& m)

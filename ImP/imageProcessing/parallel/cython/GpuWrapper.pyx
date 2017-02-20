@@ -81,4 +81,9 @@ def cudaCvtColorGray(object img):
     return <object> pyopencv_from(m)
 
 def init():
+    """
+    Calls numpy's import_array() function, which *must* be done before any PyObject conversions happen.
+    This function *must* be called immediately after GpuWrapper is imported!
+    :return:
+    """
     np.import_array()
