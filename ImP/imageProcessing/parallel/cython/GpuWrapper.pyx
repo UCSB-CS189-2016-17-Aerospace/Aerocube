@@ -1,11 +1,9 @@
 import numpy as np  # Import Python functions, attributes, submodules of numpy
 cimport numpy as np  # Import C functions, attributes, submodules of numpy
-from libcpp.string cimport string  # Import <string>
-from libcpp cimport bool  # Get support for C++ bool
-from libc.string cimport memcpy  # Import <string.h>, or <cstring>
-from cpython.ref cimport PyObject
 
 """
+Implementation file for GpuWrapper
+Definitions can be found in GpuWrapper.pxd
 References:
 * http://makerwannabe.blogspot.com/2013/09/calling-opencv-functions-via-cython.html
 * On converting PyObjects to OpenCV Mat objects
@@ -14,65 +12,6 @@ References:
     * http://stackoverflow.com/questions/13745265/exposing-opencv-based-c-function-with-mat-numpy-conversion-to-python
     * https://github.com/Algomorph/pyboostcvconverter/blob/master/src/pyboost_cv3_converter.cpp
 """
-
-# cdef extern from '/usr/local/lib/opencv/modules/python/src2/pycompat.hpp' namespace 'cv':
-#     cdef PyObject* pyopencv_from(const Mat& m) except +
-#     cdef bool pyopencv_to(PyObject* o, Mat& m) except +
-
-cdef extern from 'pyopencv_converter.cpp':
-    cdef PyObject* pyopencv_from(const Mat& m)
-    cdef bool pyopencv_to(PyObject* o, Mat& m)
-
-cdef extern from 'opencv2/imgproc.hpp' namespace 'cv':
-    cdef enum InterpolationFlags:
-        INTER_NEAREST = 0
-    cdef enum ColorConversionCodes:
-        COLOR_BGR2GRAY
-
-cdef extern from 'opencv2/core/core.hpp':
-    cdef int CV_8UC1
-    cdef int CV_32FC1
-
-cdef extern from 'opencv2/core/core.hpp' namespace 'cv':
-    cdef cppclass Size_[T]:
-        Size_() except +
-        Size_(T width, T height) except +
-        T width
-        T height
-    ctypedef Size_[int] Size2i
-    ctypedef Size2i Size
-    cdef cppclass Scalar[T]:
-        Scalar() except +
-        Scalar(T v0) except +
-
-# Define C++ class Mat, InputArray, and OutputArray from core.hpp
-cdef extern from 'opencv2/core/core.hpp' namespace 'cv':
-    cdef cppclass Mat:
-        Mat() except +
-        void create(int, int, int) except +
-        void* data
-        int rows
-        int cols
-
-# Define C++ classes for CUDA
-cdef extern from 'opencv2/core/cuda.hpp' namespace 'cv::cuda':
-    cdef cppclass GpuMat:
-        GpuMat() except +
-        void upload(Mat arr) except +
-        void download(Mat dst) const
-    cdef cppclass Stream:
-        Stream() except +
-
-cdef extern from 'opencv2/cudawarping.hpp' namespace 'cv::cuda':
-    cdef void warpPerspective(GpuMat src, GpuMat dst, Mat M, Size dsize, int flags, int borderMode, Scalar borderValue, Stream& stream)
-    # Function using default values
-    cdef void warpPerspective(GpuMat src, GpuMat dst, Mat M, Size dsize, int flags)
-
-cdef extern from 'opencv2/imgproc.hpp' namespace 'cv':
-    cdef void warpPerspective(Mat src, Mat dst, Mat M, Size dsize, int flags)
-
-cdef extern from 'opencv2/cudaimgproc.hpp' namespace 'cv::cuda':
-    cdef void cvtColor(GpuMat src, GpuMat dst, int code) except +
 
 def cudaWarpPerspectiveWrapper(np.ndarray[np.uint8_t, ndim=2] _src,
                                np.ndarray[np.float32_t, ndim=2] _M,
