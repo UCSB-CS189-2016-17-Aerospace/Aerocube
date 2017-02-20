@@ -5,6 +5,7 @@ from cv2 import aruco
 import numpy as np
 from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker
 from ImP.imageProcessing.parallel.markerDetectPar import *
+from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 from ImP.imageProcessing.settings import ImageProcessingSettings
 # Import the GpuWrapper and immediately initialize it
 import ImP.imageProcessing.parallel.cython.GpuWrapper as GpuWrapper
@@ -18,6 +19,7 @@ class TestMarkerDetectPar(unittest.TestCase):
         cls._IMAGE = cv2.imread(os.path.join(ImageProcessingSettings.get_test_files_path(), 'jetson_test1.jpg'))
         cls._IMG_MARKER_0 = cv2.imread(os.path.join(ImageProcessingSettings.get_test_files_path(), 'marker_4X4_sp6_id0.png'))
         cls._IMG_MARKER_0_TRANS = cv2.imread(os.path.join(ImageProcessingSettings.get_test_files_path(), 'marker_4X4_sp6_id0_transformed.png'))
+        cls._CAPSTONE_PHOTO_DIR = os.path.join(ImageProcessingSettings.get_test_files_path(), 'capstone_class_photoshoot')
 
     @classmethod
     def tearDownClass(cls):
@@ -80,6 +82,16 @@ class TestMarkerDetectPar(unittest.TestCase):
 
     def test_detect_markers_parallel_does_not_break(self):
         MarkerDetectPar.detect_markers_parallel(self._IMG_MARKER_0)
+
+    def test_detect_markers_parallel_on_capstone_photos(self):
+        img_paths = [os.path.join(self._CAPSTONE_PHOTO_DIR, f) for f in os.listdir(self._CAPSTONE_PHOTO_DIR) if os.path.isfile(os.path.join(self._CAPSTONE_PHOTO_DIR, f))]
+        for img_path in img_paths:
+            imp = ImageProcessor(img_path)
+            actual_corners, actual_ids = imp._find_fiducial_markers(parallel=True)
+            expected_corners, expected_ids = imp._find_fiducial_markers(parallel=False)
+            np.testing.assert_allclose(actual_corners, expected_corners)
+            np.testing.assert_array_equal(actual_ids, expected_ids)
+            print("PASSED: {}".format(img_path))
 
     # ~~STEP 1 FUNCTIONS~~
 

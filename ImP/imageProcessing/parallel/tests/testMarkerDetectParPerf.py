@@ -17,6 +17,7 @@ GpuWrapper.init()
 class TestMarkerDetectParPerf(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        cls._CAPSTONE_PHOTO_PATH = os.path.join(ImageProcessingSettings.get_test_files_path(), 'capstone_class_photoshoot')
         cls._IMAGE_PATH = os.path.join(ImageProcessingSettings.get_test_files_path(), 'jetson_test1.jpg')
         cls._IMAGE = cv2.imread(cls._IMAGE_PATH)
         cls._IMG_MARKER_0_PATH = os.path.join(ImageProcessingSettings.get_test_files_path(), 'marker_4X4_sp6_id0.png')
@@ -37,7 +38,7 @@ class TestMarkerDetectParPerf(unittest.TestCase):
     # Test and profile entire algorithm
 
     def test_time_serial_vs_par(self):
-        img_path = self._IMAGE_PATH
+        img_path = os.path.join(self._CAPSTONE_PHOTO_PATH, 'AC_0_1_FRONT_TOP.JPG')
 
         imp = ImageProcessor(img_path)
         pr = cProfile.Profile()

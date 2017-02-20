@@ -523,7 +523,7 @@ class MarkerDetectPar:
         # Remove repeated markers with same id, or if one contains the other (double border bug)
         for i in range(len(corners) - 1):
             for j in range(1, len(corners)):
-                if ids[i] != ids[j]:
+                if i == j or ids[i] != ids[j]:
                     continue
                 else:
                     # Remove one of two identical (same ID) markers
