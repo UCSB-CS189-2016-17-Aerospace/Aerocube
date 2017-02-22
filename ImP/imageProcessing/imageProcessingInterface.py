@@ -7,7 +7,7 @@ import pyquaternion
 from jobs.aeroCubeSignal import ImageEventSignal
 from .aerocubeMarker import AeroCubeMarker, AeroCube
 from .aerocubeMarker import AeroCubeMarker, AeroCubeFace, AeroCube
-from .parallel.markerDetectPar import MarkerDetectPar
+from .parallel import markerDetectPar as MarkerDetectPar
 from .cameraCalibration import CameraCalibration
 from .settings import ImageProcessingSettings
 

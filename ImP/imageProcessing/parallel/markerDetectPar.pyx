@@ -82,7 +82,7 @@ def _threshold(gray, winSize, constant=params[adaptiveThreshConstant]):
 # PUBLIC FUNCTIONS
 
 
-def detect_markers_parallel(img, dictionary=FiducialMarker.get_dictionary()):
+def detect_markers_parallel(np.ndarray[dtype=np.uint8_t, ndim=3] img, dictionary=FiducialMarker.get_dictionary()):
     """
     Public entry point to algorithm. Delegates the steps of the algorithms to several helper functions.
     :param img: image that might contain markers; should not be a grayscale image
@@ -230,13 +230,19 @@ def _find_marker_contours(thresh):
     return candidates, contours_out
 
 
-def _reorder_candidate_corners(candidates):
+cdef void _reorder_candidate_corners(np.ndarray[dtype=np.float32_t, ndim=3] candidates):
     """
     Reorder candidate corners to assure clockwise direction. Alters the original candidates array.
     Returns a reference to the candidates array (for convenience).
     :param candidates: List of candidates, each candidate being a list of four points, with values Point(x,y)
-    :return: candidates list with reordered points, if necessary
+    :return: nothing
     """
+    cdef float dx1
+    cdef float dy1
+    cdef float dx2
+    cdef float dy2
+    cdef float cross_product
+    cdef np.ndarray[dtype=np.float32_t, ndim=1] tmp
     for c in candidates:
         # Take distance from pt1 to pt0
         dx1 = c[1][0] - c[0][0]
@@ -244,7 +250,7 @@ def _reorder_candidate_corners(candidates):
         # Take distance from pt2 to pt0
         dx2 = c[2][0] - c[0][0]
         dy2 = c[2][1] - c[0][1]
-        cross_product = float(dx1*dy2 - dy1*dx2)
+        cross_product = dx1*dy2 - dy1*dx2
         # If cross_product is counter-clockwise, swap pt1 and pt3
         if cross_product < 0.0:
             # Swap elements -- note that data must be copied over, as otherwise tmp will just
@@ -254,7 +260,6 @@ def _reorder_candidate_corners(candidates):
             tmp = np.copy(c[3])
             c[3] = c[1]
             c[1] = tmp
-    return candidates
 
 
 def _filter_too_close_candidates(candidates, contours):
