@@ -9,6 +9,7 @@ from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 class MarkerDetectPar:
     """
     Class wrapping together the logic of marker detection, using GPU parallelization when possible.
+    TODO: should be cythonized
     """
 
     # ALGORITHM PARAMETERS
