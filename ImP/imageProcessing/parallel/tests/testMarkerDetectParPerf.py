@@ -10,8 +10,15 @@ from cv2 import aruco
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 import ImP.imageProcessing.parallel.markerDetectPar as MarkerDetectPar
 from ImP.imageProcessing.settings import ImageProcessingSettings
-import ImP.imageProcessing.parallel.cuda.GpuWrapper as GpuWrapper
-GpuWrapper.init()
+
+try:
+    import ImP.imageProcessing.parallel.cuda.GpuWrapper as GpuWrapper
+    GpuWrapper.init()
+    noCUDA = False
+
+except ImportError:
+    print("CUDA library could not be imported")
+    noCUDA = True
 
 
 class TestMarkerDetectParPerf(unittest.TestCase):
@@ -64,6 +71,7 @@ class TestMarkerDetectParPerf(unittest.TestCase):
 
     # Test GPU-related methods
 
+    @unittest.skipIf(noCUDA, "CUDA is not installed in the system")
     def test_cuda_cvt_color_gray(self):
         pr = cProfile.Profile()
         pr.enable()
@@ -85,6 +93,7 @@ class TestMarkerDetectParPerf(unittest.TestCase):
 
         np.testing.assert_allclose(actual_gray, test_gray)
 
+    @unittest.skipIf(noCUDA, "CUDA is not installed in the system")
     def test_cuda_warp_perspective_equals_warp_perspective(self):
         # self.fail()
         candidates, _ = aruco._detectCandidates(self.gray_marker_0, aruco.DetectorParameters_create())
@@ -135,6 +144,7 @@ class TestMarkerDetectParPerf(unittest.TestCase):
         np.testing.assert_array_equal(actual_dst, test_host_dst)
         np.testing.assert_array_equal(actual_dst, test_dst)
 
+    @unittest.skipIf(noCUDA, "CUDA is not installed in the system")
     def test_echo_from_cython(self):
         M = np.array([[7.03145227e-03, 5.50015822e-02, -5.41421824e+00],
                       [-6.65280496e-02, -4.24647125e-04, 2.78278338e+01],
