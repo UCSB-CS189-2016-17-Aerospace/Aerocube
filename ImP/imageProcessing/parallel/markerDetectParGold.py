@@ -9,6 +9,8 @@ from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 class MarkerDetectPar:
     """
     Class wrapping together the logic of marker detection, using GPU parallelization when possible.
+    Class contained in this file should work identically to Aruco method,
+    and can be used as a standard to compare against.
     """
 
     # ALGORITHM PARAMETERS
