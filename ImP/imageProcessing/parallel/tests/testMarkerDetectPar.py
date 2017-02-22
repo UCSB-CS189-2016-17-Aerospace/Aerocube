@@ -8,7 +8,7 @@ from ImP.imageProcessing.parallel.markerDetectPar import *
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 from ImP.imageProcessing.settings import ImageProcessingSettings
 # Import the GpuWrapper and immediately initialize it
-import ImP.imageProcessing.parallel.cython.GpuWrapper as GpuWrapper
+import ImP.imageProcessing.parallel.cuda.GpuWrapper as GpuWrapper
 GpuWrapper.init()
 
 

@@ -5,7 +5,7 @@ cimport numpy as np  # Import C functions, attributes, submodules of numpy
 Implementation file for GpuWrapper
 Definitions can be found in GpuWrapper.pxd
 References:
-* http://makerwannabe.blogspot.com/2013/09/calling-opencv-functions-via-cython.html
+* http://makerwannabe.blogspot.com/2013/09/calling-opencv-functions-via-cuda.html
 * On converting PyObjects to OpenCV Mat objects
     * http://stackoverflow.com/questions/22736593/what-is-the-easiest-way-to-convert-ndarray-into-cvmat
     * http://stackoverflow.com/questions/12957492/writing-python-bindings-for-c-code-that-use-opencv/12972689#12972689

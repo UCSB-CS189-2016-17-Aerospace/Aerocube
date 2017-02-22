@@ -12,7 +12,7 @@ python setupGpuWrapper.py build_ext --inplace
 ```
 
 References
-* http://cython.readthedocs.io/en/latest/src/reference/compilation.html
+* http://cuda.readthedocs.io/en/latest/src/reference/compilation.html
 """
 
 # Determine current directory of this setup file to find our module

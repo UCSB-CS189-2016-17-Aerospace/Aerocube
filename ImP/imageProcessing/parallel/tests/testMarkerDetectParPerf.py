@@ -10,7 +10,7 @@ from cv2 import aruco
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 from ImP.imageProcessing.parallel.markerDetectPar import MarkerDetectPar
 from ImP.imageProcessing.settings import ImageProcessingSettings
-import ImP.imageProcessing.parallel.cython.GpuWrapper as GpuWrapper
+import ImP.imageProcessing.parallel.cuda.GpuWrapper as GpuWrapper
 GpuWrapper.init()
 
 
