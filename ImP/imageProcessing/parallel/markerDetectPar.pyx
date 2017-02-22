@@ -454,7 +454,7 @@ def _extract_bits(gray, corners):
     return bits
 
 
-def _get_border_errors(bits, marker_size, border_size):
+cdef int _get_border_errors(np.ndarray[dtype=np.int8_t, ndim=2] bits, int marker_size, int border_size):
     """
     Return number of erroneous bits in border (i.e., number of white bits in border).
     :param bits: 2-dimensional matrix of binary values, representing the bits (incl. border) of a marker
@@ -462,8 +462,8 @@ def _get_border_errors(bits, marker_size, border_size):
     :param border_size: size of the marker border, in terms of bits
     :return: total count of white bits found in border
     """
-    size_with_borders = marker_size + 2 * border_size
-    assert marker_size > 0 and bits.shape == (size_with_borders, size_with_borders)
+    cdef int size_with_borders = marker_size + 2 * border_size
+    assert marker_size > 0 and bits.shape[0] == size_with_borders and bits.shape[1] == size_with_borders
 
     # Iterate through border bits, counting number of white bits
     # Remember that bits (as with all image matrices) are stored row-major-order, where img[y][x]
