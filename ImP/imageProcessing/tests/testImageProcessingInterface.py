@@ -64,8 +64,8 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
 
     def test_find_fiducial_marker(self):
         # hard code results of operation
-        corners = self.TEST_SINGLE_MARKER.corners
-        ids = self.TEST_SINGLE_MARKER.IDs
+        corners, ids = ImageProcessor._simplify_fiducial_arrays(self.TEST_SINGLE_MARKER.corners,
+                                                                self.TEST_SINGLE_MARKER.IDs)
         # get results of function
         imp = ImageProcessor(self.TEST_SINGLE_MARKER.img_path)
         test_corners, test_ids = imp._find_fiducial_markers()
@@ -74,28 +74,97 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
         self.assertTrue(np.array_equal(ids, test_ids))
         self.assertEqual(type(test_ids).__module__, np.__name__)
         # save output image for visual confirmation
-        output_img = aruco.drawDetectedMarkers(imp._img_mat, test_corners, test_ids)
+        output_img = imp.draw_fiducial_markers(test_corners, test_ids)
         cv2.imwrite(self.test_output_path, output_img)
 
     def test_find_fiducial_marker_multiple(self):
         # get results from ImP
         imp = ImageProcessor(self.TEST_MULT_AEROCUBES.img_path)
+        corners, ids = imp._simplify_fiducial_arrays(self.TEST_MULT_AEROCUBES.corners, self.TEST_MULT_AEROCUBES.IDs)
         test_corners, test_ids = imp._find_fiducial_markers()
         # assert hard-coded results equal ImP results
-        self.assertTrue(np.array_equal(self.TEST_MULT_AEROCUBES.corners, test_corners))
-        self.assertTrue(np.array_equal(self.TEST_MULT_AEROCUBES.IDs, test_ids))
+        np.testing.assert_allclose(corners, test_corners)
+        np.testing.assert_array_equal(ids, test_ids)
 
     def test_find_fiducial_marker_none(self):
         imp = ImageProcessor(self.TEST_NO_MARKER.img_path)
+        corners, ids = imp._simplify_fiducial_arrays(self.TEST_NO_MARKER.corners, self.TEST_NO_MARKER.IDs)
         test_corners, test_ids = imp._find_fiducial_markers()
-        self.assertTrue(np.array_equal(self.TEST_NO_MARKER.corners, test_corners))
-        self.assertTrue(np.array_equal(self.TEST_NO_MARKER.IDs, test_ids))
+        np.testing.assert_allclose(corners, test_corners)
+        np.testing.assert_array_equal(ids, test_ids)
+
+    def test_simplify_fiducial_arrays(self):
+        # No markers
+        corners, ids = self.TEST_NO_MARKER.corners, self.TEST_NO_MARKER.IDs
+        actual_corners, actual_ids = ImageProcessor._simplify_fiducial_arrays(corners, ids)
+        exp_corners, exp_ids = [], []
+        np.testing.assert_allclose(actual_corners, exp_corners)
+        np.testing.assert_array_equal(actual_ids, exp_ids)
+        self.assertIsInstance(actual_corners, np.ndarray)
+        self.assertIsInstance(actual_ids, np.ndarray)
+        # One marker
+        corners, ids = self.TEST_SINGLE_MARKER.corners, self.TEST_SINGLE_MARKER.IDs
+        actual_corners, actual_ids = ImageProcessor._simplify_fiducial_arrays(corners, ids)
+        exp_corners, exp_ids = np.array(corners).squeeze(axis=1), np.array(ids).squeeze()
+        np.testing.assert_allclose(actual_corners, exp_corners)
+        np.testing.assert_array_equal(actual_ids, exp_ids)
+        self.assertEqual(np.shape(actual_corners), (1, 4, 2))
+        self.assertEqual(np.shape(actual_ids), (1,))
+        self.assertIsInstance(actual_corners, np.ndarray)
+        self.assertIsInstance(actual_ids, np.ndarray)
+        # Multiple markers
+        corners, ids = self.TEST_MULT_AEROCUBES.corners, self.TEST_MULT_AEROCUBES.IDs
+        actual_corners, actual_ids = ImageProcessor._simplify_fiducial_arrays(corners, ids)
+        exp_corners, exp_ids = np.array(corners).squeeze(axis=1), np.array(ids).squeeze()
+        np.testing.assert_allclose(actual_corners, exp_corners)
+        np.testing.assert_array_equal(actual_ids, exp_ids)
+        self.assertEqual(np.shape(actual_corners), (2, 4, 2))
+        self.assertEqual(np.shape(actual_ids), (2,))
+        self.assertIsInstance(actual_corners, np.ndarray)
+        self.assertIsInstance(actual_ids, np.ndarray)
+
+    def test_simplify_fiducial_arrays_raises_properly(self):
+        markers = self.TEST_MULT_AEROCUBES
+        corners, ids = ImageProcessor._simplify_fiducial_arrays(markers.corners, markers.IDs)
+        self.assertRaises(AssertionError, ImageProcessor._simplify_fiducial_arrays, corners, ids)
+
+    def test_prepare_fiducial_arrays_for_aruco(self):
+        # No markers
+        markers = self.TEST_NO_MARKER
+        corners, ids = ImageProcessor._simplify_fiducial_arrays(markers.corners, markers.IDs)
+        actual_corners, actual_ids = ImageProcessor._prepare_fiducial_arrays_for_aruco(corners, ids)
+        exp_corners, exp_ids = [], None
+        np.testing.assert_allclose(actual_corners, exp_corners)
+        np.testing.assert_array_equal(actual_ids, exp_ids)
+        self.assertNotIsInstance(actual_ids, np.ndarray)
+        # One marker
+        markers = self.TEST_SINGLE_MARKER
+        corners, ids = ImageProcessor._simplify_fiducial_arrays(markers.corners, markers.IDs)
+        actual_corners, actual_ids = ImageProcessor._prepare_fiducial_arrays_for_aruco(corners, ids)
+        exp_corners, exp_ids = [corners], [ids]
+        np.testing.assert_allclose(actual_corners, exp_corners)
+        np.testing.assert_array_equal(actual_ids, exp_ids)
+        self.assertEqual(np.shape(actual_corners), (1, 1, 4, 2))
+        self.assertEqual(np.shape(actual_ids), (1, 1))
+        # Multiple markers
+        markers = self.TEST_MULT_AEROCUBES
+        corners, ids = ImageProcessor._simplify_fiducial_arrays(markers.corners, markers.IDs)
+        actual_corners, actual_ids = ImageProcessor._prepare_fiducial_arrays_for_aruco(corners, ids)
+        exp_corners, exp_ids = [[corners[0]], [corners[1]]], [[ids[0]], [ids[1]]]
+        np.testing.assert_allclose(actual_corners, exp_corners)
+        np.testing.assert_array_equal(actual_ids, exp_ids)
+        self.assertEqual(np.shape(actual_corners), (2, 1, 4, 2))
+        self.assertEqual(np.shape(actual_ids), (2, 1))
+
+    def test_translate_fiducial_markers_for_aruco_raises_properly(self):
+        markers = self.TEST_MULT_AEROCUBES
+        self.assertRaises(AssertionError, ImageProcessor._prepare_fiducial_arrays_for_aruco, markers.corners, markers.IDs)
 
     def test_find_aerocube_marker(self):
         # hard code results of operation
         aerocube_ID = 0
         aerocube_face = AeroCubeFace.ZENITH
-        corners = self.TEST_SINGLE_MARKER.corners
+        corners, _ = ImageProcessor._simplify_fiducial_arrays(self.TEST_SINGLE_MARKER.corners, [[aerocube_ID]])
         true_markers = np.array([AeroCubeMarker(aerocube_ID,
                                                 aerocube_face,
                                                 corners[0])])
@@ -107,8 +176,8 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
 
     def test_find_aerocube_markers_multiple(self):
         # get hard-coded results
-        aerocube_markers = [AeroCubeMarker(2, AeroCubeFace.ZENITH, self.TEST_MULT_AEROCUBES.corners[0]),
-                            AeroCubeMarker(0,   AeroCubeFace.BACK, self.TEST_MULT_AEROCUBES.corners[1])]
+        aerocube_markers = [AeroCubeMarker(2, AeroCubeFace.ZENITH, self.TEST_MULT_AEROCUBES.corners[0][0]),
+                            AeroCubeMarker(0,   AeroCubeFace.BACK, self.TEST_MULT_AEROCUBES.corners[1][0])]
         # get results from ImP
         imp = ImageProcessor(self.TEST_MULT_AEROCUBES.img_path)
         test_aerocube_markers = imp._find_aerocube_markers()
@@ -126,7 +195,7 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
     def test_identify_aerocubes(self):
         aerocube_ID = 0
         aerocube_face = AeroCubeFace.ZENITH
-        corners = self.TEST_SINGLE_MARKER.corners
+        corners, _ = ImageProcessor._simplify_fiducial_arrays(self.TEST_SINGLE_MARKER.corners, [[aerocube_ID]])
         marker_list = [AeroCubeMarker(aerocube_ID, aerocube_face, corners[0])]
         aerocube_list = [AeroCube(marker_list)]
         imp = ImageProcessor(self.TEST_SINGLE_MARKER.img_path)
@@ -134,7 +203,7 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
 
     def test_identify_aerocubes_multiple(self):
         # get hard-coded results
-        corners = self.TEST_MULT_AEROCUBES.corners
+        corners, _ = ImageProcessor._simplify_fiducial_arrays(self.TEST_MULT_AEROCUBES.corners, [[2], [0]])
         aerocube_2_markers = [AeroCubeMarker(2, AeroCubeFace.ZENITH, corners[0])]
         aerocube_0_markers = [AeroCubeMarker(0,   AeroCubeFace.BACK, corners[1])]
         aerocubes = [AeroCube(aerocube_2_markers), AeroCube(aerocube_0_markers)]
@@ -151,7 +220,7 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
     def test_find_distance(self):
         imp = ImageProcessor(self.TEST_JETSON_SINGLE_MARKER.img_path)
         corners, ids = imp._find_fiducial_markers()
-        dist = imp._find_distance(corners[0])
+        dist = imp._find_distance(corners)
         print(dist)
         self.assertGreater(dist[0], 0.8)
         self.assertLess(dist[0], 1.0)
@@ -160,14 +229,14 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
         # TODO: needs to be rewritten for new method
         self.fail()
         # get hard-coded results
-        corners = self.TEST_SINGLE_MARKER.corners
+        corners, _ = ImageProcessor._simplify_fiducial_arrays(self.TEST_SINGLE_MARKER.corners, [[0]])
         marker_list = [AeroCubeMarker(0, AeroCubeFace.ZENITH, corners[0])]
         aerocube_list = [AeroCube(marker_list)]
         # get ImP results
         imp = ImageProcessor(self.TEST_SINGLE_MARKER.img_path)
         scan_results = imp.identify_markers_for_storage()
         # assert equality
-        self.assertTrue(np.array_equal(aerocube_list, scan_results))
+        np.testing.assert_array_equal(aerocube_list, scan_results)
 
     # drawing functions
 
@@ -179,7 +248,7 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
 
     def test_draw_axis(self):
         imp = ImageProcessor(self.TEST_JETSON_SINGLE_MARKER.img_path)
-        rvecs, tvecs = imp._find_pose()
+        rvecs, tvecs = imp._find_pose(imp._find_fiducial_markers()[0])
         img = imp.draw_axis(imp.rodrigues_to_quaternion(rvecs[0]), tvecs[0])
         self.assertIsNotNone(img)
 
@@ -191,7 +260,7 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
         http://stackoverflow.com/questions/12933284/rodrigues-into-eulerangles-and-vice-versa
         """
         imp = ImageProcessor(self.TEST_JETSON_SINGLE_MARKER.img_path)
-        rvecs, _ = imp._find_pose()
+        rvecs, _ = imp._find_pose(imp._find_fiducial_markers()[0])
         test_quat = imp.rodrigues_to_quaternion(rvecs[0])
         # get rotation matrices
         rot_mat_orig = cv2.Rodrigues(rvecs[0])[0]
@@ -207,7 +276,7 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
 
     def test_rodrigues_to_quaternion(self):
         imp = ImageProcessor(self.TEST_JETSON_SINGLE_MARKER.img_path)
-        rvecs, _ = imp._find_pose()
+        rvecs, _ = imp._find_pose(imp._find_fiducial_markers()[0])
         # test value
         test_quat = imp.rodrigues_to_quaternion(rvecs[0])
         # true value
