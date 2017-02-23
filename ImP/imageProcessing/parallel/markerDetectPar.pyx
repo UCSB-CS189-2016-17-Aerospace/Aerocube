@@ -490,7 +490,6 @@ def _filter_detected_markers(corners, ids):
     :return: (corners, ids) tuple
     """
 
-    # below is some cython code
     cdef int i
     cdef int j
     cdef int p
