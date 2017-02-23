@@ -5,6 +5,7 @@ from cv2 import aruco
 import numpy as np
 cimport numpy as np
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
+from libcpp cimport bool as bool_t
 
 
 # ALGORITHM PARAMETERS
@@ -488,6 +489,13 @@ def _filter_detected_markers(corners, ids):
     :param ids:
     :return: (corners, ids) tuple
     """
+
+    # below is some cython code
+    cdef int i
+    cdef int j
+    cdef int p
+    cdef bool_t inside
+
     # Check that corners size is equal to id size, not sure if assert is done correctly
     assert len(corners) == len(ids)
 
