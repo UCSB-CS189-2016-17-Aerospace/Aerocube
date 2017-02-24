@@ -8,6 +8,10 @@ from ImP.imageProcessing.settings import ImageProcessingSettings
 
 
 class TestMarkerDetectPar(unittest.TestCase):
+    """
+    Concerned with testing the accuracy/correctness of markerDetectPar with respect to markerDetectParGold (which
+    should be verified as being essentially identical to the Aruco detectMarker method).
+    """
     @classmethod
     def setUpClass(cls):
         cls._CAPSTONE_PHOTO_DIR = os.path.join(ImageProcessingSettings.get_test_files_path(),

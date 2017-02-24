@@ -401,7 +401,6 @@ class MarkerDetectPar:
         else:
             # Shift corner positions to correct rotation before returning
             return True, np.roll(corners, rotation, axis=0), cand_id
-        pass
 
     @classmethod
     def _extract_bits(cls, gray, corners):

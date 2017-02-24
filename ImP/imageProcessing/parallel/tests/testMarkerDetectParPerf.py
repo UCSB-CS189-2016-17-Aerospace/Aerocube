@@ -22,6 +22,9 @@ except ImportError:
 
 
 class TestMarkerDetectParPerf(unittest.TestCase):
+    """
+    Concerned with testing the performance rather than the accuracy/correctness of markerDetectPar.
+    """
     @classmethod
     def setUpClass(cls):
         cls._CAPSTONE_PHOTO_PATH = os.path.join(ImageProcessingSettings.get_test_files_path(), 'capstone_class_photoshoot')
