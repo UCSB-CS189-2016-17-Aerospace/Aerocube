@@ -1,18 +1,19 @@
 import pickle
+
 import cv2
+
+from jobs.aeroCubeSignal import *
 from .settings import *
-from eventClass.aeroCubeSignal import *
 
 
-def store(location, pickleable, use_relative_location=True):
+def store(rel_path, data):
     """
     Public abstraction of storage
-    :param location: string path
-    :param pickleable: data that can be pickled
-    :param use_relative_location: bool
-    :return: An event containing a signal that describes success or failure
+    :param rel_path: string path, relative to storage directory (defined by dataStorage module)
+    :param data: data that can be pickled
+    :return: Boolean indicating whether storage was successful or not
     """
-    return _store_json(get_storage_directory() + location, pickleable)
+    return _store_json(get_storage_directory() + rel_path, data)
 
 
 # TODO: need test
@@ -36,14 +37,14 @@ def _store_json(location, json):
     """
     'Private' method to store json data
     :param location: the location of the file
-    :param json:
-    :return:
+    :param json: data to store
+    :return: boolean indicating whether store was successful or not
     """
     try:
         pickle.dump(json, open(location, "wb"), pickle.HIGHEST_PROTOCOL)
-        # return ResultEventSignal.INTERN_STORE_OP_OK
+        return True
     except OSError as err:
-        return ResultEventSignal.INTERN_STORE_OP_FAILED
+        return False
 
 
 def _retrieve_json(location):

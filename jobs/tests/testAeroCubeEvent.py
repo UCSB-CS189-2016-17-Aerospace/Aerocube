@@ -1,7 +1,8 @@
-from .aeroCubeEvent import AeroCubeEvent, ImageEvent, ResultEvent, SystemEvent
-from .aeroCubeSignal import *
-from .bundle import Bundle, BundleKeyError
 import unittest
+
+from jobs.aeroCubeEvent import ImageEvent, StorageEvent, ResultEvent, SystemEvent
+from jobs.aeroCubeSignal import *
+from jobs.bundle import Bundle, BundleKeyError
 
 
 class TestAeroCubeEventInit(unittest.TestCase):
@@ -109,6 +110,23 @@ class TestAeroCubeEvent(unittest.TestCase):
     def test_merge_payload_invalid_arg(self):
         self.fail()
 
+    def test_storage_event_parse_storage_keys(self):
+        scan_id = "123456789"
+        scan_corners = [[11., 12.],
+                        [13., 14.],
+                        [15., 16.],
+                        [17., 18.]]
+        scan_marker_ids = [[0]]
+        payload = Bundle()
+        payload.insert_string(ImageEvent.SCAN_ID, scan_id)
+        payload.insert_iterable(ImageEvent.SCAN_CORNERS, scan_corners)
+        payload.insert_iterable(ImageEvent.SCAN_MARKER_IDS, scan_marker_ids)
+        payload.insert_iterable(StorageEvent.INT_STORE_PAYLOAD_KEYS, ['strings:' + ImageEvent.SCAN_ID,
+                                                                      'iterables:' + ImageEvent.SCAN_CORNERS,
+                                                                      'iterables:' + ImageEvent.SCAN_MARKER_IDS])
+        event = StorageEvent(StorageEventSignal.STORE_INTERNALLY, payload)
+        self.assertEqual(event.parse_storage_keys(), [scan_id, scan_corners, scan_marker_ids])
+
 
 class TestAeroCubeSignal(unittest.TestCase):
 
@@ -130,13 +148,14 @@ class TestAeroCubePayload(unittest.TestCase):
         cls._VALID_STRING = 'a string'
 
     def setUp(self):
-        self._event = ImageEvent(ImageEventSignal.GET_AEROCUBE_POSE)
+        self._event = ImageEvent(ImageEventSignal.GET_AEROCUBE_POSE, Bundle())
 
     def tearDown(self):
-        self._event = None
+        del self._event._payload
+        del self._event
 
     def test_init_payload(self):
-        self.assertEqual(self._event._payload, Bundle())
+        self.assertEqual(self._event.payload, Bundle())
 
     def test_retrieve_from_empty_payload(self):
         self.assertRaises(BundleKeyError, self._event._payload.strings, self._VALID_KEY)

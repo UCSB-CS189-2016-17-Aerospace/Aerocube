@@ -1,10 +1,49 @@
-from flask import Flask
 import unittest
 import requests
 import subprocess
 import os
 import flaskServer.restEndpoint as restEndpoint
 from .settings import FlaskServerSettings
+
+
+class TestRestEndpointInstantiationMethods(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        restEndpoint._handler = None
+        restEndpoint._client = None
+
+    def test_handler_and_client_none_on_load(self):
+        self.assertIsNone(restEndpoint._handler)
+        self.assertIsNone(restEndpoint._client)
+
+    def test_handler_not_none_after_get_and_matching_id(self):
+        self.assertIsNone(restEndpoint._handler)
+        handler = restEndpoint.get_job_handler()
+        self.assertIsNotNone(restEndpoint._handler)
+        self.assertEqual(id(handler), id(restEndpoint._handler))
+
+    def test_client_not_none_after_get_and_matching_id(self):
+        self.assertIsNone(restEndpoint._client)
+        client = restEndpoint.get_tcp_client()
+        self.assertIsNotNone(restEndpoint._client)
+        self.assertEqual(id(client), id(restEndpoint._client))
+
+    def test_create_flask(self):
+        app, api = restEndpoint.create_flask_app()
+        self.assertIsNotNone(app)
+        self.assertIsNotNone(api)
+        self.assertEqual(app.config[restEndpoint.PhotoUpload.UPLOAD_FOLDER], FlaskServerSettings.get_static_img_dir())
+
+    def test_initialize_endpoint(self):
+        self.assertIsNone(restEndpoint._handler)
+        self.assertIsNone(restEndpoint._client)
+        handler, client, app, api = restEndpoint.initialize_endpoint()
+        self.assertIsNotNone(restEndpoint._handler)
+        self.assertIsNotNone(restEndpoint._client)
+        self.assertIsNotNone(app)
+        self.assertIsNotNone(api)
 
 
 class TestRestEndpoint(unittest.TestCase):
@@ -19,10 +58,19 @@ class TestRestEndpoint(unittest.TestCase):
     _static_img_path = os.path.join(FlaskServerSettings.get_static_img_dir(), _test_img)
 
     def setUp(self):
-        restEndpoint.app.config['TESTING'] = True
+        self.handler, self.client, self.app, self.api = restEndpoint.initialize_endpoint()
+        self.app.config['TESTING'] = True
         self.app = restEndpoint.app.test_client()
 
     def tearDown(self):
+        # Remove references to JobHandler
+        restEndpoint._handler = None
+        del self.handler
+        # Close TcpClient connection
+        restEndpoint._client.close()
+        restEndpoint._client = None
+        del self.client
+        # Remove test image
         subprocess.call(['rm', self._static_img_path])
 
     def test_successful_upload(self):
@@ -38,7 +86,7 @@ class TestRestEndpoint(unittest.TestCase):
         requests.post('http://127.0.0.1:5005/api/uploadImage', files=files)
         ls_command = subprocess.getoutput('ls ' + self._static_img_dir)
         self.assertTrue(self._test_img in ls_command.split('\n'),
-                        msg='Postcondition: {0} was not sucessfully created at the API image upload endpoint.'.format(self._test_img))
+                        msg='Postcondition: {0} was not successfully created at the API image upload endpoint.'.format(self._test_img))
 
 
 if __name__ == '__main__':
