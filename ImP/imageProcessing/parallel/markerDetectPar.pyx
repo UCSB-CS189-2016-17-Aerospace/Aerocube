@@ -494,6 +494,8 @@ def _filter_detected_markers(corners, ids):
     cdef int j
     cdef int p
     cdef bool_t inside
+    # Total runtime is actually slower with the line below (around 0.080 slower)
+    # cdef np.ndarray[np.uint8_t, ndim=1, cast=True] to_remove
 
     # Check that corners size is equal to id size, not sure if assert is done correctly
     assert len(corners) == len(ids)

@@ -8,9 +8,14 @@ from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker
 from ImP.imageProcessing.parallel.markerDetectParGold import MarkerDetectPar
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 from ImP.imageProcessing.settings import ImageProcessingSettings
-# Import the GpuWrapper and immediately initialize it
-import ImP.imageProcessing.parallel.cuda.GpuWrapper as GpuWrapper
-GpuWrapper.init()
+# Import the GpuWrapper and immediately initialize it, if successful
+try:
+    import ImP.imageProcessing.parallel.cuda.GpuWrapper as GpuWrapper
+    GpuWrapper.init()
+    noCUDA = False
+except ImportError:
+    print("CUDA library could not be imported")
+    noCUDA = True
 
 
 class TestMarkerDetectPar(unittest.TestCase):
