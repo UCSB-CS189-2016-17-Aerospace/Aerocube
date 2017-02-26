@@ -51,7 +51,7 @@ class Logger:
             log_statement += ':{}'.format(msg)
             print(log_statement)
             if id is not None and self._firebase:
-                external_write('firebase', str(time.time()), 'logs/{}'.format(id), data=log_statement, testing=True)
+                external_write('firebase', scanID=str(time.time()), location='logs/{}'.format(id), data=log_statement, testing=True)
 
     def err(self, class_name, func_name, msg, id):
         self._log(LogType.error, class_name, func_name, msg, id)
