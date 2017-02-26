@@ -1,3 +1,4 @@
+from pyquaternion import Quaternion
 from enum import Enum
 import numpy as np
 from ImP.imageProcessing.settings import ImageProcessingSettings
@@ -7,12 +8,13 @@ from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker, IDOutOfDicti
 class AeroCubeMarker(FiducialMarker):
     MARKER_LENGTH = ImageProcessingSettings.get_marker_length()
 
-    def __init__(self, aerocube_ID, aerocube_face, corners):
-        self.aerocube_ID = aerocube_ID
-        self.aerocube_face = aerocube_face
+    def __init__(self, FiducialMarkerID, corners, quaternion,rvec,tvec):
+        self.aerocube_ID = self._FidID_to_AeroID(FiducialMarkerID)
+        self.aerocube_face = self._FidID_to_AeroFace(FiducialMarkerID)
         self.corners = corners
-        self._rvec = None  # rotation vector
-        self._tvec = None  # translation vector
+        self.quaternion=quaternion
+        self._rvec = rvec  # rotation vector
+        self._tvec = tvec  # translation vector
 
     def __eq__(self, other):
         if type(self) is type(other):
@@ -21,6 +23,12 @@ class AeroCubeMarker(FiducialMarker):
                     np.array_equal(self.corners, other.corners))
         else:
             return False
+
+    def _FidID_to_AeroID(FiducialMarkerID):
+        return AeroCube.NUM_SIDES // FiducialMarkerID
+
+    def _FidID_to_AeroFace(FiducialMarkerID):
+        return AeroCube.NUM_SIDES % FiducialMarkerID
 
     @property
     def aerocube_ID(self):
@@ -89,9 +97,25 @@ class AeroCubeMarker(FiducialMarker):
 
 
 class AeroCubeFace(Enum):
-    # Zenith is defined as the side facing away from the Earth
-    # Nadir is defined as the side facing towards the Earth
-    ZENITH, NADIR, FRONT, RIGHT, BACK, LEFT = range(6)
+    #    Zenith is defined as the side facing away from the Earth
+    #   Nadir is defined as the side facing towards the Earth
+    ZENITH = 0
+    NADIR = 1
+    FRONT = 2
+    RIGHT = 3
+    BACK = 4
+    LEFT = 5
+
+    def __init__(self, id):
+        quaternions = {
+            0: [.7071, .7071, 0, 0],
+            1: [.7071, -.7071, 0, 0],
+            2: [0, 0, 0, 0],
+            3: [.7071, 0, -.7071, 0],  # these might be wrong
+            4: [0, 0, 1, 0],
+            5: [.7071, 0, .7071, 0] # these might be wrong
+        }
+        self.quaternion = Quaternion(quaternions[id])
 
 
 class AeroCube():
@@ -105,14 +129,16 @@ class AeroCube():
         _MARKERS_HAVE_MANY_AEROCUBES: "AeroCube Markers do not belong to same AeroCube (IDs are {})"
     }
 
-    def __init__(self, markers):
+    def __init__(self, marker):
         # Check if arguments are valid
-        self.raise_if_markers_invalid(markers)
+        self.raise_if_markers_invalid(marker)
         # Set instance variables
-        self._markers = markers
-        self._ID = markers[0].aerocube_ID
+        self._markers=[]
+        self._markers.append(marker)
+        self._ID = marker.aerocube_ID
         self._rvec = None
         self._tvec = None
+        self.quaternion=marker.quaternion*marker.aerocube_face.quaternion
 
     def __eq__(self, other):
         """
@@ -127,6 +153,12 @@ class AeroCube():
             np.array_equal(self.markers, other.markers) and \
             np.array_equal(self.rvec, other.rvec) and \
             np.array_equal(self.tvec, other.tvec)
+    def addMarker(self,marker):
+        if (self.ID==marker.aerocubeID):
+            self._markers.append(marker)
+        else:
+            raise AttributeError(AeroCube._ERR_MESSAGES[AeroCube._MARKERS_HAVE_MANY_AEROCUBES])
+
 
     @property
     def markers(self):
