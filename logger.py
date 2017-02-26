@@ -1,8 +1,6 @@
 import time
 from enum import Enum
 
-from externalComm.externalComm import external_write
-
 # This should not be changed in any commit, only used locally
 global_log_disable = False
 
@@ -48,7 +46,7 @@ class Logger:
             if class_name is not None:
                 log_statement += '.{}'.format(class_name)
             log_statement += '.{}'.format(func_name)
-            log_statement += ':{}'.format(msg)
+            log_statement += ': {}'.format(msg)
             print(log_statement)
             if id is not None and self._firebase:
                 external_write('firebase', scanID=str(time.time()), location='logs/{}'.format(id), data=log_statement, testing=True)
@@ -70,3 +68,6 @@ class Logger:
 
     def disable(self):
         self._active = False
+
+# Must be after Logger to handle circular dependency issue
+from externalComm.externalComm import external_write
