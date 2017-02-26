@@ -3,6 +3,9 @@ from enum import Enum
 
 from externalComm.externalComm import external_write
 
+# This should not be changed in any commit, only used locally
+global_log_disable = False
+
 
 class LogType(Enum):
     success = 0
@@ -40,7 +43,7 @@ class Logger:
         self._firebase = firebase
 
     def _log(self, log_type, class_name=None, func_name='', msg='', id=None):
-        if self._active:
+        if self._active and not global_log_disable:
             log_statement = '{}: {}'.format(log_type, self._filename)
             if class_name is not None:
                 log_statement += '.{}'.format(class_name)
