@@ -49,6 +49,9 @@ class Logger:
             log_statement += ': {}'.format(msg)
             print(log_statement)
             if id is not None and self._firebase:
+                # Defer imports until needed to handle circular dependency issue
+                from externalComm.externalComm import external_write
+                from externalComm.commClass import FirebaseComm
                 external_write(FirebaseComm.NAME, scanID=str(time.time()), location='logs/{}'.format(id), data=log_statement, testing=True)
 
     def err(self, class_name, func_name, msg, id):
@@ -68,7 +71,3 @@ class Logger:
 
     def disable(self):
         self._active = False
-
-# Must be after Logger to handle circular dependency issue
-from externalComm.externalComm import external_write
-from externalComm.commClass import FirebaseComm
