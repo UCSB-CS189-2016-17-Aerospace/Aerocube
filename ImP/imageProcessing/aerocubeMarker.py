@@ -13,7 +13,7 @@ class AeroCubeMarker(FiducialMarker):
         # self.aerocube_face = self._FidID_to_AeroFace(FiducialMarkerID)
         self.aerocube_ID, self.aerocube_face = self.identify_marker_ID(fiducial_marker_id)
         self.corners = corners
-        self.quaternion=quaternion
+        self.quaternion = quaternion
         self._rvec = rvec  # rotation vector
         self._tvec = tvec  # translation vector
 
@@ -109,7 +109,7 @@ class AeroCubeFace(Enum):
     BACK = 4
     LEFT = 5
 
-    def __init__(self, id):
+    def __init__(self, face_id):
         quaternions = {
             0: [.7071, .7071, 0, 0],
             1: [.7071, -.7071, 0, 0],
@@ -118,7 +118,7 @@ class AeroCubeFace(Enum):
             4: [0, 0, 1, 0],
             5: [.7071, 0, .7071, 0] # these might be wrong
         }
-        self.quaternion = Quaternion(quaternions[id])
+        self.quaternion = Quaternion(quaternions[face_id])
 
 
 class AeroCube:
@@ -138,13 +138,13 @@ class AeroCube:
         # self.raise_if_markers_invalid(marker)
 
         # Set instance variables
-        self._markers=[]
+        self._markers = []
         print("making Aerocube")
         self._markers.append([marker])
         self._ID = marker.aerocube_ID
         self._rvec = None
         self._tvec = None
-        self.quaternion=marker.quaternion*marker.aerocube_face.quaternion
+        self.quaternion = marker.quaternion*marker.aerocube_face.quaternion
 
     def __eq__(self, other):
         """
@@ -165,7 +165,6 @@ class AeroCube:
             self._markers.append(marker)
         else:
             raise AttributeError(AeroCube._ERR_MESSAGES[AeroCube._MARKERS_HAVE_MANY_AEROCUBES])
-
 
     @property
     def markers(self):
