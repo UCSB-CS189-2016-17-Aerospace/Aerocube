@@ -85,9 +85,7 @@ class Controller:
                 func_name='scan_image',
                 msg='Finding fiducial markers',
                 id=img_event.payload.strings(job_id_bundle_key))
-            corners, marker_ids, poses = imp.identify_markers_for_storage()
-            # Ensure data is JSONifiable
-            corners, marker_ids = np.array(corners).tolist(), np.array(marker_ids).tolist()
+            markers_as_json = imp.identify_markers_for_storage()
             logger.success(
                 self.__class__.__name__,
                 func_name='scan_image',
@@ -97,10 +95,8 @@ class Controller:
             result_signal = ResultEventSignal.OK
             # Prepare bundle from original
             result_bundle = img_event.payload
-            result_bundle.insert_string(ImageEvent.SCAN_ID, str(img_event.created_at).split('.')[0])
-            result_bundle.insert_iterable(ImageEvent.SCAN_CORNERS, corners)
-            result_bundle.insert_iterable(ImageEvent.SCAN_MARKER_IDS, marker_ids)
-            result_bundle.insert_iterable(ImageEvent.SCAN_POSES, poses)
+            result_bundle.insert_string(ImageEvent.SCAN_ID, 'scans/' + str(img_event.created_at).split('.')[0])
+            result_bundle.insert_iterable(ImageEvent.SCAN_MARKERS, markers_as_json)
             logger.success(
                 self.__class__.__name__,
                 func_name='scan_image',

@@ -168,6 +168,7 @@ class ImageEvent(AeroCubeEvent):
     """
     FILE_PATH = 'FILE_PATH'
     SCAN_ID = 'SCAN_ID'
+    SCAN_MARKERS = 'SCAN_MARKERS'
     SCAN_CORNERS = 'SCAN_CORNERS'
     SCAN_MARKER_IDS = 'SCAN_MARKER_IDS'
     SCAN_POSES = 'SCAN_POSES'

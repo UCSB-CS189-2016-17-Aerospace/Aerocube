@@ -64,11 +64,11 @@ class AeroCubeMarker(FiducialMarker):
 
     def to_json(self):
         json_dict = {
-            "AEROCUBE_ID": self.aerocube_ID,
-            "AEROCUBE_FACE": self.aerocube_face,
-            "CORNERS": self.corners,
-            "QUATERNION": {k: v for k, v in zip(['w', 'x', 'y', 'z'], self.quaternion.elements)},
-            "DISTANCE": self.distance
+            "aerocubeID": int(self.aerocube_ID),
+            "aerocubeFace": self.aerocube_face.value,
+            "corners": np.array(self.corners).tolist(),
+            "quaternion": {k: v for k, v in zip(['w', 'x', 'y', 'z'], self.quaternion.elements)},
+            "distance": self.distance
         }
         return json.dumps(json_dict)
 
