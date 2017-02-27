@@ -31,9 +31,6 @@ class Logger:
     :ivar _active:
     :ivar _firebase: Whether or not to save logs to firebase
     """
-    _filename = ''
-    _active = False
-    _firebase = True
 
     def __init__(self, filename, active=False, firebase=True):
         self._filename = filename
