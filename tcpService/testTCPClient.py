@@ -7,6 +7,11 @@ import pickle
 
 
 class TcpClientTestCase(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		from logger import Logger
+		Logger.prevent_external()
+
 	def setUp(self):
 		self.serv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.portNumber = random.randrange(5005, 6000, 1)

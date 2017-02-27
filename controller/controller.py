@@ -12,7 +12,7 @@ from logger import Logger
 from tcpService.settings import TcpSettings
 from tcpService.tcpServer import TcpServer
 
-logger = Logger('controller.py', active=True, firebase=True)
+logger = Logger('controller.py', active=True, external=True)
 
 
 class Controller:

@@ -12,6 +12,8 @@ class TestJobHandler(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        from logger import Logger
+        Logger.prevent_external()
         cls.image_event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
         cls.other_image_event = ImageEvent(ImageEventSignal.GET_AEROCUBE_POSE)
         cls.result_event = ResultEvent(ResultEventSignal.IMP_OPERATION_OK,

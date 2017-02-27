@@ -12,6 +12,8 @@ class TestAeroCubeJobEventNode(unittest.TestCase):
         cls._WARN_RESULT_EVENT = ResultEvent(ResultEventSignal.WARN, cls._IMAGE_EVENT.uuid)
         cls._ERR_RESULT_EVENT = ResultEvent(ResultEventSignal.ERROR, cls._IMAGE_EVENT.uuid)
         cls._LEAF_EVENT_NODE = AeroCubeJobEventNode(event=cls._IMAGE_EVENT)
+        from logger import Logger
+        Logger.prevent_external()
 
     @classmethod
     def tearDownClass(cls):
@@ -65,7 +67,8 @@ class TestAeroCubeJobEventNode(unittest.TestCase):
 class TestAeroCubeJob(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        pass
+        from logger import Logger
+        Logger.prevent_external()
 
     def setUp(self):
         self._IMAGE_EVENT = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
@@ -150,6 +153,11 @@ class TestAeroCubeJob(unittest.TestCase):
 
 
 class TestAeroCubeJobConstructors(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from logger import Logger
+        Logger.prevent_external()
+
     def test_create_image_upload_job(self):
         img_path = "my_phony_path"
         job = AeroCubeJob.create_image_upload_job(img_path,

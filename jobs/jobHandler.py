@@ -5,7 +5,7 @@ from .aeroCubeJob import AeroCubeJob
 from .aeroCubeSignal import *
 from .settings import job_id_bundle_key
 
-logger = Logger('jobHandler.py', active=True, firebase=True)
+logger = Logger('jobHandler.py', active=True, external=True)
 
 
 class JobHandler(object):

@@ -14,6 +14,8 @@ class TestBundle(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        from logger import Logger
+        Logger.prevent_external()
         cls._bundle = Bundle()
         cls._messages = Bundle._ERROR_MESSAGES
         # Keys

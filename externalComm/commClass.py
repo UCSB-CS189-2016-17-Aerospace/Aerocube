@@ -4,7 +4,7 @@ import pyrebase
 
 from logger import Logger
 
-logger = Logger('commClass.py', active=True, firebase=False)
+logger = Logger('commClass.py', active=True, external=False)
 
 
 class Comm():
