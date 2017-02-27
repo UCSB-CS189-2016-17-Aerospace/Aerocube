@@ -86,7 +86,6 @@ class Controller:
                 msg='Finding fiducial markers',
                 id=img_event.payload.strings(job_id_bundle_key))
             corners, marker_ids, poses = imp.identify_markers_for_storage()
-            print('Controller.scan_image: Idenified')
             # Ensure data is JSONifiable
             corners, marker_ids = np.array(corners).tolist(), np.array(marker_ids).tolist()
             logger.success(
