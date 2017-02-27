@@ -62,7 +62,7 @@ class AeroCubeMarker(FiducialMarker):
             aerocube_id * AeroCube.NUM_SIDES + AeroCube.NUM_SIDES <= AeroCubeMarker.get_dictionary_size()
         )
 
-    def to_json(self):
+    def to_jsonifiable_dict(self):
         json_dict = {
             "aerocubeID": int(self.aerocube_ID),
             "aerocubeFace": self.aerocube_face.value,
@@ -70,7 +70,7 @@ class AeroCubeMarker(FiducialMarker):
             "quaternion": {k: v for k, v in zip(['w', 'x', 'y', 'z'], self.quaternion.elements)},
             "distance": self.distance
         }
-        return json.dumps(json_dict)
+        return json_dict
 
     @staticmethod
     def _get_aerocube_marker_IDs(aerocube_ID):
@@ -177,7 +177,7 @@ class AeroCube:
 
     def to_json(self):
         json_dict = {
-            "MARKERS": [m.to_json() for m in self.markers],
+            "MARKERS": [m.to_jsonifiable_dict() for m in self.markers],
             "ID": self.ID,
             "QUATERNION": self.quaternion
         }

@@ -212,7 +212,7 @@ class ImageProcessor:
         #     q_list.append({k: v for k, v in zip(['w', 'x', 'y', 'z'], cube.quaternion.elements)})
         #     ids.append(cube.ID)
         # return corners, ids, q_list
-        return [marker.to_json() for marker in self._find_aerocube_markers()]
+        return [marker.to_jsonifiable_dict() for marker in self._find_aerocube_markers()]
 
     # Pose and distance functions
 

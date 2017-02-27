@@ -95,8 +95,8 @@ class Controller:
             result_signal = ResultEventSignal.OK
             # Prepare bundle from original
             result_bundle = img_event.payload
-            result_bundle.insert_string(ImageEvent.SCAN_ID, 'scans/' + str(img_event.created_at).split('.')[0])
-            result_bundle.insert_iterable(ImageEvent.SCAN_MARKERS, markers_as_json)
+            result_bundle.insert_string(ImageEvent.SCAN_ID, str(img_event.created_at).split('.')[0])
+            result_bundle.insert_raw(ImageEvent.SCAN_MARKERS, markers_as_json)
             logger.success(
                 self.__class__.__name__,
                 func_name='scan_image',
@@ -144,6 +144,8 @@ class Controller:
         database = store_event.payload.strings(StorageEvent.EXT_STORAGE_TARGET)
         scan_id = store_event.payload.strings(ImageEvent.SCAN_ID)
         data = store_event.parse_storage_keys()
+        print(store_event.payload)
+        print(data)
         img_data = store_event.payload.strings(ImageEvent.FILE_PATH)
         try:
             logger.debug(
