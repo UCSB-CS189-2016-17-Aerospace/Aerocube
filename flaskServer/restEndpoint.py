@@ -18,7 +18,7 @@ from .settings import FlaskServerSettings
 _handler = None
 _client = None
 
-logger = Logger('restEndpoint.py', active=True, firebase=True)
+logger = Logger('restEndpoint.py', active=True, external=True)
 
 
 def initialize_endpoint():

@@ -7,6 +7,11 @@ import os.path
 class TestFirebaseComm(unittest.TestCase):
     commTest = FirebaseComm(True)
 
+    @classmethod
+    def setUpClass(cls):
+        from logger import Logger
+        Logger.prevent_external()
+
     def test_write(self):
         self.commTest.write('test', '2', 'this is a test2')
         self.assertEqual(self.commTest.read('test', '2'), 'this is a test2')
@@ -26,6 +31,10 @@ class TestFirebaseComm(unittest.TestCase):
 
 
 class TestExternalComm(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from logger import Logger
+        Logger.prevent_external()
 
     def test_process_store(self):
         external_write(database=FirebaseComm.NAME, location='test', scanID='4', data='this is a process test2', testing=True)

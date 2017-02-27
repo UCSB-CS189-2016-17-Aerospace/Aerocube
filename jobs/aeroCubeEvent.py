@@ -8,7 +8,7 @@ from logger import Logger
 from .aeroCubeSignal import *
 from .bundle import Bundle
 
-logger = Logger('aeroCubeEvent.py', active=True, firebase=True)
+logger = Logger('aeroCubeEvent.py', active=True, external=True)
 
 
 class AeroCubeEvent(metaclass=ABCMeta):

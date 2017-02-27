@@ -3,7 +3,7 @@ import socket
 from logger import Logger
 from .tcpUtils import TcpUtil
 
-logger = Logger('tcpServer.py', active=True, firebase=False)
+logger = Logger('tcpServer.py', active=True, external=False)
 
 
 class TcpServer:
