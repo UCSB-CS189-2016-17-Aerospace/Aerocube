@@ -1,5 +1,5 @@
-class TcpSettings():
-    _buffer_size = 1024
+class TcpSettings:
+    _buffer_size = 4096
 
     @staticmethod
     def BUFFER_SIZE():

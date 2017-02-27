@@ -95,7 +95,7 @@ class Controller:
             result_signal = ResultEventSignal.OK
             # Prepare bundle from original
             result_bundle = img_event.payload
-            result_bundle.insert_string(ImageEvent.SCAN_ID, str(img_event.created_at).split('.')[0])
+            result_bundle.insert_string(ImageEvent.SCAN_ID, 'scans/' + str(img_event.created_at).split('.')[0])
             result_bundle.insert_raw(ImageEvent.SCAN_MARKERS, markers_as_json)
             logger.success(
                 self.__class__.__name__,

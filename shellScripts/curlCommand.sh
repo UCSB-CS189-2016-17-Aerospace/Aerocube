@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-IMG1=/home/$USER/GitHub/Aerocube/ImP/imageProcessing/test_files/jetson_test1.jpg
+#IMG1=/home/$USER/GitHub/Aerocube/ImP/imageProcessing/test_files/jetson_test1.jpg
+IMG1=/home/$USER/GitHub/Aerocube/ImP/imageProcessing/test_files/capstone_class_photoshoot/SPACE_1.JPG
 echo "Curling $IMG1"
 curl -F photo=@${IMG1} https://localhost:3000/api/uploadImage -k
 # echo "/home/ubuntu/GitHub/Aerocube/flaskServer/static/img/epicEarthMoon.png"
