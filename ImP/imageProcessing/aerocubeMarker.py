@@ -24,21 +24,21 @@ class AeroCubeMarker(FiducialMarker):
         else:
             return False
 
-    def _FidID_to_AeroID(FiducialMarkerID):
-        return AeroCube.NUM_SIDES // FiducialMarkerID
+    def _FidID_to_AeroID(self,FiducialMarkerID):
+        return FiducialMarkerID % AeroCube.NUM_SIDES
 
-    def _FidID_to_AeroFace(FiducialMarkerID):
-        return AeroCube.NUM_SIDES % FiducialMarkerID
+    def _FidID_to_AeroFace(self,FiducialMarkerID):
+        return AeroCubeFace(FiducialMarkerID % AeroCube.NUM_SIDES)
 
-    @property
-    def aerocube_ID(self):
-        return self._aerocube_ID
+   # @property
+ #   def aerocube_ID(self):
+  #      return self._aerocube_ID
 
-    @aerocube_ID.setter
-    def aerocube_ID(self, ID):
-        if not self._valid_aerocube_ID(ID):
-            raise AeroCubeMarkerAttributeError("Invalid AeroCube ID")
-        self._aerocube_ID = ID
+    #@aerocube_ID.setter
+    #def aerocube_ID(self, ID):
+     #   if not self._valid_aerocube_ID(ID):
+      #      raise AeroCubeMarkerAttributeError("Invalid AeroCube ID")
+       # self._aerocube_ID = ID
 
     @property
     def aerocube_face(self):
@@ -131,10 +131,11 @@ class AeroCube():
 
     def __init__(self, marker):
         # Check if arguments are valid
-        self.raise_if_markers_invalid(marker)
+#        self.raise_if_markers_invalid(marker)
         # Set instance variables
         self._markers=[]
-        self._markers.append(marker)
+        print("making Aerocube")
+        self._markers.append([marker])
         self._ID = marker.aerocube_ID
         self._rvec = None
         self._tvec = None

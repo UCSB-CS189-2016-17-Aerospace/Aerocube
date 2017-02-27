@@ -65,6 +65,7 @@ class Controller:
             print('Controller.scan_image: Finding fiducial markers')
             # TODO: replace with imp.scan_image(signal)
             corners, marker_ids, poses = imp.identify_markers_for_storage()
+            print('Controller.scan_image: Idenified')
             # Ensure data is JSONifiable
             corners, marker_ids = np.array(corners).tolist(), np.array(marker_ids).tolist()
             print('Controller.scan_image: Done with scan!')

@@ -93,20 +93,29 @@ class ImageProcessor:
         corners, ids = self._find_fiducial_markers()
         rvecs, tvecs = self._find_pose()
         quaternions = [self.rodrigues_to_quaternion(r) for r in rvecs]
-        aeroCubeMarkers= dict()
+        aeroCubeMarkers= list()
+        print("IMFS:ids from scan {}".format(ids))
         for i in range(len(ids)):
-            aeroCubeMarkers.append(AeroCubeMarker(ids[i],corners[i],quaternions[i],rvecs[i],tvecs[i]))
+            aeroCubeMarkers.append(AeroCubeMarker(ids[i][0],corners[i],quaternions[i],rvecs[i],tvecs[i]))
         aeroCubes={}
+
         for aeroMarker in aeroCubeMarkers:
             IdKey=aeroMarker.aerocube_ID
-            if(aeroCubes.has_key(IdKey)):
+            print("IMFS:IdKey is {}".format(IdKey))
+            print("aerocubes.keys() {}".format(aeroCubes.keys()))
+            print("IMFS: adding AeroCube {}".format(AeroCube(aeroMarker)))
+            if(IdKey in aeroCubes.keys()):
+                print("IMFS: multipul markers for same Aerocube")
                 aeroCubes.get(IdKey).addMarker(aeroMarker)
             else:
-                aeroCubes.update({aeroMarker.aerocube_ID,AeroCube(aeroMarker)})
+                print("IMFS: new IdKey found {}".format(IdKey))
+                aeroCubes[IdKey]=AeroCube(aeroMarker)
+        print("IMFS:aeroCubes is {}".format(aeroCubes))
+
         ids=list()
         q_list = list()
         for cube in aeroCubes.values():
-            q_list.append({k: v for k, v in zip(['w', 'x', 'y', 'z'], cube.quaternion.elements)})
+            q_list.append({k: v for k, v in zip(['w', 'x', 'y', 'z'],cube.quaternion.elements)})
             ids.append(cube.ID)
         return corners, ids, q_list
 
