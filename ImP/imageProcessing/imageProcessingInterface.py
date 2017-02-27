@@ -181,7 +181,7 @@ class ImageProcessor:
             print("IMFS: adding AeroCube {}".format(AeroCube(aeroMarker)))
             if(IdKey in aeroCubes.keys()):
                 print("IMFS: multipul markers for same Aerocube")
-                aeroCubes.get(IdKey).addMarker(aeroMarker)
+                aeroCubes.get(IdKey).add_marker(aeroMarker)
             else:
                 print("IMFS: new IdKey found {}".format(IdKey))
                 aeroCubes[IdKey]=AeroCube(aeroMarker)

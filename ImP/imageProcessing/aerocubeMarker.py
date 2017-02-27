@@ -93,12 +93,12 @@ class AeroCubeMarker(FiducialMarker):
             raise IDOutOfDictionaryBoundError('Invalid Marker ID')
         aerocube_ID = marker_ID // AeroCube.NUM_SIDES
         aerocube_face = AeroCubeFace(marker_ID % AeroCube.NUM_SIDES)
-        return (aerocube_ID, aerocube_face)
+        return aerocube_ID, aerocube_face
 
 
 class AeroCubeFace(Enum):
-    #    Zenith is defined as the side facing away from the Earth
-    #   Nadir is defined as the side facing towards the Earth
+    # Zenith is defined as the side facing away from the Earth
+    # Nadir is defined as the side facing towards the Earth
     ZENITH = 0
     NADIR = 1
     FRONT = 2
@@ -118,7 +118,7 @@ class AeroCubeFace(Enum):
         self.quaternion = Quaternion(quaternions[id])
 
 
-class AeroCube():
+class AeroCube:
     NUM_SIDES = 6
 
     # Give _ERR_MESSAGES keys unique, but otherwise arbitrary, values
@@ -126,12 +126,14 @@ class AeroCube():
 
     _ERR_MESSAGES = {
         _MARKERS_EMPTY:               "Markers for an AeroCube cannot be empty",
-        _MARKERS_HAVE_MANY_AEROCUBES: "AeroCube Markers do not belong to same AeroCube (IDs are {})"
+        _MARKERS_HAVE_MANY_AEROCUBES: "AeroCube Markers do not belong to same AeroCube (IDs are {})",
+        _DUPLICATE_MARKERS:           "Duplicate AeroCube Marker used (Fiducial ID: {})"
     }
 
     def __init__(self, marker):
         # Check if arguments are valid
-#        self.raise_if_markers_invalid(marker)
+        # self.raise_if_markers_invalid(marker)
+
         # Set instance variables
         self._markers=[]
         print("making Aerocube")
@@ -154,8 +156,9 @@ class AeroCube():
             np.array_equal(self.markers, other.markers) and \
             np.array_equal(self.rvec, other.rvec) and \
             np.array_equal(self.tvec, other.tvec)
-    def addMarker(self,marker):
-        if (self.ID==marker.aerocubeID):
+
+    def add_marker(self, marker):
+        if self.ID == marker.aerocubeID:
             self._markers.append(marker)
         else:
             raise AttributeError(AeroCube._ERR_MESSAGES[AeroCube._MARKERS_HAVE_MANY_AEROCUBES])
