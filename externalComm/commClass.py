@@ -1,5 +1,10 @@
 from abc import ABCMeta, abstractmethod
+
 import pyrebase
+
+from logger import Logger
+
+logger = Logger('commClass.py', active=True, firebase=False)
 
 
 class Comm():
@@ -57,7 +62,10 @@ class FirebaseComm(Comm):
         :return: data at location or none
         """
         result = self.db.child(location).child(id).get(self.token)
-        print(result.val())
+        logger.success(self.__class__.__name__,
+                       'read',
+                       msg='Data at {}/{}: {}'.format(location, id, result.val()),
+                       id=None)
         return result.val()
 
     def write(self, location, id, data):
@@ -93,7 +101,10 @@ class FirebaseComm(Comm):
     def imageDownload(self, id):
         auth = self.firebase.auth()
         user = auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
-        print(self.storage.child('images').get_url(user['idToken']))
+        logger.success(self.__class__.__name__,
+                       'imageDownload',
+                       msg='Image Url: {}'.format(self.storage.child('images').get_url(user['idToken'])),
+                       id=None)
         # prints out url to image
         # print(self.storage.child('images/test.jpg').get_url(self.token))
         self.storage.child('image/test.jpg').download('downloaded.jpg', user['idToken'])

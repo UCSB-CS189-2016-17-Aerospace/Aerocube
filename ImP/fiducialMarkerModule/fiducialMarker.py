@@ -16,6 +16,14 @@ class FiducialMarker:
         return FiducialMarker._dictionary_size
 
     @staticmethod
+    def get_marker_size():
+        return FiducialMarker.get_dictionary().markerSize
+
+    @staticmethod
+    def get_max_correction_bits():
+        return FiducialMarker.get_dictionary().maxCorrectionBits
+
+    @staticmethod
     def dictionary_equal(dict1, dict2):
         return (
             np.array_equal(dict1.bytesList, dict2.bytesList) and

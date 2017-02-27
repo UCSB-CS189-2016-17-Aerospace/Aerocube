@@ -1,24 +1,24 @@
-import os
 from flask import Flask, request
 from flask_cors import CORS
 from flask_restful import Resource, Api
 from werkzeug import secure_filename
 
 from controller.settings import ControllerSettings
-from jobs.aeroCubeEvent import ImageEvent, ResultEvent, AeroCubeEvent, StorageEvent
-from jobs.aeroCubeJob import AeroCubeJob, AeroCubeJobEventNode
-from jobs.aeroCubeSignal import *
-from jobs.bundle import Bundle
+from jobs.aeroCubeEvent import ResultEvent, AeroCubeEvent
+from jobs.aeroCubeJob import AeroCubeJob
 from jobs.jobHandler import JobHandler
+from jobs.settings import job_id_bundle_key
+from logger import Logger
 from tcpService.settings import TcpSettings
 from tcpService.tcpClient import TcpClient
-from externalComm.commClass import FirebaseComm
 from .settings import FlaskServerSettings
 
 # Module-level references to "singleton" objects
 
 _handler = None
 _client = None
+
+logger = Logger('restEndpoint.py', active=True, firebase=True)
 
 
 def initialize_endpoint():
@@ -93,7 +93,11 @@ def on_send_event(job_handler, event):
     """
     :param event:
     """
-    print('RestEndpoint.on_send_event: Started event about to send: \r\n{}\r\n'.format(event))
+    logger.debug(
+        class_name=None,
+        func_name='on_send_event',
+        msg='Started event about to send: \r\n{}\r\n'.format(event),
+        id=event.payload.strings(job_id_bundle_key))
     # Send through TCP Client
     client = get_tcp_client()
     client.send_to_controller(event.to_json())
@@ -102,17 +106,37 @@ def on_send_event(job_handler, event):
     decoded_response = client.receive_from_controller()
     result_event = AeroCubeEvent.construct_from_json(decoded_response)
     if not isinstance(result_event, ResultEvent):
-        print('RestEndpoint.on_send_event: Warning: Received message that is not instance of ResultEvent')
+        logger.warn(
+            class_name=None,
+            func_name='on_send_event',
+            msg='Received message that is not instance of ResultEvent',
+            id=result_event.payload.strings(job_id_bundle_key))
     else:
         try:
             event_resolved = job_handler.resolve_event(result_event)
-            print('RestEndpoint.on_send_event: event_resolved={} for event={}'.format(event_resolved, event))
+            logger.debug(
+                class_name=None,
+                func_name='on_send_event',
+                msg='Resolving event: event_resolved={} for event={}'.format(event_resolved, event),
+                id=result_event.payload.strings(job_id_bundle_key))
             if event_resolved is True:
-                print('RestEndpoint.on_send_event: Event is resolved!')
+                logger.success(
+                    class_name=None,
+                    func_name='on_send_event',
+                    msg='Event resolved!',
+                    id=result_event.payload.strings(job_id_bundle_key))
             elif not event_resolved:
-                print('RestEndpoint.on_send_event: Warning: unexpected unsuccessful event resolve!')
+                logger.warn(
+                    class_name=None,
+                    func_name='on_send_event',
+                    msg='Unexpected failure to resolve event!',
+                    id=result_event.payload.strings(job_id_bundle_key))
         except JobHandler.NotAllowedInStateException as e:
-            print(e)
+            logger.err(
+                class_name=None,
+                func_name='on_send_event',
+                msg=e,
+                id=result_event.payload.strings(job_id_bundle_key))
 
 
 def on_enqueue_job(job):
@@ -122,7 +146,11 @@ def on_enqueue_job(job):
 
 def on_dequeue_job(job):
     # Do we need anything here?
-    print('restEndpoint.on_dequeue_job: Job has dequeued: {}'.format(str(job)))
+    logger.debug(
+        class_name=None,
+        func_name='on_dequeue_job',
+        msg='Job has dequeued: {}'.format(str(job)),
+        id=None)
 
 
 class PhotoUpload(Resource):
@@ -134,7 +162,11 @@ class PhotoUpload(Resource):
     UPLOAD_FOLDER = 'UPLOAD_FOLDER'
 
     def __init__(self):
-        print("Constructor is called!")
+        logger.debug(
+            class_name=self.__class__.__name__,
+            func_name='init',
+            msg='Endpoint instantiated',
+            id=None)
 
     def get(self):
         """

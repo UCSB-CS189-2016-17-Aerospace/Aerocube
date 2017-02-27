@@ -56,7 +56,7 @@ class AeroCubeMarker(FiducialMarker):
 
     @corners.setter
     def corners(self, c):
-        if c.shape != (1, 4, 2):
+        if c.shape != (4, 2):
             raise AeroCubeMarkerAttributeError("Invalid corner matrix shape")
         self._corners = c
 

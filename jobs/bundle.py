@@ -2,6 +2,9 @@ import collections
 import json
 from numbers import Number
 
+from logger import Logger
+
+logger = Logger('bundle.py', active=True, firebase=False)
 
 class BundleKeyError(Exception):
     def __init__(self, message):
@@ -93,7 +96,11 @@ class Bundle(object):
         :return: instance of Bundle()
         """
         bundle = Bundle()
-        print('Constructing bundle from json: \r\n{}\r\n'.format(bundle_json_string))
+        logger.debug(
+            Bundle.__name__,
+            func_name='construct_from_json',
+            msg='Constructing bundle from json: \r\n{}\r\n'.format(bundle_json_string),
+            id=None)
         loaded = json.loads(bundle_json_string)
 
         new_strings = loaded['strings']

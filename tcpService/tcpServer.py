@@ -1,6 +1,9 @@
 import socket
 
+from logger import Logger
 from .tcpUtils import TcpUtil
+
+logger = Logger('tcpServer.py', active=True, firebase=False)
 
 
 class TcpServer:
@@ -17,16 +20,33 @@ class TcpServer:
     def accept_connection(self):
         self.s.listen(1)
         self.conn, self.addr = self.s.accept()
-        print('TcpServer.accept_connection: Connection accepted')
+        logger.debug(
+            self.__class__.__name__,
+            'accept_connection',
+            msg='Connection accepted',
+            id=None)
 
     def send_response(self, response_string):
         encoded_response = TcpUtil.encode_string(response_string)
         # print('TcpServer.send_response: Sending message: \r\n{}\r\n'.format(encoded_response))
+        logger.debug(
+            self.__class__.__name__,
+            'send_response',
+            msg='Sending message: \r\n{}\r\n'.format(encoded_response),
+            id=None)
         try:
             self.conn.send(encoded_response)
-            print('TcpServer.send_response: Response sent')
+            logger.debug(
+                self.__class__.__name__,
+                'send_response',
+                msg='Response sent',
+                id=None)
         except socket.error as e:
-            print('TcpServer.send_response: Cant send response to client: %s' % e)
+            logger.err(
+                self.__class__.__name__,
+                'send_response',
+                msg='Can\'t send response to client {}'.format(e),
+                id=None)
 
     def receive_data(self):
         encoded_message = self.conn.recv(self.BUFFER_SIZE)
