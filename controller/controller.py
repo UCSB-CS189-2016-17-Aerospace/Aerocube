@@ -46,6 +46,7 @@ class Controller:
         Returns status back to event handler
         :param status: status signal
         :param result_bundle: needs to be set before response is sent
+        :param event:
         :return: void
         """
         # return
