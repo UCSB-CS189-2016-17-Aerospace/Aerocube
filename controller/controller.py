@@ -95,7 +95,7 @@ class Controller:
             result_signal = ResultEventSignal.OK
             # Prepare bundle from original
             result_bundle = img_event.payload
-            result_bundle.insert_string(ImageEvent.SCAN_ID, 'scans/' + str(img_event.created_at).split('.')[0])
+            result_bundle.insert_string(ImageEvent.SCAN_ID, str(img_event.created_at).split('.')[0])
             result_bundle.insert_raw(ImageEvent.SCAN_MARKERS, markers_as_dicts)
             logger.success(
                 self.__class__.__name__,
@@ -153,7 +153,7 @@ class Controller:
                 func_name='store_externally',
                 msg='Storing data externally',
                 id=store_event.payload.strings(job_id_bundle_key))
-            external_write(database=database, scanID=scan_id,
+            external_write(database=database, scanID=scan_id, location='scans',
                            data=data, testing=True)
             logger.debug(
                 self.__class__.__name__,
