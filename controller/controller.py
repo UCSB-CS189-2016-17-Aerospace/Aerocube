@@ -169,7 +169,7 @@ class Controller:
             logger.success(
                 self.__class__.__name__,
                 func_name='store_externally',
-                msg='Successfully stored externally, sending ResultEventy',
+                msg='Successfully stored externally, sending ResultEvent',
                 id=store_event.payload.strings(job_id_bundle_key))
             return ResultEventSignal.OK, store_event.payload
         except ValueError as ex:
