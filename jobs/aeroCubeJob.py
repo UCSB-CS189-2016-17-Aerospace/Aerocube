@@ -1,6 +1,6 @@
 from .aeroCubeEvent import *
 from .aeroCubeSignal import ResultEventSignal
-
+from .settings import job_id_bundle_key
 
 class AeroCubeJobEventNode:
     """
@@ -142,16 +142,18 @@ class AeroCubeJob:
         :return:
         """
         # Create bundles and events in reverse order to build node tree
+        ext_store_bundle = Bundle()
+        ext_store_node = None
         if ext_store_target is not None:
-            ext_store_bundle = Bundle()
             ext_store_bundle.insert_string(StorageEvent.EXT_STORAGE_TARGET, ext_store_target)
             ext_store_bundle.insert_iterable(StorageEvent.EXT_STORE_PAYLOAD_KEYS, ['strings:' + ImageEvent.SCAN_ID,
                                                                                    'iterables:' + ImageEvent.SCAN_CORNERS,
                                                                                    'iterables:' + ImageEvent.SCAN_MARKER_IDS,
                                                                                    'iterables:' + ImageEvent.SCAN_POSES])
             ext_store_node = AeroCubeJobEventNode(StorageEvent(StorageEventSignal.STORE_EXTERNALLY, ext_store_bundle))
+        int_store_bundle = Bundle()
+        int_store_node = None
         if int_storage is True:
-            int_store_bundle = Bundle()
             int_store_bundle.insert_iterable(StorageEvent.INT_STORE_PAYLOAD_KEYS, ['strings:' + ImageEvent.SCAN_ID,
                                                                                    'iterables:' + ImageEvent.SCAN_CORNERS,
                                                                                    'iterables:' + ImageEvent.SCAN_MARKER_IDS,
@@ -168,4 +170,10 @@ class AeroCubeJob:
             img_node = AeroCubeJobEventNode(img_event, ok_event_node=int_store_node)
         else:
             img_node = AeroCubeJobEventNode(img_event)
-        return AeroCubeJob(img_node)
+        job = AeroCubeJob(img_node)
+        if ext_store_target is not None:
+            ext_store_bundle.insert_string(job_id_bundle_key, job.uuid)
+        if int_storage is not None:
+            int_store_bundle.insert_string(job_id_bundle_key, job.uuid)
+        img_bundle.insert_string(job_id_bundle_key, job.uuid)
+        return job

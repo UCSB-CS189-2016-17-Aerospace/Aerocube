@@ -4,7 +4,7 @@ from externalComm.commClass import FirebaseComm
 
 
 def _select_database(database, testing):
-    if database == 'firebase':
+    if database == FirebaseComm.NAME:
         return FirebaseComm(testing)
     else:
         raise ValueError('database not found!')
