@@ -325,6 +325,8 @@ def _identify_candidates(gray, candidates, dictionary):
         * rejected - list of rejected candidates (e.g., due to too many erroneous border bits, improper data bits,
             rejection by the dictionary)
     """
+    cdef int i
+
     # Assert that image is not none and gray
     assert gray is not None
     assert gray.size is not 0 and len(gray.shape) == 2
@@ -400,6 +402,15 @@ def _extract_bits(gray, corners):
         params, bits would be (4 inner bits + 2 border bits)^2 = 36 bits
     """
     # Initialize variables
+    cdef int marker_size
+    cdef int marker_border_bits
+    cdef int cell_size
+    cdef float cell_margin_rate
+    cdef float min_std_dev_otsu
+    cdef int markerSizeWithBorders
+    cdef int cellMarginPixels
+    cdef int resultImgSize
+
     marker_size = FiducialMarker.get_marker_size()  # size of inner region of marker (area containing ID information)
     marker_border_bits = params[markerBorderBits]  # size of marker border
     cell_size = params[perspectiveRemovePixelPerCell]  # size of "cell", area consisting of one bit of info.
@@ -464,6 +475,10 @@ cdef int _get_border_errors(np.ndarray[dtype=np.int8_t, ndim=2] bits, int marker
     :return: total count of white bits found in border
     """
     cdef int size_with_borders = marker_size + 2 * border_size
+    cdef int total_errors
+    cdef int y
+    cdef int k
+    cdef int x
     assert marker_size > 0 and bits.shape[0] == size_with_borders and bits.shape[1] == size_with_borders
 
     # Iterate through border bits, counting number of white bits
@@ -489,13 +504,15 @@ def _filter_detected_markers(corners, ids):
     :param ids:
     :return: (corners, ids) tuple
     """
+    #cdef np.ndarray[dtype=np.float32_t, ndim=3] corner = corners
+    #cdef np.ndarray[dtype=np.int8_t, ndim=1] id = ids
 
     cdef int i
     cdef int j
     cdef int p
     cdef bool_t inside
-    # Total runtime is actually slower with the line below (around 0.080 slower)
-    # cdef np.ndarray[np.uint8_t, ndim=1, cast=True] to_remove
+    # Total runtime is actually slower ? idk
+    cdef np.ndarray[np.uint8_t, ndim=1, cast=True] to_remove
 
     # Check that corners size is equal to id size, not sure if assert is done correctly
     assert len(corners) == len(ids)
