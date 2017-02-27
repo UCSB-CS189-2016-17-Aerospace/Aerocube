@@ -85,7 +85,6 @@ class Controller:
                 func_name='scan_image',
                 msg='Finding fiducial markers',
                 id=img_event.payload.strings(job_id_bundle_key))
-            # TODO: replace with imp.scan_image(signal)
             corners, marker_ids, poses = imp.identify_markers_for_storage()
             # Ensure data is JSONifiable
             corners, marker_ids = np.array(corners).tolist(), np.array(marker_ids).tolist()
@@ -135,7 +134,6 @@ class Controller:
             func_name='store_internally',
             msg='Storing data locally',
             id=store_event.payload.strings(job_id_bundle_key))
-        # TODO: data is hardcoded, need to find way for StorageEvent to indicate what should be stored
         data = store_event.parse_storage_keys()
         logger.debug(
             self.__class__.__name__,
