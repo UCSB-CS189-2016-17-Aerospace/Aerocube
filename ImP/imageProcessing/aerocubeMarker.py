@@ -8,9 +8,10 @@ from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker, IDOutOfDicti
 class AeroCubeMarker(FiducialMarker):
     MARKER_LENGTH = ImageProcessingSettings.get_marker_length()
 
-    def __init__(self, FiducialMarkerID, corners, quaternion,rvec,tvec):
-        self.aerocube_ID = self._FidID_to_AeroID(FiducialMarkerID)
-        self.aerocube_face = self._FidID_to_AeroFace(FiducialMarkerID)
+    def __init__(self, fiducial_marker_id, corners, quaternion, rvec, tvec):
+        # self.aerocube_ID = self._FidID_to_AeroID(FiducialMarkerID)
+        # self.aerocube_face = self._FidID_to_AeroFace(FiducialMarkerID)
+        self.aerocube_ID, self.aerocube_face = self.identify_marker_ID(fiducial_marker_id)
         self.corners = corners
         self.quaternion=quaternion
         self._rvec = rvec  # rotation vector
@@ -24,11 +25,13 @@ class AeroCubeMarker(FiducialMarker):
         else:
             return False
 
-    def _FidID_to_AeroID(self,FiducialMarkerID):
-        return FiducialMarkerID % AeroCube.NUM_SIDES
+    @staticmethod
+    def _FidID_to_AeroID(fiducial_marker_id):
+        return fiducial_marker_id // AeroCube.NUM_SIDES
 
-    def _FidID_to_AeroFace(self,FiducialMarkerID):
-        return AeroCubeFace(FiducialMarkerID % AeroCube.NUM_SIDES)
+    @staticmethod
+    def _FidID_to_AeroFace(fiducial_marker_id):
+        return AeroCubeFace(fiducial_marker_id % AeroCube.NUM_SIDES)
 
    # @property
  #   def aerocube_ID(self):
