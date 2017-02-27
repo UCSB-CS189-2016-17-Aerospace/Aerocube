@@ -94,8 +94,8 @@ class TestMarkerDetectPar(unittest.TestCase):
         img_paths = [os.path.join(self._CAPSTONE_PHOTO_DIR, f) for f in os.listdir(self._CAPSTONE_PHOTO_DIR) if os.path.isfile(os.path.join(self._CAPSTONE_PHOTO_DIR, f))]
         for img_path in img_paths:
             imp = ImageProcessor(img_path)
-            actual_corners, actual_ids = imp._find_fiducial_markers(parallel=True)
-            expected_corners, expected_ids = imp._find_fiducial_markers(parallel=False)
+            actual_corners, actual_ids = imp._find_fiducial_markers(gpu=True)
+            expected_corners, expected_ids = imp._find_fiducial_markers(gpu=False)
             np.testing.assert_allclose(actual_corners, expected_corners)
             np.testing.assert_array_equal(actual_ids, expected_ids)
             print("PASSED: {}".format(img_path))

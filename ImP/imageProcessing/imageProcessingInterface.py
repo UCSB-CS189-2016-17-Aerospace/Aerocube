@@ -46,13 +46,13 @@ class ImageProcessor:
 
     # Aruco entry points
 
-    def _find_fiducial_markers(self, parallel=False):
+    def _find_fiducial_markers(self, gpu=False):
         """
         Identify fiducial markers in _img_mat
         Serves as an abstraction of the aruco method calls
         Note that the default format of the arrays returned by Aruco are a bit cumbersome, and are being translated
         into friendlier formats before being returned.
-        :param parallel: optional param to attempt to use parallelized algorithm
+        :param gpu: optional param to attempt to use parallelized algorithm
         :return corners: an array of 3-D arrays
             each element is of the shape (N, 4, 2), where N is the number of detected markers
             If no markers found, corners == []
@@ -61,7 +61,7 @@ class ImageProcessor:
             and has the shape (N,)
             If no markers found, marker_IDs == None
         """
-        if parallel is True:
+        if gpu is True:
             corners, marker_IDs = MarkerDetectPar.detect_markers_parallel(self._img_mat, dictionary=self._DICTIONARY)
         else:
             corners, marker_IDs, _ = aruco.detectMarkers(self._img_mat, dictionary=self._DICTIONARY)
@@ -133,69 +133,6 @@ class ImageProcessor:
                               tvec,
                               ImageProcessingSettings.get_marker_length())
 
-    # AeroCube identification functions
-
-    def _find_aerocube_markers(self):
-        """
-        Calls a private function to find all fiducial markers, then constructs
-        AeroCubeMarker objects from those results. If there are no markers found,
-        return an empty array.
-        :return: array of AeroCubeMarker objects; empty if none found
-        """
-        marker_corners, marker_ids = self._find_fiducial_markers()
-        if len(marker_ids) is 0:
-            return []
-        else:
-            aerocube_IDs, aerocube_faces = zip(*[AeroCubeMarker.identify_marker_ID(ID) for ID in marker_ids])
-            aerocube_markers = list()
-            for ID, face, corners in zip(aerocube_IDs, aerocube_faces, marker_corners):
-                # because ID is in the form of [id_int], get the element
-                aerocube_markers.append(AeroCubeMarker(ID, face, corners))
-            return aerocube_markers
-
-    def _identify_aerocubes(self):
-        """
-        Internal function called when ImP receives a ImageEventSignal.IDENTIFY_AEROCUBES signal.
-        :return: array of AeroCube objects; [] if no AeroCubes found
-        """
-        markers = self._find_aerocube_markers()
-        aerocubes = list()
-        for aerocube, aerocube_markers in itertools.groupby(markers, lambda m: m.aerocube_ID):
-            aerocubes.append(AeroCube(list(aerocube_markers)))
-        return aerocubes
-
-    def identify_markers_for_storage(self):
-        corners, ids = self._find_fiducial_markers()
-        rvecs, tvecs = self._find_pose(corners)
-        quaternions = [self.rodrigues_to_quaternion(r) for r in rvecs]
-        aeroCubeMarkers= list()
-        print("IMFS:ids from scan {}".format(ids))
-        for i in range(len(ids)):
-            aeroCubeMarkers.append(AeroCubeMarker(ids[i][0],corners[i],quaternions[i],rvecs[i],tvecs[i]))
-        aeroCubes={}
-
-        for aeroMarker in aeroCubeMarkers:
-            IdKey=aeroMarker.aerocube_ID
-            print("IMFS:IdKey is {}".format(IdKey))
-            print("aerocubes.keys() {}".format(aeroCubes.keys()))
-            print("IMFS: adding AeroCube {}".format(AeroCube(aeroMarker)))
-            if(IdKey in aeroCubes.keys()):
-                print("IMFS: multipul markers for same Aerocube")
-                aeroCubes.get(IdKey).add_marker(aeroMarker)
-            else:
-                print("IMFS: new IdKey found {}".format(IdKey))
-                aeroCubes[IdKey]=AeroCube(aeroMarker)
-        print("IMFS:aeroCubes is {}".format(aeroCubes))
-
-        ids=list()
-        q_list = list()
-        for cube in aeroCubes.values():
-            q_list.append({k: v for k, v in zip(['w', 'x', 'y', 'z'],cube.quaternion.elements)})
-            ids.append(cube.ID)
-        return corners, ids, q_list
-
-    # Pose and distance functions
-
     def _find_pose(self, corners):
         """
         Find the pose of identified markers.
@@ -217,6 +154,67 @@ class ImageProcessor:
                                                        camera_matrix,
                                                        dist_coeffs)
         return rvecs, tvecs
+
+    # AeroCube identification functions
+
+    def _find_aerocube_markers(self, gpu=False):
+        """
+        Calls a private function to find all fiducial markers, then constructs
+        AeroCubeMarker objects from those results. If there are no markers found,
+        return an empty array.
+        :return: array of AeroCubeMarker objects; empty if none found
+        """
+        corners, ids = self._find_fiducial_markers(gpu=gpu)
+        if len(ids) is 0:
+            return []
+        else:
+            rvecs, tvecs = self._find_pose(corners)
+            quaternions = [self.rodrigues_to_quaternion(r) for r in rvecs]
+            return [AeroCubeMarker(corners, id, q, tvec) for corners, id, q, tvec in zip(corners, ids, quaternions, tvecs)]
+
+    def _identify_aerocubes(self):
+        """
+        Internal function called when ImP receives a ImageEventSignal.IDENTIFY_AEROCUBES signal.
+        :return: array of AeroCube objects; [] if no AeroCubes found
+        """
+        markers = self._find_aerocube_markers()
+        aerocubes = list()
+        for aerocube, aerocube_markers in itertools.groupby(markers, lambda m: m.aerocube_ID):
+            aerocubes.append(AeroCube(list(aerocube_markers)))
+        return aerocubes
+
+    def identify_markers_for_storage(self):
+        # corners, ids = self._find_fiducial_markers()
+        # rvecs, tvecs = self._find_pose(corners)
+        # quaternions = [self.rodrigues_to_quaternion(r) for r in rvecs]
+        # aeroCubeMarkers= list()
+        # print("IMFS:ids from scan {}".format(ids))
+        # for i in range(len(ids)):
+        #     aeroCubeMarkers.append(AeroCubeMarker(ids[i][0],corners[i],quaternions[i],rvecs[i],tvecs[i]))
+        # aeroCubes={}
+        #
+        # for aeroMarker in aeroCubeMarkers:
+        #     IdKey=aeroMarker.aerocube_ID
+        #     print("IMFS:IdKey is {}".format(IdKey))
+        #     print("aerocubes.keys() {}".format(aeroCubes.keys()))
+        #     print("IMFS: adding AeroCube {}".format(AeroCube(aeroMarker)))
+        #     if(IdKey in aeroCubes.keys()):
+        #         print("IMFS: multipul markers for same Aerocube")
+        #         aeroCubes.get(IdKey).add_marker(aeroMarker)
+        #     else:
+        #         print("IMFS: new IdKey found {}".format(IdKey))
+        #         aeroCubes[IdKey]=AeroCube(aeroMarker)
+        # print("IMFS:aeroCubes is {}".format(aeroCubes))
+        #
+        # ids=list()
+        # q_list = list()
+        # for cube in aeroCubes.values():
+        #     q_list.append({k: v for k, v in zip(['w', 'x', 'y', 'z'], cube.quaternion.elements)})
+        #     ids.append(cube.ID)
+        # return corners, ids, q_list
+        return [marker.to_json() for marker in self._find_aerocube_markers()]
+
+    # Pose and distance functions
 
     def _find_distance(self, corners):
         """
@@ -245,8 +243,14 @@ class ImageProcessor:
             dist_results.append(dist)
         return dist_results
 
-    def _find_position(self):
-        pass
+    @staticmethod
+    def _find_distances_from_tvec(tvecs):
+        """
+        Finds the Euclidean distance of each translation vector in tvecs.
+        :param tvecs:
+        :return: Numpy array of floats representing Euclidean distance
+        """
+        return np.array([np.linalg.norm(tvec) for tvec in tvecs])
 
     @staticmethod
     def rodrigues_to_quaternion(rodrigues):

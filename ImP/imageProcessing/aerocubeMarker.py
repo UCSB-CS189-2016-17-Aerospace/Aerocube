@@ -1,5 +1,6 @@
 from pyquaternion import Quaternion
 from enum import Enum
+import json
 import numpy as np
 from ImP.imageProcessing.settings import ImageProcessingSettings
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker, IDOutOfDictionaryBoundError
@@ -8,14 +9,23 @@ from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker, IDOutOfDicti
 class AeroCubeMarker(FiducialMarker):
     MARKER_LENGTH = ImageProcessingSettings.get_marker_length()
 
-    def __init__(self, fiducial_marker_id, corners, quaternion, rvec, tvec):
-        # self.aerocube_ID = self._FidID_to_AeroID(FiducialMarkerID)
-        # self.aerocube_face = self._FidID_to_AeroFace(FiducialMarkerID)
-        self.aerocube_ID, self.aerocube_face = self.identify_marker_ID(fiducial_marker_id)
-        self.corners = corners
-        self.quaternion = quaternion
-        self._rvec = rvec  # rotation vector
-        self._tvec = tvec  # translation vector
+    def __init__(self, corners, fiducial_marker_id, quaternion, tvec):
+        # Aerocube ID and Face
+        self._aerocube_ID, self._aerocube_face = self.identify_marker_ID(fiducial_marker_id)
+        # Marker corners
+        if corners.shape != (4, 2):
+            raise AeroCubeMarkerAttributeError("Invalid corner matrix shape")
+        else:
+            self._corners = corners
+        # Marker pose
+        if not isinstance(quaternion, Quaternion):
+            raise AeroCubeMarkerAttributeError("Invalid quaternion")
+        else:
+            self._quaternion = quaternion
+        # Marker position (translation vector)
+        self._tvec = tvec
+        # Marker distance (derived attribute)
+        self._distance = np.linalg.norm(tvec)
 
     def __eq__(self, other):
         if type(self) is type(other):
@@ -25,50 +35,42 @@ class AeroCubeMarker(FiducialMarker):
         else:
             return False
 
-    @staticmethod
-    def _FidID_to_AeroID(fiducial_marker_id):
-        return fiducial_marker_id // AeroCube.NUM_SIDES
-
-    @staticmethod
-    def _FidID_to_AeroFace(fiducial_marker_id):
-        return AeroCubeFace(fiducial_marker_id % AeroCube.NUM_SIDES)
-
-   # @property
- #   def aerocube_ID(self):
-  #      return self._aerocube_ID
-
-    #@aerocube_ID.setter
-    #def aerocube_ID(self, ID):
-     #   if not self._valid_aerocube_ID(ID):
-      #      raise AeroCubeMarkerAttributeError("Invalid AeroCube ID")
-       # self._aerocube_ID = ID
+    @property
+    def aerocube_ID(self):
+        return self._aerocube_ID
 
     @property
     def aerocube_face(self):
         return self._aerocube_face
 
-    @aerocube_face.setter
-    def aerocube_face(self, face):
-        if not isinstance(face, AeroCubeFace):
-            raise AeroCubeMarkerAttributeError("Invalid AeroCube face")
-        self._aerocube_face = face
-
     @property
     def corners(self):
         return self._corners
 
-    @corners.setter
-    def corners(self, c):
-        if c.shape != (4, 2):
-            raise AeroCubeMarkerAttributeError("Invalid corner matrix shape")
-        self._corners = c
+    @property
+    def quaternion(self):
+        return self._quaternion
+
+    @property
+    def distance(self):
+        return self._distance
 
     @staticmethod
-    def _valid_aerocube_ID(ID):
+    def _valid_aerocube_ID(aerocube_id):
         return (
-            ID >= 0 and
-            ID*AeroCube.NUM_SIDES + AeroCube.NUM_SIDES <= AeroCubeMarker.get_dictionary_size()
+            aerocube_id >= 0 and
+            aerocube_id * AeroCube.NUM_SIDES + AeroCube.NUM_SIDES <= AeroCubeMarker.get_dictionary_size()
         )
+
+    def to_json(self):
+        json_dict = {
+            "AEROCUBE_ID": self.aerocube_ID,
+            "AEROCUBE_FACE": self.aerocube_face,
+            "CORNERS": self.corners,
+            "QUATERNION": {k: v for k, v in zip(['w', 'x', 'y', 'z'], self.quaternion.elements)},
+            "DISTANCE": self.distance
+        }
+        return json.dumps(json_dict)
 
     @staticmethod
     def _get_aerocube_marker_IDs(aerocube_ID):
@@ -133,18 +135,15 @@ class AeroCube:
         _DUPLICATE_MARKERS:           "Duplicate AeroCube Marker used (Fiducial ID: {})"
     }
 
-    def __init__(self, marker):
+    def __init__(self, markers):
         # Check if arguments are valid
-        # self.raise_if_markers_invalid(marker)
-
+        self.raise_if_markers_invalid(markers)
         # Set instance variables
-        self._markers = []
         print("making Aerocube")
-        self._markers.append([marker])
-        self._ID = marker.aerocube_ID
-        self._rvec = None
+        self._markers = markers
+        self._ID = markers[0].aerocube_ID
         self._tvec = None
-        self.quaternion = marker.quaternion*marker.aerocube_face.quaternion
+        self._quaternion = self.reduce_quaternions(markers)
 
     def __eq__(self, other):
         """
@@ -160,12 +159,6 @@ class AeroCube:
             np.array_equal(self.rvec, other.rvec) and \
             np.array_equal(self.tvec, other.tvec)
 
-    def add_marker(self, marker):
-        if self.ID == marker.aerocubeID:
-            self._markers.append(marker)
-        else:
-            raise AttributeError(AeroCube._ERR_MESSAGES[AeroCube._MARKERS_HAVE_MANY_AEROCUBES])
-
     @property
     def markers(self):
         return self._markers
@@ -175,12 +168,29 @@ class AeroCube:
         return self._ID
 
     @property
-    def rvec(self):
-        return self._rvec
-
-    @property
     def tvec(self):
         return self._tvec
+
+    @property
+    def quaternion(self):
+        return self._quaternion
+
+    def to_json(self):
+        json_dict = {
+            "MARKERS": [m.to_json() for m in self.markers],
+            "ID": self.ID,
+            "QUATERNION": self.quaternion
+        }
+        return json.dumps(json_dict)
+
+    @staticmethod
+    def reduce_quaternions(markers):
+        candidate_quats = [marker.quaternion * marker.aerocube_face.quaternion for marker in markers]
+        all_close = np.bitwise_and.reduce([np.allclose(candidate_quats[0].elements, q.elements) for q in candidate_quats], True)
+        if all_close:
+            return Quaternion(np.mean(candidate_quats, axis=0))
+        else:
+            raise AttributeError("Quaternions are not close enough for AeroCube!")
 
     @staticmethod
     def raise_if_markers_invalid(markers):
