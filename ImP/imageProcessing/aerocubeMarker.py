@@ -118,9 +118,20 @@ class AeroCubeFace(Enum):
             2: [0, 0, 0, 0],
             3: [.7071, 0, -.7071, 0],  # these might be wrong
             4: [0, 0, 1, 0],
-            5: [.7071, 0, .7071, 0] # these might be wrong
+            5: [.7071, 0, .7071, 0]  # these might be wrong
+        }
+        width = ImageProcessingSettings.get_aerocube_width()
+        height = ImageProcessingSettings.get_aerocube_height()
+        translations = {
+            0: [0, 0, height/2],
+            1: [0, 0, height/2],
+            2: [0, 0, width/2],
+            3: [0, 0, width/2],
+            4: [0, 0, width/2],
+            5: [0, 0, width/2],
         }
         self.quaternion = Quaternion(quaternions[face_id])
+        self.translation = translations[face_id]
 
 
 class AeroCube:
