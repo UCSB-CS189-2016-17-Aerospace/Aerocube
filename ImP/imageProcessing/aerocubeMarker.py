@@ -199,9 +199,13 @@ class AeroCube:
         candidate_quats = [marker.quaternion * marker.aerocube_face.quaternion for marker in markers]
         all_close = np.bitwise_and.reduce([np.allclose(candidate_quats[0].elements, q.elements) for q in candidate_quats], True)
         if all_close:
-            return Quaternion(np.mean(candidate_quats, axis=0))
+            return Quaternion(np.mean([q.elements for q in candidate_quats], axis=0))
         else:
             raise AttributeError("Quaternions are not close enough for AeroCube!")
+
+    @staticmethod
+    def reduce_translation_vectors(markers):
+        pass
 
     @staticmethod
     def raise_if_markers_invalid(markers):
