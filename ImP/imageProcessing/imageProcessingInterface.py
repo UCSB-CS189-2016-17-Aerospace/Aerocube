@@ -250,7 +250,7 @@ class ImageProcessor:
         :param tvecs:
         :return: Numpy array of floats representing Euclidean distance
         """
-        return np.array([np.linalg.norm(tvec) for tvec in tvecs])
+        return np.array([AeroCubeMarker.distance_from_tvec(tvec) for tvec in tvecs])
 
     @staticmethod
     def rodrigues_to_quaternion(rodrigues):

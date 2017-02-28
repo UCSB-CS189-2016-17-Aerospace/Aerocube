@@ -25,7 +25,7 @@ class AeroCubeMarker(FiducialMarker):
         # Marker position (translation vector)
         self._tvec = tvec
         # Marker distance (derived attribute)
-        self._distance = np.linalg.norm(tvec)
+        self._distance = self.distance_from_tvec(self._tvec)
 
     def __eq__(self, other):
         if type(self) is type(other):
@@ -52,6 +52,10 @@ class AeroCubeMarker(FiducialMarker):
         return self._quaternion
 
     @property
+    def tvec(self):
+        return self._tvec
+
+    @property
     def distance(self):
         return self._distance
 
@@ -71,6 +75,10 @@ class AeroCubeMarker(FiducialMarker):
             "distance": self.distance
         }
         return json_dict
+
+    @staticmethod
+    def distance_from_tvec(tvec):
+        return np.linalg.norm(tvec)
 
     @staticmethod
     def _get_aerocube_marker_IDs(aerocube_ID):
