@@ -106,32 +106,50 @@ class ImageProcessor:
         else:
             return [np.array([c]) for c in corners], np.array([[i] for i in ids])
 
-    def draw_fiducial_markers(self, corners, marker_IDs):
+    def draw_fiducial_markers(self, corners, marker_IDs, img=None):
         """
         Returns an image matrix with the given corners and marker_IDs drawn onto the image
         :param corners: marker corners
         :param marker_IDs: fiducial marker IDs
+        :param img:
         :return: img with marker boundaries drawn and markers IDed
         """
+        if img is None:
+            img = self._img_mat
         aruco_corners, aruco_ids = self._prepare_fiducial_arrays_for_aruco(corners, marker_IDs)
-        return aruco.drawDetectedMarkers(self._img_mat, aruco_corners, aruco_ids)
+        return aruco.drawDetectedMarkers(img, aruco_corners, aruco_ids)
 
-    def draw_axis(self, quaternion, tvec):
+    def draw_axis(self, quaternion, tvec, img=None):
         """
         Wrapper method that calls Aruco's draw axis method on a given marker.
         Can be used to visually verify the accuracy of pose.
-        :param cameraMatrix: camera calibration matrix
-        :param distCoeffs: camera distortion coefficients
         :param quaternion: pose represented as quaternion
         :param tvec: translation vector, returned by Aruco's estimatePoseSingleMarker
+        :param img:
         :return: img held by this ImageProcessor with the drawn axis
         """
-        return aruco.drawAxis(self._img_mat,
+        if img is None:
+            img = self._img_mat
+        return aruco.drawAxis(img,
                               self._cal.CAMERA_MATRIX,
                               self._cal.DIST_COEFFS,
                               self.quaternion_to_rodrigues(quaternion),
                               tvec,
                               ImageProcessingSettings.get_marker_length())
+
+    def draw_aerocube_markers(self):
+        markers = self._find_aerocube_markers()
+        img_w_markers = self.draw_fiducial_markers([m.corners for m in markers], [m.aerocube_ID*AeroCube.NUM_SIDES+m.aerocube_face.value for m in markers])
+        for m in markers:
+            img_w_markers = self.draw_axis(m.quaternion, m.tvec, img=img_w_markers)
+        return img_w_markers
+
+    def draw_aerocubes(self):
+        markers = self._find_aerocube_markers()
+        print(markers)
+        img_w_markers = self.draw_aerocube_markers()
+        cube = AeroCube(markers)
+        return self.draw_axis(cube.quaternion, cube.tvec, img=img_w_markers)
 
     def _find_pose(self, corners):
         """

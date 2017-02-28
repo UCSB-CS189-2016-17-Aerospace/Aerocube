@@ -175,7 +175,7 @@ class AeroCube:
         """
         return self.ID == other.ID and \
             np.array_equal(self.markers, other.markers) and \
-            np.array_equal(self.rvec, other.rvec) and \
+            np.array_equal(self.quaternion, other.quaternion) and \
             np.array_equal(self.tvec, other.tvec)
 
     @property
@@ -213,7 +213,12 @@ class AeroCube:
 
     @staticmethod
     def reduce_translation_vectors(markers):
-        pass
+        candidate_centers = [m.quaternion.inverse.rotate(m.quaternion.rotate(m.tvec) + m.aerocube_face.tvec) for m in markers]
+        all_close = np.bitwise_and.reduce([np.allclose(candidate_centers[0], c) for c in candidate_centers], True)
+        if all_close:
+            return np.mean(candidate_centers, axis=0)
+        else:
+            raise AttributeError("Derived centers from marker tvecs are not close enough for AeroCube!")
 
     @staticmethod
     def raise_if_markers_invalid(markers):
