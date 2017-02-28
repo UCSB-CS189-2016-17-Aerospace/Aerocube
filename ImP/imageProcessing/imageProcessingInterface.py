@@ -114,8 +114,7 @@ class ImageProcessor:
         :param img:
         :return: img with marker boundaries drawn and markers IDed
         """
-        if img is None:
-            img = self._img_mat
+        img = np.copy(self._img_mat) if img is None else img
         aruco_corners, aruco_ids = self._prepare_fiducial_arrays_for_aruco(corners, marker_IDs)
         return aruco.drawDetectedMarkers(img, aruco_corners, aruco_ids)
 
@@ -128,8 +127,7 @@ class ImageProcessor:
         :param img:
         :return: img held by this ImageProcessor with the drawn axis
         """
-        if img is None:
-            img = self._img_mat
+        img = np.copy(self._img_mat) if img is None else img
         return aruco.drawAxis(img,
                               self._cal.CAMERA_MATRIX,
                               self._cal.DIST_COEFFS,
@@ -145,11 +143,11 @@ class ImageProcessor:
         return img_w_markers
 
     def draw_aerocubes(self):
-        markers = self._find_aerocube_markers()
-        print(markers)
         img_w_markers = self.draw_aerocube_markers()
-        cube = AeroCube(markers)
-        return self.draw_axis(cube.quaternion, cube.tvec, img=img_w_markers)
+        cubes = self._identify_aerocubes()
+        for c in cubes:
+            img_w_markers = self.draw_axis(c.quaternion, c.tvec, img=img_w_markers)
+        return img_w_markers
 
     def _find_pose(self, corners):
         """

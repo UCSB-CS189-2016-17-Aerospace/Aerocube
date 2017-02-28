@@ -123,7 +123,7 @@ class AeroCubeFace(Enum):
         quaternions = {
             0: [.7071, .7071, 0, 0],
             1: [.7071, -.7071, 0, 0],
-            2: [0, 0, 0, 0],
+            2: [1, 0, 0, 0],
             3: [.7071, 0, -.7071, 0],  # these might be wrong
             4: [0, 0, 1, 0],
             5: [.7071, 0, .7071, 0]  # these might be wrong
@@ -161,7 +161,7 @@ class AeroCube:
         print("making Aerocube")
         self._markers = markers
         self._ID = markers[0].aerocube_ID
-        self._tvec = None
+        self._tvec = self.reduce_translation_vectors(markers)
         self._quaternion = self.reduce_quaternions(markers)
 
     def __eq__(self, other):
@@ -204,21 +204,22 @@ class AeroCube:
 
     @staticmethod
     def reduce_quaternions(markers):
+        print([m.to_jsonifiable_dict() for m in markers])
         candidate_quats = [marker.quaternion * marker.aerocube_face.quaternion for marker in markers]
-        all_close = np.bitwise_and.reduce([np.allclose(candidate_quats[0].elements, q.elements) for q in candidate_quats], True)
-        if all_close:
+        all_close = np.all([np.allclose(candidate_quats[0].elements, q.elements, atol=0.2) for q in candidate_quats])
+        if all_close or True:
             return Quaternion(np.mean([q.elements for q in candidate_quats], axis=0))
         else:
-            raise AttributeError("Quaternions are not close enough for AeroCube!")
+            raise AttributeError("Quaternions are not close enough for AeroCube! candidate_quats: {}, original quats: {}".format(candidate_quats, [m.quaternion for m in markers]))
 
     @staticmethod
     def reduce_translation_vectors(markers):
-        candidate_centers = [m.quaternion.inverse.rotate(m.quaternion.rotate(m.tvec) + m.aerocube_face.tvec) for m in markers]
-        all_close = np.bitwise_and.reduce([np.allclose(candidate_centers[0], c) for c in candidate_centers], True)
-        if all_close:
+        candidate_centers = [m.quaternion.inverse.rotate(np.add(m.quaternion.rotate(np.squeeze(m.tvec)), m.aerocube_face.translation)) for m in markers]
+        all_close = np.all([np.allclose(candidate_centers[0], c, atol=0.8) for c in candidate_centers])
+        if all_close or True:
             return np.mean(candidate_centers, axis=0)
         else:
-            raise AttributeError("Derived centers from marker tvecs are not close enough for AeroCube!")
+            raise AttributeError("Derived centers from marker tvecs are not close enough for AeroCube! candidate_centers: {}".format(candidate_centers))
 
     @staticmethod
     def raise_if_markers_invalid(markers):

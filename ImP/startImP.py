@@ -11,8 +11,8 @@ import cv2
 from cv2 import aruco
 
 # img_path = "ImP/imageProcessing/test_files/jetson_test1.jpg"
-img_path = "ImP/imageProcessing/test_files/capstone_class_photoshoot/AC_0_FACES_125.JPG"
-# img_path = "ImP/imageProcessing/test_files/capstone_class_photoshoot/SPACE_1.JPG"
+# img_path = "ImP/imageProcessing/test_files/capstone_class_photoshoot/AC_0_FACES_125.JPG"
+img_path = "ImP/imageProcessing/test_files/capstone_class_photoshoot/SPACE_1.JPG"
 imp = ImageProcessor(img_path)
 corners, ids = imp._find_fiducial_markers()
 rvecs, tvecs = imp._find_pose(corners)
