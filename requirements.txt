@@ -8,9 +8,14 @@
 # Certain project requirements are not listed here, including:
 # * OpenCV
 # * CUDA
+# * PyCUDA -- see ImP/README for installation
+# * Anaconda Accelerate (for GPU-acceleration in Python) -- maybe not
+#
+### Performance ################
+cython
 #
 ### Mathematical ###############
-numpy
+numpy==1.11.2
 pyquaternion
 #
 ### Flask Server ###############

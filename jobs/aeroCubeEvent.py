@@ -1,9 +1,14 @@
-from abc import ABCMeta, abstractmethod
+import json
 import time
 import uuid
+from abc import ABCMeta, abstractmethod
+
+from jobs.settings import job_id_bundle_key
+from logger import Logger
 from .aeroCubeSignal import *
 from .bundle import Bundle
-import json
+
+logger = Logger('aeroCubeEvent.py', active=True, external=True)
 
 
 class AeroCubeEvent(metaclass=ABCMeta):
@@ -63,7 +68,11 @@ class AeroCubeEvent(metaclass=ABCMeta):
 
     @staticmethod
     def construct_from_json(event_json_str):
-        print('Constructing from json: \r\n{}\r\n'.format(event_json_str))
+        logger.debug(
+            AeroCubeEvent.__name__,
+            'construct_from_json',
+            msg='Constructing from json: \r\n{}\r\n'.format(event_json_str),
+            id=None)
         loaded = json.loads(event_json_str)
         signal_int = int(loaded['signal'])
         created_at = float(loaded['created_at'])
@@ -71,16 +80,24 @@ class AeroCubeEvent(metaclass=ABCMeta):
         bundle = Bundle.construct_from_json(payload)
         class_name = loaded['class']
         uuid = loaded['uuid']
+        logger.debug(
+            class_name=AeroCubeEvent.__name__,
+            func_name='construct_from_json',
+            msg='Constructing from json: \r\n{}\r\n'.format(event_json_str),
+            id=bundle.strings(job_id_bundle_key))
         event = None
         if class_name == ImageEvent.__name__:
             signal = ImageEventSignal(signal_int)
             event = ImageEvent(image_signal=signal, bundle=bundle, created_at=created_at, id=uuid)
         elif class_name == ResultEvent.__name__:
             signal = ResultEventSignal(signal_int)
-            event = ResultEvent(result_signal=signal, calling_event=bundle.strings(ResultEvent.CALLING_EVENT_UUID), bundle=bundle, created_at=created_at, id=uuid)
+            event = ResultEvent(result_signal=signal, calling_event_uuid=bundle.strings(ResultEvent.CALLING_EVENT_UUID), bundle=bundle, created_at=created_at, id=uuid)
         elif class_name == SystemEvent.__name__:
             signal = SystemEventSignal(signal_int)
             event = SystemEvent(system_signal=signal, bundle=bundle, created_at=created_at, id=uuid)
+        elif class_name == StorageEvent.__name__:
+            signal = StorageEventSignal(signal_int)
+            event = StorageEvent(storage_signal=signal, bundle=bundle, created_at=created_at, id=uuid)
         else:
             raise TypeError('AeroCubeEvent.construct_from_json: ERROR: {} is not a valid subclass of AeroCubeEvent'.format(class_name))
         return event
@@ -145,14 +162,50 @@ class AeroCubeEvent(metaclass=ABCMeta):
 
 class ImageEvent(AeroCubeEvent):
     """
-    Payload includes:
-    * path to image
+    Payload members:
+    * _FILE_PATH (string)
+    :cvar _FILE_PATH: payload key; path to file for image event
     """
+    FILE_PATH = 'FILE_PATH'
+    SCAN_ID = 'SCAN_ID'
+    SCAN_CORNERS = 'SCAN_CORNERS'
+    SCAN_MARKER_IDS = 'SCAN_MARKER_IDS'
+    SCAN_POSES = 'SCAN_POSES'
+
     def __init__(self, image_signal, bundle=Bundle(), created_at=time.time(), id=None):
         super().__init__(bundle, image_signal, created_at, id)
 
     def is_valid_signal(self, signal):
         return signal in ImageEventSignal
+
+
+class StorageEvent(AeroCubeEvent):
+    INT_STORAGE_REL_PATH = 'INT_STORAGE_REL_PATH'
+    INT_STORE_PAYLOAD_KEYS = 'INT_STORE_PAYLOAD_KEYS'
+    EXT_STORAGE_TARGET = 'EXT_STORAGE_TARGET'
+    EXT_STORE_PAYLOAD_KEYS = 'EXT_STORE_PAYLOAD_KEYS'
+
+    def __init__(self, storage_signal, bundle=Bundle(), created_at=time.time(), id=None):
+        if storage_signal is StorageEventSignal.STORE_EXTERNALLY and bundle.strings(self.EXT_STORAGE_TARGET) is None:
+            raise AttributeError("Store external event must have external storage target!")
+        super().__init__(bundle, storage_signal, created_at, id)
+
+    def is_valid_signal(self, signal):
+        return signal in StorageEventSignal
+
+    def parse_storage_keys(self):
+        type_key_pairs = None
+        data = dict()
+        if self.signal is StorageEventSignal.STORE_INTERNALLY:
+            type_key_pairs = self.payload.iterables(self.INT_STORE_PAYLOAD_KEYS)
+        elif self.signal is StorageEventSignal.STORE_EXTERNALLY:
+            type_key_pairs = self.payload.iterables(self.EXT_STORE_PAYLOAD_KEYS)
+        # TODO: get each bundle key's proper value by calling the correct getter
+        for pair in type_key_pairs:
+            bundle_type, key = pair.split(':')
+            data[key] = getattr(self.payload, bundle_type)(key)
+        return data
+
 """
 Payload examples for ResultEvent or variants:
 * Error message
@@ -163,10 +216,10 @@ Payload examples for ResultEvent or variants:
 class ResultEvent(AeroCubeEvent):
     CALLING_EVENT_UUID = 'CALLING_EVENT'
 
-    def __init__(self, result_signal, calling_event, bundle=Bundle(), created_at=time.time(), id=None):
+    def __init__(self, result_signal, calling_event_uuid, bundle=Bundle(), created_at=time.time(), id=None):
         # print('ResultEvent.init: \r\n{}\r\n'.format(bundle))
         super().__init__(bundle, result_signal, created_at, id)
-        self.payload.insert_string(ResultEvent.CALLING_EVENT_UUID, calling_event)
+        self.payload.insert_string(ResultEvent.CALLING_EVENT_UUID, calling_event_uuid)
 
     def is_valid_signal(self, signal):
         return signal in ResultEventSignal
@@ -180,4 +233,4 @@ class SystemEvent(AeroCubeEvent):
         return signal in SystemEventSignal
 
 if __name__ == '__main__':
-    print("I'm in aeroCubeEvent main!")
+    pass

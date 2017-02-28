@@ -3,31 +3,41 @@ from cv2 import aruco
 import numpy as np
 import os
 from collections import namedtuple
-from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker
 from ImP.imageProcessing.settings import ImageProcessingSettings
+from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker
 
 
-class CameraCalibration():
+class CameraCalibration:
     """
     Manages camera calibration matrix and distortion coefficients.
     Example for calibrating with Python bindings for Charuco:
     http://answers.opencv.org/question/98447/camera-calibration-using-charuco-and-python/
     """
-    class PredefinedCalibration():
+    class PredefinedCalibration:
         """
         Inner class to hold different calibration configurations constructed
         with named tuples. Configurations should be instances of _Calibration
         with constant-style names (e.g., all upper-case).
+        * RETVAL - return value (returned by Aruco calibration)
+        * CAMERA_MATRIX - intrinsic camera calibration matrix (returned by Aruco calibration)
+        * DIST_COEEFS - camera distortion coefficients (returned by Aruco calibration)
+        * FOCAL_LENGTH - focal length of the camera
+        * IMG_RES - image resolution of the calibration images as (y,x); used for distance calculations
         """
         _Calibration = namedtuple('_Calibration', 'RET_VAL \
                                                    CAMERA_MATRIX \
-                                                   DIST_COEFFS')
+                                                   DIST_COEFFS \
+                                                   FOCAL_LENGTH \
+                                                   IMG_RES')
         ANDREW_IPHONE = _Calibration(
             RET_VAL=3.551523274640683,
             CAMERA_MATRIX=np.array([[3.48275636e+03, 0.00000000e+00, 2.02069885e+03],
                                     [0.00000000e+00, 3.52274282e+03, 1.51346685e+03],
                                     [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]]),
-            DIST_COEFFS=np.array([[-4.58647345e-02, 1.73122392e+00, -3.30440816e-03, -7.78486275e-04, -7.00795983e+00]])
+            DIST_COEFFS=np.array([[-4.58647345e-02, 1.73122392e+00, -3.30440816e-03, -7.78486275e-04, -7.00795983e+00]]),
+            FOCAL_LENGTH=0.00265,  # iPhone 6s has focal length of 2.65mm
+            IMG_RES=(3024, 4032)
+
         )
          
         GUS_GOPRO = _Calibration(
@@ -35,8 +45,14 @@ class CameraCalibration():
             CAMERA_MATRIX=np.array([[1.22554451e+03, 0.00000000e+00, 1.46553617e+03],
                                     [0.00000000e+00, 1.29778987e+03, 1.31391637e+03],
                                     [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]]),
-            DIST_COEFFS=np.array([[-0.47054741,  2.05210803, -0.04170817,  0.0051407 , -3.94055482]])
+            DIST_COEFFS=np.array([[-0.47054741,  2.05210803, -0.04170817,  0.0051407 , -3.94055482]]),
+            FOCAL_LENGTH=-1.0,
+            IMG_RES=(2040, 2720)
         ) 
+
+    @staticmethod
+    def get_default_calibration():
+        return CameraCalibration.PredefinedCalibration.ANDREW_IPHONE
 
     @staticmethod
     def get_charucoboard():
@@ -108,7 +124,5 @@ if __name__ == '__main__':
                  os.path.join(test_files_path, "andrew_iphone_calibration_photo_1.jpg"),
                  os.path.join(test_files_path, "andrew_iphone_calibration_photo_2.jpg"),
                  os.path.join(test_files_path, "andrew_iphone_calibration_photo_3.jpg")]
-
-
     img_arr = [cv2.imread(img) for img in img_paths]
     print(CameraCalibration.get_calibration_matrices(board, img_arr))

@@ -1,6 +1,7 @@
-import unittest
-from .bundle import Bundle, BundleKeyError
 import pickle
+import unittest
+
+from jobs.bundle import Bundle, BundleKeyError
 
 
 class TestBundle(unittest.TestCase):
@@ -13,6 +14,8 @@ class TestBundle(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        from logger import Logger
+        Logger.prevent_external()
         cls._bundle = Bundle()
         cls._messages = Bundle._ERROR_MESSAGES
         # Keys
