@@ -1,6 +1,9 @@
 import socket
 
+from logger import Logger
 from .tcpUtils import TcpUtil
+
+logger = Logger('tcpClient.py', active=True, external=False)
 
 
 class TcpClient:
@@ -13,22 +16,42 @@ class TcpClient:
     def connect_to_controller(self):
         try:
             self.s.connect((self.TCP_IP, self.TCP_PORT))
-            print('TcpClient.connect_to_controller: Connected')
+            logger.success(
+                self.__class__.__name__,
+                func_name='connect_to_controller',
+                msg='Connected',
+                id=None)
         except socket.error as e:
-            print('TcpClient.connect_to_controller: Cant connect to TCP server: %s' % e)
+            logger.err(
+                self.__class__.__name__,
+                func_name='connect_to_controller',
+                msg='Failed to connect to TCP server: {}'.format(e),
+                id=None)
 
     def send_to_controller(self, data):
         encoded_message = TcpUtil.encode_string(data)
         try:
             bytes_sent = self.s.send(encoded_message)
-            print('TcpClient.send_to_controller: {} bytes sent data to controller'.format(bytes_sent))
+            logger.success(
+                self.__class__.__name__,
+                func_name='send_to_controller',
+                msg='{} bytes sent data to controller'.format(bytes_sent),
+                id=None)
         except socket.error as e:
-            print('TcpClient.send_to_controller: Cant send message to TCP server: %s' % e)
+            logger.err(
+                self.__class__.__name__,
+                func_name='send_to_controller',
+                msg='Failed to send message to TCP Server: {}'.format(e),
+                id=None)
 
     def receive_from_controller(self):
         encoded_message = self.s.recv(self.BUFFER_SIZE)
         decoded_message = TcpUtil.decode_string(encoded_message)
-        # print('TcpClient.receive_from_controller: Received response: \r\n{}\r\n'.format(decoded_message))
+        logger.success(
+            self.__class__.__name__,
+            func_name='receive_from_controller',
+            msg='Received: {}'.format(decoded_message),
+            id=None)
         return decoded_message
 
     def close(self):

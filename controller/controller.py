@@ -1,13 +1,18 @@
 import numpy as np
+
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
+from controller.settings import ControllerSettings
 from dataStorage.dataStorage import store
 from externalComm.externalComm import external_write, external_store_img
 from jobs.aeroCubeEvent import AeroCubeEvent, ImageEvent, StorageEvent, ResultEvent
 from jobs.aeroCubeSignal import ImageEventSignal, StorageEventSignal, ResultEventSignal
 from jobs.bundle import Bundle
+from jobs.settings import job_id_bundle_key
+from logger import Logger
 from tcpService.settings import TcpSettings
 from tcpService.tcpServer import TcpServer
-from controller.settings import ControllerSettings
+
+logger = Logger('controller.py', active=True, external=True)
 
 
 class Controller:
@@ -41,14 +46,23 @@ class Controller:
         Returns status back to event handler
         :param status: status signal
         :param result_bundle: needs to be set before response is sent
+        :param event:
         :return: void
         """
         # return
-        print('Controller.return_status: Status is {}'.format(status))
+        logger.debug(
+            self.__class__.__name__,
+            func_name='return_status',
+            msg='Status is {}'.format(status),
+            id=event.payload.strings(job_id_bundle_key))
         result_event = ResultEvent(result_signal=status,
                                    calling_event_uuid=self.calling_event.uuid,
                                    bundle=result_bundle)
-        print('Controller.return_status: Sending ResultEvent: \r\n{}\r\n'.format(result_event))
+        logger.debug(
+            self.__class__.__name__,
+            func_name='return_status',
+            msg='Sending ResultEvent: \r\n{}\r\n'.format(result_event),
+            id=event.payload.strings(job_id_bundle_key))
         self.server.send_response(result_event.to_json())
 
     def scan_image(self, img_event):
@@ -60,14 +74,25 @@ class Controller:
         # Initialize variables
         file_path = img_event.payload.strings(ImageEvent.FILE_PATH)
         try:
-            print('Controller.scan_image: Instantiating ImP at {}'.format(file_path))
+            logger.debug(
+                self.__class__.__name__,
+                func_name='scan_image',
+                msg='Instantiating ImP at {}'.format(file_path),
+                id=img_event.payload.strings(job_id_bundle_key))
             imp = ImageProcessor(file_path)
-            print('Controller.scan_image: Finding fiducial markers')
-            # TODO: replace with imp.scan_image(signal)
+            logger.debug(
+                self.__class__.__name__,
+                func_name='scan_image',
+                msg='Finding fiducial markers',
+                id=img_event.payload.strings(job_id_bundle_key))
             corners, marker_ids, poses = imp.identify_markers_for_storage()
             # Ensure data is JSONifiable
             corners, marker_ids = np.array(corners).tolist(), np.array(marker_ids).tolist()
-            print('Controller.scan_image: Done with scan!')
+            logger.success(
+                self.__class__.__name__,
+                func_name='scan_image',
+                msg='Done with Scan!',
+                id=img_event.payload.strings(job_id_bundle_key))
             # Set result signal to OK
             result_signal = ResultEventSignal.OK
             # Prepare bundle from original
@@ -76,12 +101,24 @@ class Controller:
             result_bundle.insert_iterable(ImageEvent.SCAN_CORNERS, corners)
             result_bundle.insert_iterable(ImageEvent.SCAN_MARKER_IDS, marker_ids)
             result_bundle.insert_iterable(ImageEvent.SCAN_POSES, poses)
-            print('Controller.scan_image: Done with setting bundle : {}'.format(str(result_bundle)))
+            logger.success(
+                self.__class__.__name__,
+                func_name='scan_image',
+                msg='Controller.scan_image: Done with setting bundle : {}'.format(str(result_bundle)),
+                id=img_event.payload.strings(job_id_bundle_key))
         except Exception as ex:
-            print('Controller.scan_image: ImP Failed')
+            logger.err(
+                self.__class__.__name__,
+                func_name='scan_image',
+                msg='ImP Failed',
+                id=img_event.payload.strings(job_id_bundle_key))
             template = "An exception of type {0} occured. Arguments:\n{1!r}"
             message = template.format(type(ex).__name__, ex.args)
-            print(message)
+            logger.err(
+                self.__class__.__name__,
+                func_name='scan_image',
+                msg=message,
+                id=img_event.payload.strings(job_id_bundle_key))
             result_signal = ResultEventSignal.ERROR
             result_bundle = img_event.payload
         return result_signal, result_bundle
@@ -92,10 +129,17 @@ class Controller:
         :param store_event:
         :return:
         """
-        print('Controller.store_internally: Storing data locally')
-        # TODO: data is hardcoded, need to find way for StorageEvent to indicate what should be stored
+        logger.debug(
+            self.__class__.__name__,
+            func_name='store_internally',
+            msg='Storing data locally',
+            id=store_event.payload.strings(job_id_bundle_key))
         data = store_event.parse_storage_keys()
-        print(data)
+        logger.debug(
+            self.__class__.__name__,
+            func_name='store_internally',
+            msg=data,
+            id=store_event.payload.strings(job_id_bundle_key))
         store(store_event.payload.strings(ImageEvent.SCAN_ID),
               data)
         return ResultEventSignal.OK, store_event.payload
@@ -106,44 +150,80 @@ class Controller:
         data = store_event.parse_storage_keys()
         img_data = store_event.payload.strings(ImageEvent.FILE_PATH)
         try:
-            print('Controller: Storing data externally')
+            logger.debug(
+                self.__class__.__name__,
+                func_name='store_externally',
+                msg='Storing data externally',
+                id=store_event.payload.strings(job_id_bundle_key))
             external_write(database=database, scanID=scan_id,
                            data=data, testing=True)
-            print('Controller: Storing image externally')
+            logger.debug(
+                self.__class__.__name__,
+                func_name='store_externally',
+                msg='Storing image externally',
+                id=store_event.payload.strings(job_id_bundle_key))
             external_store_img(database=database, scanID=scan_id,
                                srcImage=img_data, testing=True)
-            print('Controller: Successfully stored externally, sending ResultEvent')
+            logger.success(
+                self.__class__.__name__,
+                func_name='store_externally',
+                msg='Successfully stored externally, sending ResultEvent',
+                id=store_event.payload.strings(job_id_bundle_key))
             return ResultEventSignal.OK, store_event.payload
         except ValueError as ex:
-            print('Controller.store_data_externally: External storage failed with args {}'.format(ex.args))
+            logger.err(
+                self.__class__.__name__,
+                func_name='store_externally',
+                msg='External storage failed with args {}'.format(ex.args),
+                id=store_event.payload.strings(job_id_bundle_key))
             return ResultEventSignal.ERROR, store_event.payload
 
     def run(self):
         self.server.accept_connection()
-        print('Controller.run: Connection accepted')
+        logger.debug(
+            class_name=None,
+            func_name='run',
+            msg='Controller connection accepted',
+            id=None)
         while 1:
             # Parse received data and rehydrate AeroCubeEvent object
             json_string = self.server.receive_data()
             rcved_event = AeroCubeEvent.construct_from_json(json_string)
             # Set as calling rcved_event
             self.calling_event = rcved_event
-            print('Controller.run: Received Event: \r\n{}\r\n'.format(rcved_event))
+            logger.success(
+                self.__class__.__name__,
+                func_name='run',
+                msg='Received Event: \r\n{}\r\n'.format(rcved_event),
+                id=rcved_event.payload.strings(job_id_bundle_key))
             try:
                 status, bundle = self.dispatcher[rcved_event.signal](rcved_event)
                 self.return_status(status, bundle, rcved_event)
             except KeyError:
-                print('Controller.run: No function found to handle rcved_event of type \r\n{}\r\n'.format(rcved_event.signal))
+                logger.err(
+                    self.__class__.__name__,
+                    func_name='run',
+                    msg='No function found to handle rcved_event of type \r\n{}\r\n'.format(rcved_event.signal),
+                    id=rcved_event.payload.strings(job_id_bundle_key))
             except Exception as ex:
                 # all other exceptions
                 # TODO: how to handle?
                 template = "An exception of type {0} occured. Arguments:\n{1!r}"
                 message = template.format(type(ex).__name__, ex.args)
-                print(message)
+                logger.err(
+                    self.__class__.__name__,
+                    func_name='run',
+                    msg=message,
+                    id=rcved_event.payload.strings(job_id_bundle_key))
 
 
 if __name__ == '__main__':
     controller = Controller()
-    print("Controller.main: Controller is instantiated")
+    logger.debug(
+        class_name=None,
+        func_name='main',
+        msg='Controller is instantiated',
+        id=None)
     testing = False
     # Create event to mock event coming in
     if testing:

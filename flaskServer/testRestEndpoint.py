@@ -3,12 +3,14 @@ import requests
 import subprocess
 import os
 import flaskServer.restEndpoint as restEndpoint
-from .settings import FlaskServerSettings
+from flaskServer.settings import FlaskServerSettings
 
 
 class TestRestEndpointInstantiationMethods(unittest.TestCase):
-    def setUp(self):
-        pass
+
+    def setUpClass(cls):
+        from logger import Logger
+        Logger.prevent_external()
 
     def tearDown(self):
         restEndpoint._handler = None
@@ -56,6 +58,11 @@ class TestRestEndpoint(unittest.TestCase):
     _static_img_dir = FlaskServerSettings.get_static_img_dir()
     _test_img_path = os.path.join(FlaskServerSettings.get_test_files_dir(), _test_img)
     _static_img_path = os.path.join(FlaskServerSettings.get_static_img_dir(), _test_img)
+
+    @classmethod
+    def setUpClass(cls):
+        from logger import Logger
+        Logger.prevent_external()
 
     def setUp(self):
         self.handler, self.client, self.app, self.api = restEndpoint.initialize_endpoint()

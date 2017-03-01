@@ -3,8 +3,12 @@ import time
 import uuid
 from abc import ABCMeta, abstractmethod
 
+from jobs.settings import job_id_bundle_key
+from logger import Logger
 from .aeroCubeSignal import *
 from .bundle import Bundle
+
+logger = Logger('aeroCubeEvent.py', active=True, external=True)
 
 
 class AeroCubeEvent(metaclass=ABCMeta):
@@ -64,7 +68,11 @@ class AeroCubeEvent(metaclass=ABCMeta):
 
     @staticmethod
     def construct_from_json(event_json_str):
-        print('Constructing from json: \r\n{}\r\n'.format(event_json_str))
+        logger.debug(
+            AeroCubeEvent.__name__,
+            'construct_from_json',
+            msg='Constructing from json: \r\n{}\r\n'.format(event_json_str),
+            id=None)
         loaded = json.loads(event_json_str)
         signal_int = int(loaded['signal'])
         created_at = float(loaded['created_at'])
@@ -72,6 +80,11 @@ class AeroCubeEvent(metaclass=ABCMeta):
         bundle = Bundle.construct_from_json(payload)
         class_name = loaded['class']
         uuid = loaded['uuid']
+        logger.debug(
+            class_name=AeroCubeEvent.__name__,
+            func_name='construct_from_json',
+            msg='Constructing from json: \r\n{}\r\n'.format(event_json_str),
+            id=bundle.strings(job_id_bundle_key))
         event = None
         if class_name == ImageEvent.__name__:
             signal = ImageEventSignal(signal_int)
@@ -220,4 +233,4 @@ class SystemEvent(AeroCubeEvent):
         return signal in SystemEventSignal
 
 if __name__ == '__main__':
-    print("I'm in aeroCubeEvent main!")
+    pass

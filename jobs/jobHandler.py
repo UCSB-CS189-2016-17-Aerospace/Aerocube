@@ -1,7 +1,11 @@
 from collections import deque
 
+from logger import Logger
 from .aeroCubeJob import AeroCubeJob
 from .aeroCubeSignal import *
+from .settings import job_id_bundle_key
+
+logger = Logger('jobHandler.py', active=True, external=True)
 
 
 class JobHandler(object):
@@ -55,7 +59,11 @@ class JobHandler(object):
         :param observer: a function with parameter event, the event that is started
         """
         self._on_start_event = observer
-        print('JobHandler: Set on_start_event')
+        logger.debug(
+            self.__class__.__name__,
+            func_name='set_start_event_observer',
+            msg='Set on_start_event',
+            id=None)
 
     def set_job_enqueue_observer(self, observer):
         """
@@ -63,7 +71,11 @@ class JobHandler(object):
         :param observer: a function with parameter job, the job that is enqueued
         """
         self._on_job_enqueue = observer
-        print('JobHandler: Set on_job_enqueue')
+        logger.debug(
+            self.__class__.__name__,
+            func_name='set_job_enqueue_observer',
+            msg='Set on_job_enqueue',
+            id=None)
 
     def set_job_dequeue_observer(self, observer):
         """
@@ -71,7 +83,11 @@ class JobHandler(object):
         :param observer: a function with parameter job, the job that is dequeued
         """
         self._on_job_dequeue = observer
-        print('JobHandler: Set on_dequeue')
+        logger.debug(
+            self.__class__.__name__,
+            func_name='set_job_dequeue_observer',
+            msg='Set on_job_dequeue',
+            id=None)
 
     # getter functions or functions to allow observation of the internal event deque
 
@@ -81,7 +97,11 @@ class JobHandler(object):
         :param job: the new job to be added
         :return:
         """
-        print('JobHandler: Enqueued job: \r\n{}\r\n'.format(job))
+        logger.debug(
+            self.__class__.__name__,
+            func_name='enqueue_job',
+            msg='Enqueued job: \r\n{}\r\n'.format(job),
+            id=job.uuid)
         if JobHandler.is_valid_element(job):
             self._job_deque.append(job)
         else:
@@ -96,7 +116,11 @@ class JobHandler(object):
             elif self._state == JobHandler.State.PENDING or self._state == JobHandler.State.PENDING_STOP_ON_RESOLVE:
                 pass
         except JobHandler.NotAllowedInStateException as e:
-            print(e)
+            logger.err(
+                self.__class__.__name__,
+                func_name='enqueue_job',
+                msg=e,
+                id=job.uuid)
 
     @property
     def state(self):
@@ -183,7 +207,11 @@ class JobHandler(object):
         if self._state != JobHandler.State.PENDING:
             raise JobHandler.NotAllowedInStateException('ERROR: JobHandler must be in PENDING state to continue sending events')
         self._state = JobHandler.State.STARTED
-        print('JobHandler._continue_sending_events: State changed to {}'.format(self._state))
+        logger.debug(
+            self.__class__.__name__,
+            '_continue_sending_events',
+            msg='State changed to {}'.format(self._state),
+            id=None)
         self._start_sending_events()
 
     def _resolve_state(self):
@@ -194,7 +222,11 @@ class JobHandler(object):
             self._continue_sending_events()
         elif self._state == JobHandler.State.PENDING_STOP_ON_RESOLVE:
             self._state = JobHandler.State.STOPPED
-            print('JobHandler._resolve_state: State changed to {}'.format(self._state))
+            logger.debug(
+                self.__class__.__name__,
+                '_resolve_state',
+                msg='State changed to {}'.format(self._state),
+                id=None)
         else:
             raise JobHandler.NotAllowedInStateException('ERROR: JobHandler must be in PENDING or PENDING_STOP_ON_RESOLVE to resolve current event')
 
@@ -206,10 +238,18 @@ class JobHandler(object):
         """
         if self._state == JobHandler.State.PENDING:
             self._state = JobHandler.State.PENDING_STOP_ON_RESOLVE
-            print('JobHandler.stop: State changed to {}'.format(self._state))
+            logger.debug(
+                self.__class__.__name__,
+                'stop',
+                msg='State changed to {}'.format(self._state),
+                id=None)
         elif self._state == JobHandler.State.STARTED:
             self._state = JobHandler.State.STOPPED
-            print('JobHandler.stop: State changed to {}'.format(self._state))
+            logger.debug(
+                self.__class__.__name__,
+                'stop',
+                msg='State changed to {}'.format(self._state),
+                id=None)
         else:
             return False
         return True
@@ -220,9 +260,17 @@ class JobHandler(object):
         JobHandler is in a STOPPED state. If an attempt to resolve the event is dropped, upon re-starting
         :return:
         """
-        print('JobHandler: Force Stop Triggered')
+        logger.debug(
+            self.__class__.__name__,
+            'force_stop',
+            msg='Force Stop Triggered',
+            id=None)
         self._state = JobHandler.State.STOPPED
-        print('JobHandler.force_stop: State changed to {}'.format(self._state))
+        logger.warn(
+            self.__class__.__name__,
+            'force_stop',
+            msg='State changed to {}'.format(self._state),
+            id=None)
 
     def resolve_event(self, event):
         """
@@ -234,18 +282,30 @@ class JobHandler(object):
         if self._can_state_resolve():
             # Modify JobHandler queue (assuming state is valid)
             self._peek_current_job().update_current_node(event, merge_payload=True)
-            print('JobHandler.resolve_event: Resolved Event: \r\n{}\r\n'.format(event))
+            logger.success(
+                self.__class__.__name__,
+                'resolve_event',
+                msg='Resolved Event: \r\n{}\r\n'.format(event),
+                id=event.payload.strings(job_id_bundle_key))
             # Check if the job is finished
             if self._peek_current_job().is_finished:
                 self._dequeue_job()
 
             # Update state
             self._resolve_state()
-            print('JobHandler.resolve_event: State changed to {}'.format(self._state))
+            logger.debug(
+                self.__class__.__name__,
+                'resolve_event',
+                msg='State changed to {}'.format(self._state),
+                id=event.payload.strings(job_id_bundle_key))
             return True
         else:
             # Do not modify JobHandler state or queue, but log ResultEvent
-            print('JobHandler.resolve_event: ResultEvent (not resolved): \r\n{}\r\n'.format(event))
+            logger.warn(
+                self.__class__.__name__,
+                'resolve_event',
+                msg='ResultEvent (not resolved): \r\n{}\r\n'.format(event),
+                id=event.payload.strings(job_id_bundle_key))
             # Return False to indicate calling_event not finished
             return False
 
@@ -269,10 +329,18 @@ class JobHandler(object):
         if self._state != JobHandler.State.STARTED:
             raise JobHandler.NotAllowedInStateException('ERROR: Attempted to start event while not in STARTED state')
         if self._on_start_event is not None:
-            print('JobHandler._start_event: Starting event: \r\n{}\r\n'.format(self._peek_current_event()))
+            logger.debug(
+                self.__class__.__name__,
+                '_start_event',
+                msg='Starting event: \r\n{}\r\n'.format(self._peek_current_event()),
+                id=None)
             self._state = JobHandler.State.PENDING
             self._on_start_event(self, self._peek_current_event())
-            print('JobHandler._start_event: State changed to {}'.format(self._state))
+            logger.debug(
+                self.__class__.__name__,
+                '_start_event',
+                msg='State changed to {}'.format(self._state),
+                id=None)
         else:
             raise NotImplementedError('ERROR: Must call set_start_event_observer before an event can be sent')
 
