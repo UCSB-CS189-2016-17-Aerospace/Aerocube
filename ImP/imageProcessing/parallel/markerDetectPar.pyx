@@ -4,8 +4,15 @@ import cv2
 from cv2 import aruco
 import numpy as np
 cimport numpy as np
-from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 from libcpp cimport bool as bool_t
+
+from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
+import ImP.imageProcessing.parallel.cuda.GpuWrapper as GpuWrapper
+
+
+
+# Define compile time constants to control behavior based on development environment
+DEF CUDA_INSTALLED = True
 
 
 # ALGORITHM PARAMETERS
@@ -94,7 +101,10 @@ def detect_markers_parallel(np.ndarray[dtype=np.uint8_t, ndim=3] img, dictionary
     assert img is not None
 
     # Convert to grayscale (if necessary)
-    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    IF CUDA_INSTALLED:
+        gray_img = GpuWrapper.cudaCvtColorGray(img)
+    ELSE:
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # ~~STEP 1~~: Detect marker candidates
     candidates, contours = _detect_candidates(gray_img)
@@ -435,7 +445,10 @@ def _extract_bits(gray, corners):
 
     # Get transformation and apply to original imageimage
     transformation = cv2.getPerspectiveTransform(corners, resultImgCorners)
-    result_img = cv2.warpPerspective(gray, transformation, (resultImgSize, resultImgSize), flags=cv2.INTER_NEAREST)
+    IF CUDA_INSTALLED:
+        result_img = GpuWrapper.cudaWarpPerspectiveWrapper(gray, transformation, (resultImgSize, resultImgSize), _flags=cv2.INTER_NEAREST)
+    ELSE:
+        result_img = cv2.warpPerspective(gray, transformation, (resultImgSize, resultImgSize), flags=cv2.INTER_NEAREST)
 
     # Initialize matrix containing bits output
     bits = np.zeros((markerSizeWithBorders, markerSizeWithBorders), dtype=np.int8)
