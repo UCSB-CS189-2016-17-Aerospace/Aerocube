@@ -34,6 +34,9 @@ class AeroCubeMarker(FiducialMarker):
                     np.array_equal(self.corners, other.corners))
         else:
             return False
+    
+    def __str__(self):
+        return "ID {} face {}".format(self.aerocube_ID,self.aerocube_face)
 
     @property
     def aerocube_ID(self):
@@ -163,6 +166,7 @@ class AeroCube:
         self._ID = markers[0].aerocube_ID
         self._tvec = self.reduce_translation_vectors(markers)
         self._quaternion = self.reduce_quaternions(markers)
+        self._distance= self.distance_from_tvec(self.tvec)
 
     def __eq__(self, other):
         """
@@ -194,13 +198,19 @@ class AeroCube:
     def quaternion(self):
         return self._quaternion
 
+    @property
+    def distance(self):
+        return self._distance
+
+
     def to_json(self):
         json_dict = {
+            "CUBE_ID": int(self.ID),
             "MARKERS": [m.to_jsonifiable_dict() for m in self.markers],
-            "ID": self.ID,
-            "QUATERNION": self.quaternion
+            "QUATERNION": {k: v for k, v in zip(['w', 'x', 'y', 'z'], self.quaternion.elements)},
+            "distance": self.distance
         }
-        return json.dumps(json_dict)
+        return json_dict
 
     @staticmethod
     def reduce_quaternions(markers):
@@ -220,6 +230,10 @@ class AeroCube:
             return np.mean(candidate_centers, axis=0)
         else:
             raise AttributeError("Derived centers from marker tvecs are not close enough for AeroCube! candidate_centers: {}".format(candidate_centers))
+
+    @staticmethod
+    def distance_from_tvec(tvec):
+        return np.linalg.norm(tvec)
 
     @staticmethod
     def raise_if_markers_invalid(markers):

@@ -194,6 +194,8 @@ class ImageProcessor:
         :return: array of AeroCube objects; [] if no AeroCubes found
         """
         markers = self._find_aerocube_markers()
+        markers.sort(key=lambda marker:marker.aerocube_ID)
+        print("IMP: Markers sorted {}".format(markers))
         aerocubes = list()
         for aerocube, aerocube_markers in itertools.groupby(markers, lambda m: m.aerocube_ID):
             aerocubes.append(AeroCube(list(aerocube_markers)))
@@ -228,7 +230,10 @@ class ImageProcessor:
         #     q_list.append({k: v for k, v in zip(['w', 'x', 'y', 'z'], cube.quaternion.elements)})
         #     ids.append(cube.ID)
         # return corners, ids, q_list
-        return [marker.to_jsonifiable_dict() for marker in self._find_aerocube_markers()]
+        result=[cube.to_json() for cube in self._identify_aerocubes()]
+        print ("IMFS: result{}".format(result))
+        return(result)
+       # return [marker.to_jsonifiable_dict() for marker in self._find_aerocube_markers()]
 
     # Pose and distance functions
 
