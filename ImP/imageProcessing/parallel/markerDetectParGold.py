@@ -441,8 +441,8 @@ class MarkerDetectPar:
                                      [resultImgSize - 1, resultImgSize - 1],
                                      [0                , resultImgSize - 1]], dtype=np.float32)
 
-        # Get transformation and apply to original imageimage
-        transformation = cv2.getPerspectiveTransform(corners, resultImgCorners)
+        # Get transformation and apply to original image
+        transformation = cv2.getPerspectiveTransform(corners, resultImgCorners).astype(np.float32)
         result_img = cv2.warpPerspective(gray, transformation, (resultImgSize, resultImgSize), flags=cv2.INTER_NEAREST)
 
         # Initialize matrix containing bits output

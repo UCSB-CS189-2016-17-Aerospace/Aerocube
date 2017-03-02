@@ -13,7 +13,8 @@ cdef extern from 'pyopencv_converter.cpp':
 
 cdef extern from 'opencv2/imgproc.hpp' namespace 'cv':
     cdef enum InterpolationFlags:
-        INTER_NEAREST = 0
+        INTER_NEAREST
+        INTER_LINEAR
     cdef enum ColorConversionCodes:
         COLOR_BGR2GRAY
 

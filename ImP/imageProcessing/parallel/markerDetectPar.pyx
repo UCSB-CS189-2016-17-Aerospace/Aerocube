@@ -7,12 +7,12 @@ cimport numpy as np
 from libcpp cimport bool as bool_t
 
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
-import ImP.imageProcessing.parallel.cuda.GpuWrapper as GpuWrapper
-
-
 
 # Define compile time constants to control behavior based on development environment
 DEF CUDA_INSTALLED = True
+IF CUDA_INSTALLED:
+    import ImP.imageProcessing.parallel.cuda.GpuWrapper as GpuWrapper
+    GpuWrapper.init()
 
 
 # ALGORITHM PARAMETERS
@@ -444,9 +444,10 @@ def _extract_bits(gray, corners):
                                  [0                , resultImgSize - 1]], dtype=np.float32)
 
     # Get transformation and apply to original imageimage
-    transformation = cv2.getPerspectiveTransform(corners, resultImgCorners)
+    transformation = cv2.getPerspectiveTransform(corners, resultImgCorners).astype(np.float32)
     IF CUDA_INSTALLED:
-        result_img = GpuWrapper.cudaWarpPerspectiveWrapper(gray, transformation, (resultImgSize, resultImgSize), _flags=cv2.INTER_NEAREST)
+        # Use INTER_LINEAR instead of INTER_NEAREST to prevent information loss and ensure accuracy in GPU call
+        result_img = GpuWrapper.cudaWarpPerspectiveWrapper(gray, transformation, (resultImgSize, resultImgSize), _flags=cv2.INTER_LINEAR)
     ELSE:
         result_img = cv2.warpPerspective(gray, transformation, (resultImgSize, resultImgSize), flags=cv2.INTER_NEAREST)
 
