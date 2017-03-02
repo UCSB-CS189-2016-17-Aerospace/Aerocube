@@ -9,6 +9,7 @@ import cv2
 from cv2 import aruco
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 import ImP.imageProcessing.parallel.markerDetectPar as MarkerDetectPar
+from ImP.imageProcessing.parallel.markerDetectParGold import MarkerDetectPar as MarkerDetectParGold
 from ImP.imageProcessing.settings import ImageProcessingSettings
 
 try:
@@ -63,6 +64,15 @@ class TestMarkerDetectParPerf(unittest.TestCase):
         pr = cProfile.Profile()
         pr.enable()
         test_corners, test_ids = imp._find_fiducial_markers(parallel=True)
+        pr.disable()
+        s = io.StringIO()
+        ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+        ps.print_stats()
+        print(s.getvalue())
+
+        pr = cProfile.Profile()
+        pr.enable()
+        test_corners, test_ids = MarkerDetectParGold.detect_markers_parallel(imp._img_mat)
         pr.disable()
         s = io.StringIO()
         ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
