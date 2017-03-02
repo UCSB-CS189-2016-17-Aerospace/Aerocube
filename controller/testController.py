@@ -3,6 +3,11 @@ from .controller import Controller
 
 
 class TestController(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from logger import Logger
+        Logger.prevent_external()
+
     def setUp(self):
         self._controller = Controller()
 

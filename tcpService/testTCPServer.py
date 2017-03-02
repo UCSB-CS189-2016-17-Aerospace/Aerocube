@@ -7,6 +7,11 @@ from .testClassTcpServer import TestClassTcpServer
 
 
 class TcpServerTestCase(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		from logger import Logger
+		Logger.prevent_external()
+
 	def setUp(self):
 		self.server = TcpServer('127.0.0.1', 5005, 1024)
 		self.server.accept_connection()

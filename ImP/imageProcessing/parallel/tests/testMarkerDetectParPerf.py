@@ -22,6 +22,9 @@ except ImportError:
 
 
 class TestMarkerDetectParPerf(unittest.TestCase):
+    """
+    Concerned with testing the performance rather than the accuracy/correctness of markerDetectPar.
+    """
     @classmethod
     def setUpClass(cls):
         cls._CAPSTONE_PHOTO_PATH = os.path.join(ImageProcessingSettings.get_test_files_path(), 'capstone_class_photoshoot')
@@ -122,7 +125,7 @@ class TestMarkerDetectParPerf(unittest.TestCase):
         test_dst = GpuWrapper.cudaWarpPerspectiveWrapper(src.astype(dtype=np.uint8),
                                                          M.astype(dtype=np.float32),
                                                          (result_img_size, result_img_size),
-                                                         _flags=cv2.INTER_NEAREST)
+                                                         _flags=cv2.INTER_LINEAR)
         pr.disable()
         s = io.StringIO()
         ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')

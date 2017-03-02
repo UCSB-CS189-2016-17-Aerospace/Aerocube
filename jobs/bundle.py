@@ -4,7 +4,7 @@ from numbers import Number
 
 from logger import Logger
 
-logger = Logger('bundle.py', active=True, firebase=False)
+logger = Logger('bundle.py', active=True, external=False)
 
 class BundleKeyError(Exception):
     def __init__(self, message):

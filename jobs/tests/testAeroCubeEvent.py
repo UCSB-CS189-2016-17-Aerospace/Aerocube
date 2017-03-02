@@ -6,6 +6,12 @@ from jobs.bundle import Bundle, BundleKeyError
 
 
 class TestAeroCubeEventInit(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        from logger import Logger
+        Logger.prevent_external()
+
     def test_image_event_init(self):
         event = ImageEvent(ImageEventSignal.IDENTIFY_AEROCUBES)
         self.assertIsNotNone(event)
@@ -54,7 +60,8 @@ class TestAeroCubeEventInit(unittest.TestCase):
 class TestAeroCubeEvent(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        pass
+        from logger import Logger
+        Logger.prevent_external()
 
     @classmethod
     def tearDownClass(cls):
@@ -129,6 +136,10 @@ class TestAeroCubeEvent(unittest.TestCase):
 
 
 class TestAeroCubeSignal(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from logger import Logger
+        Logger.prevent_external()
 
     def test_get_image_event_signal(self):
         self.assertIsNotNone(ImageEventSignal.IDENTIFY_AEROCUBES)
@@ -146,6 +157,8 @@ class TestAeroCubePayload(unittest.TestCase):
         cls._VALID_KEY = 'VALID_KEY'
         cls._VALID_NUM = 42
         cls._VALID_STRING = 'a string'
+        from logger import Logger
+        Logger.prevent_external()
 
     def setUp(self):
         self._event = ImageEvent(ImageEventSignal.GET_AEROCUBE_POSE, Bundle())

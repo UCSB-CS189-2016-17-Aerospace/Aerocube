@@ -29,13 +29,15 @@ class Logger:
     A logger class to be instantiated at the top of each non-test python module for debugging purposes
     :ivar _filename:
     :ivar _active:
-    :ivar _firebase: Whether or not to save logs to firebase
+    :ivar _external: Whether or not to save logs to an external location
+    :cvar _prevent_external: Prevent any logs from being sent to firebase if true
     """
+    _prevent_external = False
 
-    def __init__(self, filename, active=False, firebase=True):
+    def __init__(self, filename, active=False, external=True):
         self._filename = filename
         self._active = active
-        self._firebase = firebase
+        self._external = external
 
     def _log(self, log_type, class_name=None, func_name='', msg='', id=None):
         if self._active and not global_log_disable:
@@ -45,11 +47,15 @@ class Logger:
             log_statement += '.{}'.format(func_name)
             log_statement += ': {}'.format(msg)
             print(log_statement)
-            if id is not None and self._firebase:
+            if id is not None and self._external and not self._prevent_external:
                 # Defer imports until needed to handle circular dependency issue
                 from externalComm.externalComm import external_write
                 from externalComm.commClass import FirebaseComm
                 external_write(FirebaseComm.NAME, scanID=str(time.time()).split('.')[0], location='logs/{}'.format(id), data=log_statement, testing=True)
+
+    @classmethod
+    def prevent_external(cls):
+        cls._prevent_external = True
 
     def err(self, class_name, func_name, msg, id):
         self._log(LogType.error, class_name, func_name, msg, id)

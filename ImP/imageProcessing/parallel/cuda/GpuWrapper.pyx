@@ -33,7 +33,7 @@ def cudaWarpPerspectiveWrapper(np.ndarray[np.uint8_t, ndim=2] _src,
 
     # Create empty GPU/device OutputArray for dst
     cdef GpuMat dst_gpu = GpuMat()
-    warpPerspective(src_gpu, dst_gpu, M_mat, size, INTER_NEAREST)
+    warpPerspective(src_gpu, dst_gpu, M_mat, size, _flags)
 
     # Get result of dst
     cdef Mat dst_host
@@ -59,7 +59,7 @@ def warpPerspectiveWrapper(np.ndarray[np.uint8_t, ndim=2] _src,
 
     # Create empty GPU/device OutputArray for dst
     cdef Mat dst_mat = Mat()
-    warpPerspective(src_mat, dst_mat, M_mat, size, INTER_NEAREST)
+    warpPerspective(src_mat, dst_mat, M_mat, size, _flags)
 
     # Get result of dst
     cdef np.ndarray out = <np.ndarray> pyopencv_from(dst_mat)
