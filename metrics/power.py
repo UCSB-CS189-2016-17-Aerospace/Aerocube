@@ -22,3 +22,9 @@ class Power():
     args = shlex.split(self._power_now)
     out = subprocess.check_output(args)
     return out
+
+  def batter_capacity_in_percent(self):
+    cmd = "awk '{print $1 \"%\"}' /sys/class/power_supply/BAT0/capacity"
+    proc = subprocess.Popen(cmd, stdout=PIPE) # Might need to set shell=True
+    out, err = proc.communicate()
+    return out
