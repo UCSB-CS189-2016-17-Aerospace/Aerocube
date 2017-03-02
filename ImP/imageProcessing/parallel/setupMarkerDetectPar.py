@@ -4,6 +4,13 @@ from distutils.core import setup, Extension
 from Cython.Build import cythonize
 from Cython.Distutils import build_ext
 
+"""
+Run setup with the following command:
+```
+python setupMarkerDetectPar.py build_ext --inplace
+```
+"""
+
 # Determine current directory of this setup file to find our module
 CUR_DIR = os.path.dirname(__file__)
 

@@ -6,7 +6,7 @@
 # Disable certain opencv modules to save space
 # Disable most opencv_contrib modules (all but Aruco)
 cmake -DOPENCV_EXTRA_MODULES_PATH=/usr/local/lib/opencv_contrib/modules/ \
-    -D WITH_CUDA=ON -D CUDA_FAST_MATH=1 \
+    -D WITH_CUDA=ON -D CUDA_FAST_MATH=0 \
     -D ENABLE_PRECOMPILED_HEADERS=ON \
     -D BUILD_TESTS=OFF -D BUILD_PERF_TESTS=OFF -D BUILD_EXAMPLES=OFF \
     -D BUILD_opencv_java=OFF \
