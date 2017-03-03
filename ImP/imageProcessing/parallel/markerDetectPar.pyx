@@ -1,7 +1,11 @@
-cimport numpy as np
 import cv2
+
 import numpy as np
+cimport numpy as np
+np.import_array()
+
 from libcpp cimport bool as bool_t
+from cpython.ref cimport PyObject
 from cython.parallel import parallel, prange
 
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
@@ -10,7 +14,7 @@ from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 DEF CUDA_INSTALLED = True
 IF CUDA_INSTALLED:
     import ImP.imageProcessing.parallel.cuda.GpuWrapper as GpuWrapper
-    GpuWrapper.init()
+    # GpuWrapper.init()
 
 
 # ALGORITHM PARAMETERS
@@ -349,16 +353,16 @@ def _identify_candidates(np.ndarray[np.uint8_t, ndim=2] gray, candidates, dictio
     ids = list()
     rejected = list()
     # Create GpuMat of gray
-    # cdef Mat gray_mat = Mat()
-    # cdef GpuMat gray_gpu = GpuMat()
-    # print("declared")
-    # pyopencv_to(<PyObject*> gray, gray_mat)
-    # print("uploading")
-    # gray_gpu.upload(gray_mat)
-    # print("uploaded")
+    cdef Mat gray_mat = Mat()
+    cdef GpuMat gray_gpu = GpuMat()
+    print("declared")
+    pyopencv_to(<PyObject*> gray, gray_mat)
+    print("uploading")
+    gray_gpu.upload(gray_mat)
+    print("uploaded")
     # Analyze each candidate
     for i in range(len(candidates)):
-        valid, corners, cand_id = _identify_one_candidate(dictionary, gray, candidates[i])
+        valid, corners, cand_id = _identify_one_candidate(dictionary, gray_gpu, candidates[i])
         if valid:
             accepted.append(corners)
             ids.append(cand_id)
@@ -368,7 +372,7 @@ def _identify_candidates(np.ndarray[np.uint8_t, ndim=2] gray, candidates, dictio
     return accepted, ids, rejected
 
 
-def _identify_one_candidate(dictionary, np.ndarray[np.uint8_t, ndim=2] gray, corners):
+cdef _identify_one_candidate(dictionary, GpuMat gray, corners):
     """
     Given a grayscale image and the candidate corners (i.e., corner points), extract the bits of the candidate from
     the image if possible and use the dictionary to identify the candidate. If successful, reverse any rotation
@@ -387,7 +391,7 @@ def _identify_one_candidate(dictionary, np.ndarray[np.uint8_t, ndim=2] gray, cor
     """
     marker_border_bits = params[markerBorderBits]
     assert len(corners) is 4
-    assert gray is not None
+    # assert gray is not None
     assert marker_border_bits > 0
 
     # Get bits, and ensure there are not too many erroneous bits
@@ -408,8 +412,8 @@ def _identify_one_candidate(dictionary, np.ndarray[np.uint8_t, ndim=2] gray, cor
     pass
 
 
-cdef np.ndarray[dtype=np.uint8_t, ndim=2] _extract_bits(np.ndarray[np.uint8_t, ndim=2] gray,
-                                                        np.ndarray[np.float32_t, ndim=2] corners):
+cdef np.ndarray[np.uint8_t, ndim=2] _extract_bits(GpuMat gray,
+                                                  np.ndarray[np.float32_t, ndim=2] corners):
     """
     Extract the bits encoding the ID of the marker given the image and the marker's corners.
     First finds the perspective transformation matrix from the marker's "original" coordinates relative to the
@@ -457,10 +461,17 @@ cdef np.ndarray[dtype=np.uint8_t, ndim=2] _extract_bits(np.ndarray[np.uint8_t, n
                                  [0                , resultImgSize - 1]], dtype=np.float32)
 
     # Get transformation and apply to original imageimage
-    cdef np.ndarray[dtype=np.float32_t, ndim=2] transformation = cv2.getPerspectiveTransform(corners, resultImgCorners).astype(np.float32)
+    cdef GpuMat dst_gpu
+    cdef Mat trans_mat
+    cdef np.ndarray[np.float32_t, ndim=2] transformation = cv2.getPerspectiveTransform(corners, resultImgCorners).astype(np.float32)
+    cdef Mat dst_mat
+    pyopencv_to(<PyObject*> transformation, trans_mat)
     IF CUDA_INSTALLED:
         # Use INTER_LINEAR instead of INTER_NEAREST to prevent information loss and ensure accuracy in GPU call
-        result_img = GpuWrapper.cudaWarpPerspectiveWrapper(gray, transformation, (resultImgSize, resultImgSize), _flags=cv2.INTER_LINEAR)
+        # result_img = GpuWrapper.cudaWarpPerspectiveWrapper(gray, transformation, (resultImgSize, resultImgSize), _flags=cv2.INTER_LINEAR)
+        warpPerspective(gray, dst_gpu, trans_mat, Size(resultImgSize, resultImgSize), cv2.INTER_LINEAR)
+        dst_gpu.download(dst_mat)
+        cdef np.ndarray[np.uint8_t, ndim=2] result_img = <object> pyopencv_from(dst_mat)
     ELSE:
         result_img = cv2.warpPerspective(gray, transformation, (resultImgSize, resultImgSize), flags=cv2.INTER_NEAREST)
 
