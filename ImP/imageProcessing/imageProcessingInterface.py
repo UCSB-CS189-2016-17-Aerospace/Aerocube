@@ -237,7 +237,7 @@ class ImageProcessor:
         num_markers={}
         for cube in cubes:
             ID=str(cube.ID)
-            cube_ids.append(cube.ID)
+            cube_ids.append(int(cube.ID))
             quaternions[ID]={k: v for k, v in zip(['w', 'x', 'y', 'z'], cube.quaternion.elements)}
             distances[ID]=cube.distance
             num_markers[ID]=len(cube.markers)
