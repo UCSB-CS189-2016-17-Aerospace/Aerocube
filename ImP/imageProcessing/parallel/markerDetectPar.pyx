@@ -3,6 +3,9 @@ import cv2
 import numpy as np
 from libcpp cimport bool as bool_t
 from cython.parallel import parallel, prange
+from multiprocessing import Pool
+import os
+
 
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 
@@ -160,21 +163,38 @@ def _detect_initial_candidates(gray):
     contours = list()
 
     # Threshold at different scales
+    # for i in range(int(nScales)):
+    #     scale = params[adaptiveThreshWinSizeMin] + i * params[adaptiveThreshWinSizeStep]
+    #     cand, cont = _find_marker_contours(_threshold(gray, scale, params[adaptiveThreshConstant]))
+    #     # cand, cont = aruco._findMarkerContours(_threshold(gray, scale, params[adaptiveThreshConstant]),
+    #     #                                        params[minMarkerPerimeterRate],
+    #     #                                        params[maxMarkerPerimeterRate],
+    #     #                                        params[polygonalApproxAccuracyRate],
+    #     #                                        params[minCornerDistanceRate],
+    #     #                                        params[minDistanceToBorder])
+    #     if len(cand) > 0:
+    #         for j in range(len(cand)):
+    #             candidates.append(cand[j])
+    #             contours.append(cont[j])
+
+    p = Pool(3)
+    candidates, contours = p.map(parPart,(gray,nScales,candidates,contours))
+
+    return np.squeeze(candidates), contours
+
+def parPart(gray, nScales, candidates, contours):
     for i in range(int(nScales)):
         scale = params[adaptiveThreshWinSizeMin] + i * params[adaptiveThreshWinSizeStep]
         cand, cont = _find_marker_contours(_threshold(gray, scale, params[adaptiveThreshConstant]))
-        # cand, cont = aruco._findMarkerContours(_threshold(gray, scale, params[adaptiveThreshConstant]),
-        #                                        params[minMarkerPerimeterRate],
-        #                                        params[maxMarkerPerimeterRate],
-        #                                        params[polygonalApproxAccuracyRate],
-        #                                        params[minCornerDistanceRate],
-        #                                        params[minDistanceToBorder])
         if len(cand) > 0:
             for j in range(len(cand)):
                 candidates.append(cand[j])
                 contours.append(cont[j])
 
-    return np.squeeze(candidates), contours
+    return cand, cont
+
+
+
 
 
 def _find_marker_contours(thresh):
