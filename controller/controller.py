@@ -1,6 +1,7 @@
 import numpy as np
 
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
+from ImP.imageProcessing.aerocubeMarker import AeroCube
 from controller.settings import ControllerSettings
 from dataStorage.dataStorage import store
 from externalComm.externalComm import external_write, external_store_img
@@ -85,9 +86,7 @@ class Controller:
                 func_name='scan_image',
                 msg='Finding fiducial markers',
                 id=img_event.payload.strings(job_id_bundle_key))
-            corners, marker_ids, poses = imp.identify_markers_for_storage()
-            # Ensure data is JSONifiable
-            corners, marker_ids = np.array(corners).tolist(), np.array(marker_ids).tolist()
+            aerocubes_as_json, markers_as_json = imp.identify_markers_for_storage()
             logger.success(
                 self.__class__.__name__,
                 func_name='scan_image',
@@ -98,14 +97,18 @@ class Controller:
             # Prepare bundle from original
             result_bundle = img_event.payload
             result_bundle.insert_string(ImageEvent.SCAN_ID, str(img_event.created_at).split('.')[0])
-            result_bundle.insert_iterable(ImageEvent.SCAN_CORNERS, corners)
-            result_bundle.insert_iterable(ImageEvent.SCAN_MARKER_IDS, marker_ids)
-            result_bundle.insert_iterable(ImageEvent.SCAN_POSES, poses)
+            result_bundle.insert_raw(AeroCube.STR_KEY_CUBE_IDS, aerocubes_as_json[AeroCube.STR_KEY_CUBE_IDS])
+            result_bundle.insert_raw(AeroCube.STR_KEY_QUATERNIONS, aerocubes_as_json[AeroCube.STR_KEY_QUATERNIONS])
+            result_bundle.insert_raw(AeroCube.STR_KEY_TVECS, aerocubes_as_json[AeroCube.STR_KEY_TVECS])
+            result_bundle.insert_raw(AeroCube.STR_KEY_DISTANCES, aerocubes_as_json[AeroCube.STR_KEY_DISTANCES])
+            result_bundle.insert_raw(AeroCube.STR_KEY_MARKERS_DETECTED, aerocubes_as_json[AeroCube.STR_KEY_MARKERS_DETECTED])
+            result_bundle.insert_raw(ImageEvent.SCAN_MARKERS, markers_as_json)
             logger.success(
                 self.__class__.__name__,
                 func_name='scan_image',
                 msg='Controller.scan_image: Done with setting bundle : {}'.format(str(result_bundle)),
                 id=img_event.payload.strings(job_id_bundle_key))
+            
         except Exception as ex:
             logger.err(
                 self.__class__.__name__,
@@ -148,6 +151,8 @@ class Controller:
         database = store_event.payload.strings(StorageEvent.EXT_STORAGE_TARGET)
         scan_id = store_event.payload.strings(ImageEvent.SCAN_ID)
         data = store_event.parse_storage_keys()
+        print(store_event.payload)
+        print(data)
         img_data = store_event.payload.strings(ImageEvent.FILE_PATH)
         try:
             logger.debug(
@@ -155,7 +160,7 @@ class Controller:
                 func_name='store_externally',
                 msg='Storing data externally',
                 id=store_event.payload.strings(job_id_bundle_key))
-            external_write(database=database, scanID=scan_id,
+            external_write(database=database, scanID=scan_id, location='scans',
                            data=data, testing=True)
             logger.debug(
                 self.__class__.__name__,

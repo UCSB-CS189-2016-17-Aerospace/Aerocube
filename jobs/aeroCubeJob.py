@@ -1,5 +1,6 @@
 from .aeroCubeEvent import *
 from .aeroCubeSignal import ResultEventSignal
+from ImP.imageProcessing.aerocubeMarker import AeroCube
 from .settings import job_id_bundle_key
 
 class AeroCubeJobEventNode:
@@ -147,17 +148,23 @@ class AeroCubeJob:
         if ext_store_target is not None:
             ext_store_bundle.insert_string(StorageEvent.EXT_STORAGE_TARGET, ext_store_target)
             ext_store_bundle.insert_iterable(StorageEvent.EXT_STORE_PAYLOAD_KEYS, ['strings:' + ImageEvent.SCAN_ID,
-                                                                                   'iterables:' + ImageEvent.SCAN_CORNERS,
-                                                                                   'iterables:' + ImageEvent.SCAN_MARKER_IDS,
-                                                                                   'iterables:' + ImageEvent.SCAN_POSES])
+                                                                                   'raws:' + ImageEvent.SCAN_MARKERS,
+                                                                                   'raws:' + AeroCube.STR_KEY_CUBE_IDS,
+                                                                                   'raws:' + AeroCube.STR_KEY_QUATERNIONS,
+                                                                                   'raws:' + AeroCube.STR_KEY_TVECS,
+                                                                                   'raws:' + AeroCube.STR_KEY_DISTANCES,
+                                                                                   'raws:' + AeroCube.STR_KEY_MARKERS_DETECTED])
             ext_store_node = AeroCubeJobEventNode(StorageEvent(StorageEventSignal.STORE_EXTERNALLY, ext_store_bundle))
         int_store_bundle = Bundle()
         int_store_node = None
         if int_storage is True:
             int_store_bundle.insert_iterable(StorageEvent.INT_STORE_PAYLOAD_KEYS, ['strings:' + ImageEvent.SCAN_ID,
-                                                                                   'iterables:' + ImageEvent.SCAN_CORNERS,
-                                                                                   'iterables:' + ImageEvent.SCAN_MARKER_IDS,
-                                                                                   'iterables:' + ImageEvent.SCAN_POSES])
+                                                                                   'raws:' + ImageEvent.SCAN_MARKERS,
+                                                                                   'raws:' + AeroCube.STR_KEY_CUBE_IDS,
+                                                                                   'raws:' + AeroCube.STR_KEY_QUATERNIONS,
+                                                                                   'raws:' + AeroCube.STR_KEY_TVECS,
+                                                                                   'raws:' + AeroCube.STR_KEY_DISTANCES,
+                                                                                   'raws:' + AeroCube.STR_KEY_MARKERS_DETECTED])
             int_store_event = StorageEvent(StorageEventSignal.STORE_INTERNALLY, int_store_bundle)
             if ext_store_target is not None:
                 int_store_node = AeroCubeJobEventNode(int_store_event, ok_event_node=ext_store_node)
