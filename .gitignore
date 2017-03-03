@@ -40,3 +40,4 @@
 
 # IDE-related files
 .idea/*
+/ImP/output_files/
