@@ -147,6 +147,10 @@ class AeroCubeFace(Enum):
 
 class AeroCube:
     NUM_SIDES = 6
+    STR_KEY_CUBE_IDS = "CUBE_IDS"
+    STR_KEY_QUATERNIONS = "QUATERNIONS"
+    STR_KEY_DISTANCES = "DISTANCES"
+    STR_KEY_MARKERS_DETECTED = "MARKERS_DETECTED"
 
     # Give _ERR_MESSAGES keys unique, but otherwise arbitrary, values
     _MARKERS_EMPTY, _MARKERS_HAVE_MANY_AEROCUBES, _DUPLICATE_MARKERS = range(3)

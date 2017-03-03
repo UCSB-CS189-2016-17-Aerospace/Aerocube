@@ -1,6 +1,7 @@
 import numpy as np
 
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
+from ImP.imageProcessing.aerocubeMarker import AeroCube
 from controller.settings import ControllerSettings
 from dataStorage.dataStorage import store
 from externalComm.externalComm import external_write, external_store_img
@@ -85,8 +86,7 @@ class Controller:
                 func_name='scan_image',
                 msg='Finding fiducial markers',
                 id=img_event.payload.strings(job_id_bundle_key))
-            aerocubes_as_json  = imp.identify_markers_for_storage()
-
+            aerocubes_as_json, markers_as_json = imp.identify_markers_for_storage()
             logger.success(
                 self.__class__.__name__,
                 func_name='scan_image',
@@ -97,7 +97,11 @@ class Controller:
             # Prepare bundle from original
             result_bundle = img_event.payload
             result_bundle.insert_string(ImageEvent.SCAN_ID, str(img_event.created_at).split('.')[0])
-            result_bundle.insert_raw(ImageEvent.SCAN_MARKERS, aerocubes_as_json)
+            result_bundle.insert_raw(AeroCube.STR_KEY_CUBE_IDS, aerocubes_as_json[AeroCube.STR_KEY_CUBE_IDS])
+            result_bundle.insert_raw(AeroCube.STR_KEY_QUATERNIONS, aerocubes_as_json[AeroCube.STR_KEY_QUATERNIONS])
+            result_bundle.insert_raw(AeroCube.STR_KEY_DISTANCES, aerocubes_as_json[AeroCube.STR_KEY_DISTANCES])
+            result_bundle.insert_raw(AeroCube.STR_KEY_MARKERS_DETECTED, aerocubes_as_json[AeroCube.STR_KEY_MARKERS_DETECTED])
+            result_bundle.insert_raw(ImageEvent.SCAN_MARKERS, markers_as_json)
             logger.success(
                 self.__class__.__name__,
                 func_name='scan_image',

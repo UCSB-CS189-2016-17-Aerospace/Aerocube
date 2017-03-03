@@ -230,24 +230,26 @@ class ImageProcessor:
         #     q_list.append({k: v for k, v in zip(['w', 'x', 'y', 'z'], cube.quaternion.elements)})
         #     ids.append(cube.ID)
         # return corners, ids, q_list
-        cubes=self._identify_aerocubes()
-        cube_ids=[]
-        quaternions={}
-        distances={}
-        num_markers={}
+        cubes = self._identify_aerocubes()
+        cube_ids = []
+        quaternions = {}
+        distances = {}
+        num_markers = {}
+        markers = list()
         for cube in cubes:
-            ID=str(cube.ID)
+            ID = str(cube.ID)
             cube_ids.append(int(cube.ID))
             quaternions[ID]={k: v for k, v in zip(['w', 'x', 'y', 'z'], cube.quaternion.elements)}
             distances[ID]=cube.distance
             num_markers[ID]=len(cube.markers)
-        json_dict = {
-            "Cube_IDs": cube_ids,
-            "Quaternions": quaternions,
-            "Distances": distances,
-            "markers_Detected":num_markers
+            markers += [m.to_jsonifiable_dict() for m in cube.markers()]
+        cube_json_dict = {
+            AeroCube.STR_KEY_CUBE_IDS: cube_ids,
+            AeroCube.STR_KEY_QUATERNIONS: quaternions,
+            AeroCube.STR_KEY_DISTANCES: distances,
+            AeroCube.STR_KEY_MARKERS_DETECTED: num_markers
         }
-        return json_dict
+        return cube_json_dict, markers
         ### full data ###
         #result=[cube.to_json() for cube in self._identify_aerocubes()]
         #print ("IMFS: result{}".format(result))
