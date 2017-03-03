@@ -1,14 +1,14 @@
-import os
-import unittest
-import timeit
 import cProfile
-import pstats
 import io
-import numpy as np
-import cv2
+import os
+import pstats
+import unittest
 from cv2 import aruco
+
+import cv2
+import numpy as np
+
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
-import ImP.imageProcessing.parallel.markerDetectPar as MarkerDetectPar
 from ImP.imageProcessing.parallel.markerDetectParGold import MarkerDetectPar as MarkerDetectParGold
 from ImP.imageProcessing.settings import ImageProcessingSettings
 
@@ -49,7 +49,7 @@ class TestMarkerDetectParPerf(unittest.TestCase):
     # Test and profile entire algorithm
 
     def test_time_serial_vs_par(self):
-        img_path = os.path.join(self._CAPSTONE_PHOTO_PATH, 'AC_0_1_FRONT_TOP.JPG')
+        img_path = os.path.join(self._CAPSTONE_PHOTO_PATH, 'SPACE_1.JPG')
 
         imp = ImageProcessor(img_path)
         pr = cProfile.Profile()
@@ -63,7 +63,7 @@ class TestMarkerDetectParPerf(unittest.TestCase):
 
         pr = cProfile.Profile()
         pr.enable()
-        test_corners, test_ids = imp._find_fiducial_markers(parallel=True)
+        test_corners_gpu, test_ids_gpu = imp._find_fiducial_markers(parallel=True)
         pr.disable()
         s = io.StringIO()
         ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
@@ -81,6 +81,8 @@ class TestMarkerDetectParPerf(unittest.TestCase):
 
         np.testing.assert_allclose(actual_corners, test_corners)
         np.testing.assert_array_equal(actual_ids, test_ids)
+        np.testing.assert_allclose(actual_corners, test_corners_gpu)
+        np.testing.assert_array_equal(actual_ids, test_ids_gpu)
 
     # Test GPU-related methods
 

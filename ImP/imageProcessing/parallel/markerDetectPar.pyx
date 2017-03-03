@@ -1,10 +1,8 @@
-import os
-import math
-import cv2
-from cv2 import aruco
-import numpy as np
 cimport numpy as np
+import cv2
+import numpy as np
 from libcpp cimport bool as bool_t
+from cython.parallel import parallel, prange
 
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 
@@ -164,13 +162,13 @@ def _detect_initial_candidates(gray):
     # Threshold at different scales
     for i in range(int(nScales)):
         scale = params[adaptiveThreshWinSizeMin] + i * params[adaptiveThreshWinSizeStep]
-        # cand, cont = _find_marker_contours(_threshold(gray, scale, params[adaptiveThreshConstant]))
-        cand, cont = aruco._findMarkerContours(_threshold(gray, scale, params[adaptiveThreshConstant]),
-                                               params[minMarkerPerimeterRate],
-                                               params[maxMarkerPerimeterRate],
-                                               params[polygonalApproxAccuracyRate],
-                                               params[minCornerDistanceRate],
-                                               params[minDistanceToBorder])
+        cand, cont = _find_marker_contours(_threshold(gray, scale, params[adaptiveThreshConstant]))
+        # cand, cont = aruco._findMarkerContours(_threshold(gray, scale, params[adaptiveThreshConstant]),
+        #                                        params[minMarkerPerimeterRate],
+        #                                        params[maxMarkerPerimeterRate],
+        #                                        params[polygonalApproxAccuracyRate],
+        #                                        params[minCornerDistanceRate],
+        #                                        params[minDistanceToBorder])
         if len(cand) > 0:
             for j in range(len(cand)):
                 candidates.append(cand[j])
@@ -225,12 +223,12 @@ def _find_marker_contours(thresh):
         # Check min distance between corners
         # Note that the "points" of approxCurve are stored as Points[col, row] --> Points[x,y],
         # whereas contours_img is a Image[row,col] --> Image[y,x]
-        minDistSq = math.pow(max(contours_img.shape), 2)
+        minDistSq = max(contours_img.shape)*max(contours_img.shape)
         for j in range(4):
-            minDistSq = min(math.pow(approxCurve[j][0] - approxCurve[(j+1) % 4][0], 2) +
-                            math.pow(approxCurve[j][1] - approxCurve[(j+1) % 4][1], 2),
+            minDistSq = min((approxCurve[j][0] - approxCurve[(j+1) % 4][0]) * (approxCurve[j][0] - approxCurve[(j+1) % 4][0]) +
+                            (approxCurve[j][1] - approxCurve[(j+1) % 4][1]) * (approxCurve[j][1] - approxCurve[(j+1) % 4][1]),
                             minDistSq)
-        if minDistSq < math.pow(len(c) * min_corner_distance_rate, 2): continue
+        if minDistSq < len(c)*min_corner_distance_rate * len(c)*min_corner_distance_rate: continue
         # Check if it's too near to the img border
         # Note that images are stored similarly to matrices (row-major-order)
         # http://stackoverflow.com/questions/25642532/opencv-pointx-y-represent-column-row-or-row-column
@@ -305,11 +303,11 @@ def _filter_too_close_candidates(candidates, contours):
                 distSq = 0
                 for c in range(4):
                     modC = (fc + c) % 4
-                    distSq += math.pow(candidates[i][modC][0] - candidates[j][c][0], 2) + \
-                              math.pow(candidates[i][modC][1] - candidates[j][c][1], 2)
+                    distSq += (candidates[i][modC][0] - candidates[j][c][0])*(candidates[i][modC][0] - candidates[j][c][0]) + \
+                              (candidates[i][modC][1] - candidates[j][c][1])*(candidates[i][modC][1] - candidates[j][c][1])
                 distSq /= 4.0  # Take the mean distance squared
                 # If mean square distance too low, mark for deletion
-                if distSq < math.pow(minMarkerDistancePixels, 2):
+                if distSq < minMarkerDistancePixels*minMarkerDistancePixels:
                     # If one marker already marked for deletion, do nothing
                     if to_remove[i] or to_remove[j]:
                         break
@@ -326,7 +324,7 @@ def _filter_too_close_candidates(candidates, contours):
 # ~~STEP 2 FUNCTIONS~~
 
 
-def _identify_candidates(gray, candidates, dictionary):
+def _identify_candidates(np.ndarray[np.uint8_t, ndim=2] gray, candidates, dictionary):
     """
     Iterates through given array of candidates and extracts the "bits" of the candidate marker by Otsu thresholding.
     Rejects the candidate if bits are not properly set or identifiable by the dictionary. Additionally, reverses any
@@ -345,11 +343,19 @@ def _identify_candidates(gray, candidates, dictionary):
 
     # Assert that image is not none and gray
     assert gray is not None
-    assert gray.size is not 0 and len(gray.shape) == 2
+    # assert gray.size is not 0 and len(gray.shape) == 2
     # Initialize variables
     accepted = list()
     ids = list()
     rejected = list()
+    # Create GpuMat of gray
+    # cdef Mat gray_mat = Mat()
+    # cdef GpuMat gray_gpu = GpuMat()
+    # print("declared")
+    # pyopencv_to(<PyObject*> gray, gray_mat)
+    # print("uploading")
+    # gray_gpu.upload(gray_mat)
+    # print("uploaded")
     # Analyze each candidate
     for i in range(len(candidates)):
         valid, corners, cand_id = _identify_one_candidate(dictionary, gray, candidates[i])
@@ -362,7 +368,7 @@ def _identify_candidates(gray, candidates, dictionary):
     return accepted, ids, rejected
 
 
-def _identify_one_candidate(dictionary, gray, corners):
+def _identify_one_candidate(dictionary, np.ndarray[np.uint8_t, ndim=2] gray, corners):
     """
     Given a grayscale image and the candidate corners (i.e., corner points), extract the bits of the candidate from
     the image if possible and use the dictionary to identify the candidate. If successful, reverse any rotation
@@ -385,7 +391,7 @@ def _identify_one_candidate(dictionary, gray, corners):
     assert marker_border_bits > 0
 
     # Get bits, and ensure there are not too many erroneous bits
-    candidate_bits = _extract_bits(gray, corners)
+    cdef np.ndarray[np.uint8_t, ndim=2] candidate_bits = _extract_bits(gray, corners)
     max_errors_in_border = int(dictionary.markerSize * dictionary.markerSize * marker_border_bits)
     border_errors = _get_border_errors(candidate_bits, dictionary.markerSize, marker_border_bits)
     if border_errors > max_errors_in_border:
@@ -402,7 +408,8 @@ def _identify_one_candidate(dictionary, gray, corners):
     pass
 
 
-def _extract_bits(gray, corners):
+cdef np.ndarray[dtype=np.uint8_t, ndim=2] _extract_bits(np.ndarray[np.uint8_t, ndim=2] gray,
+                                                        np.ndarray[np.float32_t, ndim=2] corners):
     """
     Extract the bits encoding the ID of the marker given the image and the marker's corners.
     First finds the perspective transformation matrix from the marker's "original" coordinates relative to the
@@ -434,7 +441,7 @@ def _extract_bits(gray, corners):
     min_std_dev_otsu = params[minOtsuStdDev]  # min. std. dev. needed to run Otsu thresholding
 
     # Run assertions
-    assert len(gray.shape) == 2
+    # assert len(gray.shape) == 2
     assert len(corners) == 4
     assert marker_border_bits > 0 and cell_size > 0 and cell_margin_rate >= 0 and cell_margin_rate <= 1
     assert min_std_dev_otsu >= 0
@@ -450,7 +457,7 @@ def _extract_bits(gray, corners):
                                  [0                , resultImgSize - 1]], dtype=np.float32)
 
     # Get transformation and apply to original imageimage
-    transformation = cv2.getPerspectiveTransform(corners, resultImgCorners).astype(np.float32)
+    cdef np.ndarray[dtype=np.float32_t, ndim=2] transformation = cv2.getPerspectiveTransform(corners, resultImgCorners).astype(np.float32)
     IF CUDA_INSTALLED:
         # Use INTER_LINEAR instead of INTER_NEAREST to prevent information loss and ensure accuracy in GPU call
         result_img = GpuWrapper.cudaWarpPerspectiveWrapper(gray, transformation, (resultImgSize, resultImgSize), _flags=cv2.INTER_LINEAR)
@@ -458,7 +465,7 @@ def _extract_bits(gray, corners):
         result_img = cv2.warpPerspective(gray, transformation, (resultImgSize, resultImgSize), flags=cv2.INTER_NEAREST)
 
     # Initialize matrix containing bits output
-    bits = np.zeros((markerSizeWithBorders, markerSizeWithBorders), dtype=np.int8)
+    cdef np.ndarray[dtype=np.uint8_t, ndim=2] bits = np.zeros((markerSizeWithBorders, markerSizeWithBorders), dtype=np.uint8)
 
     # Remove some border to avoid noise from perspective transformation
     # Remember that image matrices are stored row-major-order, [y][x]
@@ -483,10 +490,10 @@ def _extract_bits(gray, corners):
             square = result_img[yStart:yEnd, xStart:xEnd]
             if cv2.countNonZero(square) > (square.size / 2):
                 bits[y][x] = 1
-    return bits
+    return bits.astype(np.uint8)
 
 
-cdef int _get_border_errors(np.ndarray[dtype=np.int8_t, ndim=2] bits, int marker_size, int border_size):
+cdef int _get_border_errors(np.ndarray[dtype=np.uint8_t, ndim=2] bits, int marker_size, int border_size):
     """
     Return number of erroneous bits in border (i.e., number of white bits in border).
     :param bits: 2-dimensional matrix of binary values, representing the bits (incl. border) of a marker

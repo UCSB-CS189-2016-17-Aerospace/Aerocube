@@ -1,13 +1,16 @@
-import unittest
 import os
-import cv2
+import unittest
 from cv2 import aruco
+
+import cv2
 import numpy as np
+
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker
-from ImP.imageProcessing.parallel.markerDetectParGold import MarkerDetectPar
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
+from ImP.imageProcessing.parallel.markerDetectParGold import MarkerDetectPar
 from ImP.imageProcessing.settings import ImageProcessingSettings
+
 # Import the GpuWrapper and immediately initialize it, if successful
 try:
     import ImP.imageProcessing.parallel.cuda.GpuWrapper as GpuWrapper
