@@ -11,10 +11,8 @@ from cython.parallel import parallel, prange
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker
 
 # Define compile time constants to control behavior based on development environment
-DEF CUDA_INSTALLED = True
-IF CUDA_INSTALLED:
-    import ImP.imageProcessing.parallel.cuda.GpuWrapper as GpuWrapper
-    # GpuWrapper.init()
+import ImP.imageProcessing.parallel.cuda.GpuWrapper as GpuWrapper
+GpuWrapper.init()
 
 
 # ALGORITHM PARAMETERS
@@ -68,7 +66,7 @@ params = {
 # HELPER FUNCTIONS/OBJECTS
 
 
-def _threshold(gray, winSize, constant=params[adaptiveThreshConstant]):
+cdef _threshold(np.ndarray[np.uint8_t, ndim=2] gray, int winSize, constant=params[adaptiveThreshConstant]):
     """
     Calls OpenCV's adaptiveThreshold method on what should be a grayscale image.
     Thresholds by looking at a block of pixels about a pixel (determined by winSize)
@@ -85,14 +83,14 @@ def _threshold(gray, winSize, constant=params[adaptiveThreshConstant]):
     assert winSize >= 3
     if winSize % 2 == 0:
         winSize += 1
-    maxValue = 255
+    cdef int maxValue = 255
     return cv2.adaptiveThreshold(gray, maxValue, adaptiveMethod=cv2.ADAPTIVE_THRESH_MEAN_C,
                                  thresholdType=cv2.THRESH_BINARY_INV, blockSize=winSize, C=constant)
 
 # PUBLIC FUNCTIONS
 
 
-def detect_markers_parallel(np.ndarray[dtype=np.uint8_t, ndim=3] img, dictionary=FiducialMarker.get_dictionary()):
+def detect_markers_parallel(np.ndarray[np.uint8_t, ndim=3] img, dictionary=FiducialMarker.get_dictionary()):
     """
     Public entry point to algorithm. Delegates the steps of the algorithms to several helper functions.
     :param img: image that might contain markers; should not be a grayscale image
@@ -460,14 +458,11 @@ cdef np.ndarray[np.uint8_t, ndim=2] _extract_bits(GpuMat gray,
     cdef np.ndarray[np.float32_t, ndim=2] transformation = cv2.getPerspectiveTransform(corners, resultImgCorners).astype(np.float32)
     cdef Mat dst_mat
     pyopencv_to(<PyObject*> transformation, trans_mat)
-    IF CUDA_INSTALLED:
-        # Use INTER_LINEAR instead of INTER_NEAREST to prevent information loss and ensure accuracy in GPU call
-        # result_img = GpuWrapper.cudaWarpPerspectiveWrapper(gray, transformation, (resultImgSize, resultImgSize), _flags=cv2.INTER_LINEAR)
-        warpPerspective(gray, dst_gpu, trans_mat, Size(resultImgSize, resultImgSize), cv2.INTER_LINEAR)
-        dst_gpu.download(dst_mat)
-        cdef np.ndarray[np.uint8_t, ndim=2] result_img = <object> pyopencv_from(dst_mat)
-    ELSE:
-        result_img = cv2.warpPerspective(gray, transformation, (resultImgSize, resultImgSize), flags=cv2.INTER_NEAREST)
+    # Use INTER_LINEAR instead of INTER_NEAREST to prevent information loss and ensure accuracy in GPU call
+    # result_img = GpuWrapper.cudaWarpPerspectiveWrapper(gray, transformation, (resultImgSize, resultImgSize), _flags=cv2.INTER_LINEAR)
+    warpPerspective(gray, dst_gpu, trans_mat, Size(resultImgSize, resultImgSize), cv2.INTER_LINEAR)
+    dst_gpu.download(dst_mat)
+    cdef np.ndarray[np.uint8_t, ndim=2] result_img = <object> pyopencv_from(dst_mat)
 
     # Initialize matrix containing bits output
     cdef np.ndarray[dtype=np.uint8_t, ndim=2] bits = np.zeros((markerSizeWithBorders, markerSizeWithBorders), dtype=np.uint8)

@@ -63,7 +63,7 @@ class TestMarkerDetectParPerf(unittest.TestCase):
 
         pr = cProfile.Profile()
         pr.enable()
-        test_corners_gpu, test_ids_gpu = imp._find_fiducial_markers(parallel=True)
+        test_corners_gpu, test_ids_gpu = imp._find_fiducial_markers(gpu=True)
         pr.disable()
         s = io.StringIO()
         ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
