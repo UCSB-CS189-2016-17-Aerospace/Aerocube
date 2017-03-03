@@ -241,7 +241,7 @@ class ImageProcessor:
             ID = str(cube.ID)
             cube_ids.append(int(cube.ID))
             quaternions[ID] = {k: v for k, v in zip(['w', 'x', 'y', 'z'], cube.quaternion.elements)}
-            tvecs[ID] = np.array(cube.tvec).tolist()
+            tvecs[ID] = {k: v for k, v in zip(['x', 'y', 'z'], cube.tvec)}
             distances[ID] = cube.distance
             num_markers[ID] = len(cube.markers)
             markers += [m.to_jsonifiable_dict() for m in cube.markers]
