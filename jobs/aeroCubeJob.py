@@ -151,6 +151,7 @@ class AeroCubeJob:
                                                                                    'raws:' + ImageEvent.SCAN_MARKERS,
                                                                                    'raws:' + AeroCube.STR_KEY_CUBE_IDS,
                                                                                    'raws:' + AeroCube.STR_KEY_QUATERNIONS,
+                                                                                   'raws:' + AeroCube.STR_KEY_TVECS,
                                                                                    'raws:' + AeroCube.STR_KEY_DISTANCES,
                                                                                    'raws:' + AeroCube.STR_KEY_MARKERS_DETECTED])
             ext_store_node = AeroCubeJobEventNode(StorageEvent(StorageEventSignal.STORE_EXTERNALLY, ext_store_bundle))
@@ -161,6 +162,7 @@ class AeroCubeJob:
                                                                                    'raws:' + ImageEvent.SCAN_MARKERS,
                                                                                    'raws:' + AeroCube.STR_KEY_CUBE_IDS,
                                                                                    'raws:' + AeroCube.STR_KEY_QUATERNIONS,
+                                                                                   'raws:' + AeroCube.STR_KEY_TVECS,
                                                                                    'raws:' + AeroCube.STR_KEY_DISTANCES,
                                                                                    'raws:' + AeroCube.STR_KEY_MARKERS_DETECTED])
             int_store_event = StorageEvent(StorageEventSignal.STORE_INTERNALLY, int_store_bundle)

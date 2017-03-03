@@ -99,6 +99,7 @@ class Controller:
             result_bundle.insert_string(ImageEvent.SCAN_ID, str(img_event.created_at).split('.')[0])
             result_bundle.insert_raw(AeroCube.STR_KEY_CUBE_IDS, aerocubes_as_json[AeroCube.STR_KEY_CUBE_IDS])
             result_bundle.insert_raw(AeroCube.STR_KEY_QUATERNIONS, aerocubes_as_json[AeroCube.STR_KEY_QUATERNIONS])
+            result_bundle.insert_raw(AeroCube.STR_KEY_TVECS, aerocubes_as_json[AeroCube.STR_KEY_TVECS])
             result_bundle.insert_raw(AeroCube.STR_KEY_DISTANCES, aerocubes_as_json[AeroCube.STR_KEY_DISTANCES])
             result_bundle.insert_raw(AeroCube.STR_KEY_MARKERS_DETECTED, aerocubes_as_json[AeroCube.STR_KEY_MARKERS_DETECTED])
             result_bundle.insert_raw(ImageEvent.SCAN_MARKERS, markers_as_json)
