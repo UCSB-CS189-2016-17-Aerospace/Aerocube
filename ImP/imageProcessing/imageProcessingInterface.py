@@ -230,11 +230,29 @@ class ImageProcessor:
         #     q_list.append({k: v for k, v in zip(['w', 'x', 'y', 'z'], cube.quaternion.elements)})
         #     ids.append(cube.ID)
         # return corners, ids, q_list
-        result=[cube.to_json() for cube in self._identify_aerocubes()]
-        print ("IMFS: result{}".format(result))
-        return(result)
-       # return [marker.to_jsonifiable_dict() for marker in self._find_aerocube_markers()]
-
+        cubes=self._identify_aerocubes()
+        cube_ids=[]
+        quaternions={}
+        distances={}
+        num_markers={}
+        for cube in cubes:
+            ID=str(cube.ID)
+            cube_ids.append(cube.ID)
+            quaternions[ID]={k: v for k, v in zip(['w', 'x', 'y', 'z'], cube.quaternion.elements)}
+            distances[ID]=cube.distance
+            num_markers[ID]=len(cube.markers)
+        json_dict = {
+            "Cube_IDs": cube_ids,
+            "Quaternions": quaternions,
+            "Distances": distances,
+            "markers_Detected":num_markers
+        }
+        return json_dict
+        ### full data ###
+        #result=[cube.to_json() for cube in self._identify_aerocubes()]
+        #print ("IMFS: result{}".format(result))
+        #return(result)
+       
     # Pose and distance functions
 
     def _find_distance(self, corners):

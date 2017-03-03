@@ -85,7 +85,8 @@ class Controller:
                 func_name='scan_image',
                 msg='Finding fiducial markers',
                 id=img_event.payload.strings(job_id_bundle_key))
-            markers_as_dicts = imp.identify_markers_for_storage()
+            aerocubes_as_json  = imp.identify_markers_for_storage()
+
             logger.success(
                 self.__class__.__name__,
                 func_name='scan_image',
@@ -96,12 +97,13 @@ class Controller:
             # Prepare bundle from original
             result_bundle = img_event.payload
             result_bundle.insert_string(ImageEvent.SCAN_ID, str(img_event.created_at).split('.')[0])
-            result_bundle.insert_raw(ImageEvent.SCAN_MARKERS, markers_as_dicts)
+            result_bundle.insert_raw(ImageEvent.SCAN_MARKERS, aerocubes_as_json)
             logger.success(
                 self.__class__.__name__,
                 func_name='scan_image',
                 msg='Controller.scan_image: Done with setting bundle : {}'.format(str(result_bundle)),
                 id=img_event.payload.strings(job_id_bundle_key))
+            
         except Exception as ex:
             logger.err(
                 self.__class__.__name__,
