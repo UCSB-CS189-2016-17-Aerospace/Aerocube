@@ -28,3 +28,9 @@ class Power():
     proc = subprocess.Popen(cmd, stdout=PIPE) # Might need to set shell=True
     out, err = proc.communicate()
     return out
+
+  def store_battery_in_ds(self):
+    self
+  
+  def store_power_in_ds(self):
+    self
