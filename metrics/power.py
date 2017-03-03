@@ -34,3 +34,15 @@ class Power():
   
   def store_power_in_ds(self):
     self
+
+  def store_battery_every_5sec(self):
+    self
+
+  def store_power_every_5sec(self):
+    self
+
+  def flush_power(self):
+    self
+  
+  def flush_batter(self):
+    self
