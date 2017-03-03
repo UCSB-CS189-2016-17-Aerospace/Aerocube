@@ -242,7 +242,7 @@ class ImageProcessor:
             quaternions[ID]={k: v for k, v in zip(['w', 'x', 'y', 'z'], cube.quaternion.elements)}
             distances[ID]=cube.distance
             num_markers[ID]=len(cube.markers)
-            markers += [m.to_jsonifiable_dict() for m in cube.markers()]
+            markers += [m.to_jsonifiable_dict() for m in cube.markers]
         cube_json_dict = {
             AeroCube.STR_KEY_CUBE_IDS: cube_ids,
             AeroCube.STR_KEY_QUATERNIONS: quaternions,
