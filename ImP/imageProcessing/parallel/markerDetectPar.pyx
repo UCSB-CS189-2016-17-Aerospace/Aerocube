@@ -103,10 +103,7 @@ def detect_markers_parallel(np.ndarray[dtype=np.uint8_t, ndim=3] img, dictionary
     assert img is not None
 
     # Convert to grayscale (if necessary)
-    IF CUDA_INSTALLED:
-        gray_img = GpuWrapper.cudaCvtColorGray(img)
-    ELSE:
-        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # ~~STEP 1~~: Detect marker candidates
     candidates, contours = _detect_candidates(gray_img)
@@ -355,11 +352,8 @@ def _identify_candidates(np.ndarray[np.uint8_t, ndim=2] gray, candidates, dictio
     # Create GpuMat of gray
     cdef Mat gray_mat = Mat()
     cdef GpuMat gray_gpu = GpuMat()
-    print("declared")
     pyopencv_to(<PyObject*> gray, gray_mat)
-    print("uploading")
     gray_gpu.upload(gray_mat)
-    print("uploaded")
     # Analyze each candidate
     for i in range(len(candidates)):
         valid, corners, cand_id = _identify_one_candidate(dictionary, gray_gpu, candidates[i])
@@ -372,7 +366,7 @@ def _identify_candidates(np.ndarray[np.uint8_t, ndim=2] gray, candidates, dictio
     return accepted, ids, rejected
 
 
-cdef _identify_one_candidate(dictionary, GpuMat gray, corners):
+cdef _identify_one_candidate(dictionary, GpuMat gray, np.ndarray[np.float32_t, ndim=2] corners):
     """
     Given a grayscale image and the candidate corners (i.e., corner points), extract the bits of the candidate from
     the image if possible and use the dictionary to identify the candidate. If successful, reverse any rotation
