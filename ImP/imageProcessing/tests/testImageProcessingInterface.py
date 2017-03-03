@@ -17,6 +17,7 @@ from jobs.aeroCubeSignal import ImageEventSignal
 class TestImageProcessingInterfaceMethods(unittest.TestCase):
     test_files_path = ImageProcessingSettings.get_test_files_path()
     test_output_path = os.path.join(test_files_path, 'output.png')
+    AC_0_FACES_125_PATH = os.path.join(test_files_path, 'capstone_class_photoshoot/AC_0_FACES_125.JPG')
     # create named tuple to help organize test files and expected results of scan
     TestFile = namedtuple('TestFile', 'img_path \
                                        corners \
@@ -161,28 +162,9 @@ class TestImageProcessingInterfaceMethods(unittest.TestCase):
         self.assertRaises(AssertionError, ImageProcessor._prepare_fiducial_arrays_for_aruco, markers.corners, markers.IDs)
 
     def test_find_aerocube_marker(self):
-        # hard code results of operation
-        aerocube_ID = 0
-        aerocube_face = AeroCubeFace.ZENITH
-        corners, _ = ImageProcessor._simplify_fiducial_arrays(self.TEST_SINGLE_MARKER.corners, [[aerocube_ID]])
-        true_markers = np.array([AeroCubeMarker(aerocube_ID,
-                                                aerocube_face,
-                                                corners[0])])
-        # get results of function
-        imp = ImageProcessor(self.TEST_SINGLE_MARKER.img_path)
+        imp = ImageProcessor(self.AC_0_FACES_125_PATH)
         aerocube_markers = imp._find_aerocube_markers()
-        # assert equality of arrays
-        self.assertTrue(np.array_equal(true_markers, aerocube_markers))
-
-    def test_find_aerocube_markers_multiple(self):
-        # get hard-coded results
-        aerocube_markers = [AeroCubeMarker(2, AeroCubeFace.ZENITH, self.TEST_MULT_AEROCUBES.corners[0][0]),
-                            AeroCubeMarker(0,   AeroCubeFace.BACK, self.TEST_MULT_AEROCUBES.corners[1][0])]
-        # get results from ImP
-        imp = ImageProcessor(self.TEST_MULT_AEROCUBES.img_path)
-        test_aerocube_markers = imp._find_aerocube_markers()
-        # assert equality
-        self.assertTrue(np.array_equal(aerocube_markers, test_aerocube_markers))
+        [self.assertIsInstance(m, AeroCubeMarker) for m in aerocube_markers]
 
     def test_find_aerocube_markers_none(self):
         # get hard-coded results

@@ -1,48 +1,50 @@
 import numpy
 import unittest
+from pyquaternion import Quaternion
+import numpy as np
 from ImP.imageProcessing.aerocubeMarker import AeroCubeMarker, AeroCubeFace, AeroCubeMarkerAttributeError
 from ImP.fiducialMarkerModule.fiducialMarker import FiducialMarker, IDOutOfDictionaryBoundError
 
 
 class TestAeroCubeMarker(unittest.TestCase):
-    VALID_CORNER_ARG = numpy.array([[[82.,  51.],
-                                     [453., 51.],
-                                     [454., 417.],
-                                     [82.,  417.]]])
-    VALID_CORNER_ARG_1 = numpy.array([[[82.,  52.],
-                                     [453., 51.],
-                                     [454., 417.],
-                                     [82.,  417.]]])
-    INVALID_CORNER_ARG = numpy.array([[[82.,  51.],
-                                     [453., 51.],
-                                     [454., 417.]]])
+    VALID_CORNER_ARG = numpy.array([[82.,  51.],
+                                    [453., 51.],
+                                    [454., 417.],
+                                    [82.,  417.]])
+    VALID_CORNER_ARG_1 = numpy.array([[82.,  52.],
+                                      [453., 51.],
+                                      [454., 417.],
+                                      [82.,  417.]])
+    INVALID_CORNER_ARG = numpy.array([[82.,  51.],
+                                      [453., 51.],
+                                      [454., 417.]])
+    VALID_QUATERNION = Quaternion(1, 1, 1, 0)
+    VALID_TVEC = np.array([1., 1., 1.])
 
     def test_init(self):
-        marker_obj = AeroCubeMarker(1, AeroCubeFace.LEFT, self.VALID_CORNER_ARG)
+        marker_obj = AeroCubeMarker(self.VALID_CORNER_ARG, 7, self.VALID_QUATERNION, self.VALID_TVEC)
         self.assertEqual(marker_obj.aerocube_ID, 1)
-        self.assertEqual(marker_obj.aerocube_face, AeroCubeFace.LEFT)
-        self.assertTrue(numpy.array_equal(marker_obj.corners, self.VALID_CORNER_ARG))
+        self.assertEqual(marker_obj.aerocube_face, AeroCubeFace.NADIR)
+        np.testing.assert_array_equal(marker_obj.corners, self.VALID_CORNER_ARG)
+        self.assertEqual(marker_obj.quaternion, self.VALID_QUATERNION)
+        np.testing.assert_allclose(marker_obj.tvec, self.VALID_TVEC)
+        self.assertIsNotNone(marker_obj.distance)
 
     def test_invalid_init_parameters(self):
+        self.assertRaises(IDOutOfDictionaryBoundError, AeroCubeMarker,
+                          self.VALID_CORNER_ARG, -1, self.VALID_QUATERNION, self.VALID_TVEC)
         self.assertRaises(AeroCubeMarkerAttributeError, AeroCubeMarker,
-                          -1,  AeroCubeFace.LEFT,   self.VALID_CORNER_ARG)
+                          self.INVALID_CORNER_ARG, 1, self.VALID_QUATERNION, self.VALID_TVEC)
         self.assertRaises(AeroCubeMarkerAttributeError, AeroCubeMarker,
-                          0,                   1,   self.VALID_CORNER_ARG)
-        self.assertRaises(AeroCubeMarkerAttributeError, AeroCubeMarker,
-                          0,  AeroCubeFace.NADIR, self.INVALID_CORNER_ARG)
+                          self.VALID_CORNER_ARG, 1, [1, 1, 1, 0], self.VALID_TVEC)
 
     def test_positive_eq(self):
-        marker_1 = AeroCubeMarker(4, AeroCubeFace.FRONT, self.VALID_CORNER_ARG)
-        marker_2 = AeroCubeMarker(4, AeroCubeFace.FRONT, self.VALID_CORNER_ARG)
+        marker_1 = AeroCubeMarker(self.VALID_CORNER_ARG, 4, self.VALID_QUATERNION, self.VALID_TVEC)
+        marker_2 = AeroCubeMarker(self.VALID_CORNER_ARG, 4, self.VALID_QUATERNION, self.VALID_TVEC)
         self.assertTrue(marker_1 == marker_2)
-
-    def test_negative_eq(self):
-        marker_1 = AeroCubeMarker(4, AeroCubeFace.FRONT, self.VALID_CORNER_ARG)
-        marker_2 = AeroCubeMarker(3, AeroCubeFace.FRONT, self.VALID_CORNER_ARG)
-        self.assertFalse(marker_1 == marker_2)
-        marker_3 = AeroCubeMarker(4, AeroCubeFace.BACK, self.VALID_CORNER_ARG)
+        marker_3 = AeroCubeMarker(self.VALID_CORNER_ARG, 3, self.VALID_QUATERNION, self.VALID_TVEC)
+        marker_4 = AeroCubeMarker(self.VALID_CORNER_ARG_1, 4, self.VALID_QUATERNION, self.VALID_TVEC)
         self.assertFalse(marker_1 == marker_3)
-        marker_4 = AeroCubeMarker(4, AeroCubeFace.FRONT, self.VALID_CORNER_ARG_1)
         self.assertFalse(marker_1 == marker_4)
 
     def test_valid_aerocube_ID(self):
@@ -56,6 +58,13 @@ class TestAeroCubeMarker(unittest.TestCase):
             self.assertFalse(
                 AeroCubeMarker._valid_aerocube_ID(ID),
                 "test_valid_aerocube_ID failed on {}".format(ID))
+
+    def test_as_jsonifiable_dict(self):
+        self.fail()
+
+    def test_distance_from_tvec(self):
+        tvec = [ 0.08787901, -0.03494572,  0.8768408]
+        np.testing.assert_allclose([AeroCubeMarker.distance_from_tvec(tvec)], [0.88192613806])
 
     def test_positive_get_aerocube_marker_IDs(self):
         marker_IDs = [6, 7, 8, 9, 10, 11]

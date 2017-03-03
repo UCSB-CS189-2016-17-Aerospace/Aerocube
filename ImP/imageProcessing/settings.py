@@ -15,3 +15,10 @@ class ImageProcessingSettings():
         """
         return 0.026
 
+    @staticmethod
+    def get_aerocube_width():
+        return 0.1
+
+    @staticmethod
+    def get_aerocube_height():
+        return 0.17025
