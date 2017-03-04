@@ -186,6 +186,8 @@ class FireEndpoint:
         """
 
         print(message['event'])
+        print(message["path"])
+        print(message["data"])
 
 
 
