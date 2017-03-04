@@ -171,7 +171,7 @@ class FireEndpoint:
         self.storage = self.firebase.storage()
         auth = self.firebase.auth()
         #user=auth.sign_in_with_custom_token(self.token)
-        #user = auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
+        user = auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
         self.my_stream = self.db.child("uploads").stream(self.stream_handler)
 
     def create_new_job(self):
