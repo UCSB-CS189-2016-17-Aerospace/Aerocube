@@ -157,8 +157,7 @@ def on_dequeue_job(job):
 
 
 class FireEndpoint:
-
-
+    UPLOAD_FOLDER = 'UPLOAD_FOLDER'
     def __init__(self):
         config = {
             "apiKey": "AIzaSyC9IG_3k-6pISqS1HO82GPVqm4bOo_aVb0",
