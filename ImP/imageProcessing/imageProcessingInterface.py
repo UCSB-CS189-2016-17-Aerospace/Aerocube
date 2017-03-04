@@ -304,7 +304,7 @@ class ImageProcessor:
         :param rodrigues: rotation in compact Rodrigues notation (returned by cv2.Rodrigues) as 1x3 array
         :return: rotation represented as quaternion
         """
-        return pyquaternion.Quaternion(matrix=cv2.Rodrigues(rodrigues)[0])
+        return pyquaternion.Quaternion(matrix=cv2.Rodrigues(rodrigues)[0]).normalised
 
     @staticmethod
     def quaternion_to_rodrigues(quaternion):

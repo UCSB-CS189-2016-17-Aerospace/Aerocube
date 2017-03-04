@@ -223,7 +223,7 @@ class AeroCube:
         candidate_quats = [marker.quaternion * marker.aerocube_face.quaternion for marker in markers]
         all_close = np.all([np.allclose(candidate_quats[0].elements, q.elements, atol=0.2) for q in candidate_quats])
         if all_close or True:
-            return Quaternion(np.mean([q.elements for q in candidate_quats], axis=0))
+            return Quaternion(np.mean([q.elements for q in candidate_quats], axis=0)).normalised
         else:
             raise AttributeError("Quaternions are not close enough for AeroCube! candidate_quats: {}, original quats: {}".format(candidate_quats, [m.quaternion for m in markers]))
 
