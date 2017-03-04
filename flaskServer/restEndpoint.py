@@ -188,7 +188,9 @@ class FireEndpoint:
         print(message['event'])
         print(message["path"])
         print(message["data"])
-
+        print(message["data"][1])
+        if (message["data"][1]) :
+            self.create_new_job()
 
 
 
