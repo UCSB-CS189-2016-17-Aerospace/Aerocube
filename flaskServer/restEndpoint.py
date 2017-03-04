@@ -181,8 +181,10 @@ class FireEndpoint:
         print("called create_new_job")
         #downloads image
         file = urllib.request.URLopener()
-        file.retrieve(downloadURL,'uploadfile.jpg')
+
         full_file_path=app.config[self.UPLOAD_FOLDER]+'uploadfile.jpg'
+        file.retrieve(downloadURL,full_file_path)
+        print(full_file_path)
         # create job
         new_job = AeroCubeJob.create_image_upload_job(full_file_path,
                                                       int_storage=True,
