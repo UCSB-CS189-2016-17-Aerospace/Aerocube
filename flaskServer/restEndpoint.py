@@ -201,8 +201,10 @@ class FireEndpoint:
         print(message['event'])
         print(message["path"])
         print(message["data"])
-        if (message["data"]!='none') :
+        # todo make stream not so hacky getting all data we only want updates
+        if (message["data"]!="") :
             self.create_new_job(message['data'])
+        self.db.child("uploads").set("",self.token)
 
 
 
