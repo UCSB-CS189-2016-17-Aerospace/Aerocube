@@ -174,7 +174,7 @@ class FireEndpoint:
         #user = auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
         self.my_stream = self.db.child("uploads").stream(self.stream_handler,self.token)
 
-    def create_new_job(self):
+    def create_new_job(self,downloadURL):
         """
         Creates new Job and Enqueues it to the job handler
         """
@@ -188,9 +188,8 @@ class FireEndpoint:
         print(message['event'])
         print(message["path"])
         print(message["data"])
-        print(message["data"][1])
-        if (message["data"][1]) :
-            self.create_new_job()
+        if (message["data"]!='none') :
+            self.create_new_job(message['data'])
 
 
 
