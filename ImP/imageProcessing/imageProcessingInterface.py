@@ -139,7 +139,8 @@ class ImageProcessor:
         markers = self._find_aerocube_markers()
         img_w_markers = self.draw_fiducial_markers([m.corners for m in markers], [m.aerocube_ID*AeroCube.NUM_SIDES+m.aerocube_face.value for m in markers])
         for m in markers:
-            img_w_markers = self.draw_axis(m.quaternion, m.tvec, img=img_w_markers)
+            result = self.draw_axis(m.quaternion, m.tvec, img=img_w_markers)
+            img_w_markers = np.copy(result)
         return img_w_markers
 
     def draw_aerocubes(self):
