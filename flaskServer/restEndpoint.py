@@ -169,6 +169,9 @@ class FireEndpoint:
         self.firebase = pyrebase.initialize_app(config)
         self.db = self.firebase.database()
         self.storage = self.firebase.storage()
+        auth = self.firebase.auth()
+        user=auth.sign_in_with_custom_token(self.token)
+        #user = auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
         self.my_stream = self.db.child("uploads").stream(self.stream_handler)
 
     def create_new_job(self):
@@ -181,6 +184,7 @@ class FireEndpoint:
         """
         Watches the /uploads directory for changes, then calls other function to create new job and add it to the handler
         """
+
         print(message['event'])
 
 
