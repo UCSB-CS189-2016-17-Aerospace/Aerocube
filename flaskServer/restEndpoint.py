@@ -188,7 +188,7 @@ class FireEndpoint:
         new_job = AeroCubeJob.create_image_upload_job(full_file_path,
                                                       int_storage=True,
                                                       ext_store_target='firebase')
-        #enque job
+
         get_job_handler().enqueue_job(new_job)
         return {'upload status': 'file upload successful'}
 
