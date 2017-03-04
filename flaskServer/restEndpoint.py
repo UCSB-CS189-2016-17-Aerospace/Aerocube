@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_restful import Resource, Api
 from werkzeug import secure_filename
 import pyrebase
+import urllib.request
 
 from controller.settings import ControllerSettings
 from jobs.aeroCubeEvent import ResultEvent, AeroCubeEvent
@@ -179,7 +180,17 @@ class FireEndpoint:
         Creates new Job and Enqueues it to the job handler
         """
         print("called create_new_job")
-        print(self.storage.child('uploads').child('IMG_5425.JPG').download("downloaded.jpg",self.token))
+        #downloads image
+        file = urllib.request.URLopener()
+        file.retrieve(downloadURL,'uploadfile.jpg')
+        full_file_path=app.config[self.UPLOAD_FOLDER]+'uploadfile.jpg'
+        # create job
+        new_job = AeroCubeJob.create_image_upload_job(full_file_path,
+                                                      int_storage=True,
+                                                      ext_store_target='firebase')
+        #enque job
+        get_job_handler().enqueue_job(new_job)
+        return {'upload status': 'file upload successful'}
 
     def stream_handler(self,message):
         """
