@@ -179,7 +179,7 @@ class FireEndpoint:
         Creates new Job and Enqueues it to the job handler
         """
         print("called create_new_job")
-        self.storage.child("uploads/"+downloadURL).download("downloaded.jpg",self.token)
+        print(self.storage.child("uploads/"+downloadURL).download("downloaded.jpg",self.token))
 
     def stream_handler(self,message):
         """
