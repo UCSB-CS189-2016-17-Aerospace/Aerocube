@@ -203,8 +203,9 @@ class FireEndpoint:
         print(message["data"])
         # todo make stream not so hacky getting all data we only want updates
         if (message["data"]!="") :
+            self.db.child("uploads").set("",self.token)
             self.create_new_job(message['data'])
-        self.db.child("uploads").set("",self.token)
+
 
 
 
