@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_cors import CORS
 from flask_restful import Resource, Api
 from werkzeug import secure_filename
+import pyrebase
 
 from controller.settings import ControllerSettings
 from jobs.aeroCubeEvent import ResultEvent, AeroCubeEvent
@@ -153,6 +154,38 @@ def on_dequeue_job(job):
         id=None)
 
 
+
+class FireEndpoint:
+
+
+    def __init__(self):
+        config = {
+            "apiKey": "AIzaSyC9IG_3k-6pISqS1HO82GPVqm4bOo_aVb0",
+            "authDomain": " yfn-aerospace-staging.firebaseapp.com",
+            "databaseURL": "https://yfn-aerospace-staging.firebaseio.com",
+            "storageBucket": "yfn-aerospace-staging.appspot.com"
+        }
+        self.token = 'WaPfb7ZK3nFH1RDBUzL71sPIr0LJGp9JSGKE0u1B'
+        self.firebase = pyrebase.initialize_app(config)
+        self.db = self.firebase.database()
+        self.storage = self.firebase.storage()
+        self.my_stream = self.db.child("uploads").stream(self.stream_handler)
+
+    def create_new_job(self):
+        """
+        Creates new Job and Enqueues it to the job handler
+        """
+        pass
+
+    def stream_handler(self,message):
+        """
+        Watches the /uploads directory for changes, then calls other function to create new job and add it to the handler
+        """
+        print(message['event'])
+
+
+
+
 class PhotoUpload(Resource):
     """
     Handles GET and POST requests for the Flask Server.
@@ -198,6 +231,7 @@ class PhotoUpload(Resource):
 
 if __name__ == "__main__":
     job_handler, client, app, api = initialize_endpoint()
+    fire = FireEndpoint()
     # Run Flask app
     # NOTE: cannot run with debug=True, as it will cause the module to re-run
     # and mess up imported files
