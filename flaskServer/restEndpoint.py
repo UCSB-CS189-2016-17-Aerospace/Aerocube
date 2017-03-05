@@ -2,6 +2,9 @@ from flask import Flask, request
 from flask_cors import CORS
 from flask_restful import Resource, Api
 from werkzeug import secure_filename
+import pyrebase
+import urllib.request
+import sys
 
 from controller.settings import ControllerSettings
 from jobs.aeroCubeEvent import ResultEvent, AeroCubeEvent
@@ -47,9 +50,9 @@ def create_flask_app():
     """
     app = Flask(__name__)
     api = Api(app)
+    api.add_resource(PhotoUpload, '/api/uploadImage')
     CORS(app)
     app.config[PhotoUpload.UPLOAD_FOLDER] = FlaskServerSettings.get_static_img_dir()
-    api.add_resource(PhotoUpload, '/api/uploadImage')
     return app, api
 
 
@@ -153,6 +156,61 @@ def on_dequeue_job(job):
         id=None)
 
 
+
+class FireEndpoint:
+    UPLOAD_FOLDER = 'UPLOAD_FOLDER'
+    def __init__(self):
+        config = {
+            "apiKey": "AIzaSyC9IG_3k-6pISqS1HO82GPVqm4bOo_aVb0",
+            "authDomain": " yfn-aerospace-staging.firebaseapp.com",
+            "databaseURL": "https://yfn-aerospace-staging.firebaseio.com",
+            "storageBucket": "yfn-aerospace-staging.appspot.com"
+        }
+        self.token = 'WaPfb7ZK3nFH1RDBUzL71sPIr0LJGp9JSGKE0u1B'
+        self.firebase = pyrebase.initialize_app(config)
+        self.db = self.firebase.database()
+        self.storage = self.firebase.storage()
+        #auth = self.firebase.auth()
+        #user=auth.sign_in_with_custom_token(self.token)
+        #user = auth.sign_in_with_email_and_password('yourfirenation@gmail.com', 'yourfirenation')
+        self.my_stream = self.db.child("uploads").stream(self.stream_handler,self.token)
+
+    def create_new_job(self,downloadURL):
+        """
+        Creates new Job and Enqueues it to the job handler
+        """
+        print("called create_new_job")
+        #downloads image
+        file = urllib.request.URLopener()
+
+        full_file_path=app.config[self.UPLOAD_FOLDER]+'uploadfile.jpg'
+        file.retrieve(downloadURL,full_file_path)
+        print(full_file_path)
+        # create job
+        new_job = AeroCubeJob.create_image_upload_job(full_file_path,
+                                                      int_storage=True,
+                                                      ext_store_target='firebase')
+
+        get_job_handler().enqueue_job(new_job)
+        return {'upload status': 'file upload successful'}
+
+    def stream_handler(self,message):
+        """
+        Watches the /uploads directory for changes, then calls other function to create new job and add it to the handler
+        """
+
+        print(message['event'])
+        print(message["path"])
+        print(message["data"])
+        # todo make stream not so hacky getting all data we only want updates
+        data=message["data"]
+        if (data!="") :
+            self.db.child("uploads").set("",self.token)
+            self.create_new_job(data)
+
+
+
+
 class PhotoUpload(Resource):
     """
     Handles GET and POST requests for the Flask Server.
@@ -198,6 +256,7 @@ class PhotoUpload(Resource):
 
 if __name__ == "__main__":
     job_handler, client, app, api = initialize_endpoint()
+    fire = FireEndpoint()
     # Run Flask app
     # NOTE: cannot run with debug=True, as it will cause the module to re-run
     # and mess up imported files
