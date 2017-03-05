@@ -239,7 +239,7 @@ class ResultEvent(AeroCubeEvent):
 
 
 class SystemEvent(AeroCubeEvent):
-    def __init__(self, system_signal, bundle=Bundle(), created_at=time.time(), id=None):
+    def __init__(self, system_signal, bundle=None, created_at=None, id=None):
         if bundle is None:
             bundle = Bundle()
         if created_at is None:
