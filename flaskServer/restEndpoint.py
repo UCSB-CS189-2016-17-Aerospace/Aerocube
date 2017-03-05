@@ -23,7 +23,6 @@ _client = None
 
 logger = Logger('restEndpoint.py', active=True, external=True)
 
-_firebase = None
 
 def initialize_endpoint():
     """
@@ -50,13 +49,8 @@ def create_flask_app():
     :return: (app, api)
     """
     app = Flask(__name__)
-    try:
-        if sys.argv[1] == 'fire': _firebase = True
-        api = None
-    except IndexError:
-        api = Api(app)
-        _firebase = False
-        api.add_resource(PhotoUpload, '/api/uploadImage')
+    api = Api(app)
+    api.add_resource(PhotoUpload, '/api/uploadImage')
     CORS(app)
     app.config[PhotoUpload.UPLOAD_FOLDER] = FlaskServerSettings.get_static_img_dir()
     return app, api
@@ -262,7 +256,7 @@ class PhotoUpload(Resource):
 
 if __name__ == "__main__":
     job_handler, client, app, api = initialize_endpoint()
-    if _firebase: fire = FireEndpoint()
+    fire = FireEndpoint()
     # Run Flask app
     # NOTE: cannot run with debug=True, as it will cause the module to re-run
     # and mess up imported files
