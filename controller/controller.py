@@ -1,9 +1,10 @@
 import numpy as np
+import os
 
 from ImP.imageProcessing.imageProcessingInterface import ImageProcessor
 from ImP.imageProcessing.aerocubeMarker import AeroCube
 from controller.settings import ControllerSettings
-from dataStorage.dataStorage import store
+from dataStorage.dataStorage import store, store_image
 from externalComm.externalComm import external_write, external_store_img
 from jobs.aeroCubeEvent import AeroCubeEvent, ImageEvent, StorageEvent, ResultEvent
 from jobs.aeroCubeSignal import ImageEventSignal, StorageEventSignal, ResultEventSignal
@@ -103,6 +104,7 @@ class Controller:
             result_bundle.insert_raw(AeroCube.STR_KEY_DISTANCES, aerocubes_as_json[AeroCube.STR_KEY_DISTANCES])
             result_bundle.insert_raw(AeroCube.STR_KEY_MARKERS_DETECTED, aerocubes_as_json[AeroCube.STR_KEY_MARKERS_DETECTED])
             result_bundle.insert_raw(ImageEvent.SCAN_MARKERS, markers_as_json)
+            store_image("ImP/output_files/" + os.path.split(file_path)[-1], imp.draw_aerocubes())
             logger.success(
                 self.__class__.__name__,
                 func_name='scan_image',
