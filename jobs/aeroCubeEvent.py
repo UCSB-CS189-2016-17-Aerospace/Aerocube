@@ -173,7 +173,11 @@ class ImageEvent(AeroCubeEvent):
     SCAN_MARKER_IDS = 'SCAN_MARKER_IDS'
     SCAN_POSES = 'SCAN_POSES'
 
-    def __init__(self, image_signal, bundle=Bundle(), created_at=time.time(), id=None):
+    def __init__(self, image_signal, bundle=None, created_at=None, id=None):
+        if bundle is None:
+            bundle = Bundle()
+        if created_at is None:
+            created_at = time.time()
         super().__init__(bundle, image_signal, created_at, id)
 
     def is_valid_signal(self, signal):
@@ -186,7 +190,11 @@ class StorageEvent(AeroCubeEvent):
     EXT_STORAGE_TARGET = 'EXT_STORAGE_TARGET'
     EXT_STORE_PAYLOAD_KEYS = 'EXT_STORE_PAYLOAD_KEYS'
 
-    def __init__(self, storage_signal, bundle=Bundle(), created_at=time.time(), id=None):
+    def __init__(self, storage_signal, bundle=None, created_at=None, id=None):
+        if bundle is None:
+            bundle = Bundle()
+        if created_at is None:
+            created_at = time.time()
         if storage_signal is StorageEventSignal.STORE_EXTERNALLY and bundle.strings(self.EXT_STORAGE_TARGET) is None:
             raise AttributeError("Store external event must have external storage target!")
         super().__init__(bundle, storage_signal, created_at, id)
@@ -217,7 +225,11 @@ Payload examples for ResultEvent or variants:
 class ResultEvent(AeroCubeEvent):
     CALLING_EVENT_UUID = 'CALLING_EVENT'
 
-    def __init__(self, result_signal, calling_event_uuid, bundle=Bundle(), created_at=time.time(), id=None):
+    def __init__(self, result_signal, calling_event_uuid, bundle=None, created_at=None, id=None):
+        if bundle is None:
+            bundle = Bundle()
+        if created_at is None:
+            created_at = time.time()
         # print('ResultEvent.init: \r\n{}\r\n'.format(bundle))
         super().__init__(bundle, result_signal, created_at, id)
         self.payload.insert_string(ResultEvent.CALLING_EVENT_UUID, calling_event_uuid)
@@ -228,6 +240,10 @@ class ResultEvent(AeroCubeEvent):
 
 class SystemEvent(AeroCubeEvent):
     def __init__(self, system_signal, bundle=Bundle(), created_at=time.time(), id=None):
+        if bundle is None:
+            bundle = Bundle()
+        if created_at is None:
+            created_at = time.time()
         super().__init__(bundle, system_signal, created_at, id)
 
     def is_valid_signal(self, signal):
