@@ -134,12 +134,12 @@ class AeroCubeFace(Enum):
         width = ImageProcessingSettings.get_aerocube_width()
         height = ImageProcessingSettings.get_aerocube_height()
         translations = {
-            0: [0, 0, height/2],
-            1: [0, 0, height/2],
-            2: [0, 0, width/2],
-            3: [0, 0, width/2],
-            4: [0, 0, width/2],
-            5: [0, 0, width/2],
+            0: [0, 0, -height/2],
+            1: [0, 0, -height/2],
+            2: [0, 0, -width/2],
+            3: [0, 0, -width/2],
+            4: [0, 0, -width/2],
+            5: [0, 0, -width/2],
         }
         self.quaternion = Quaternion(quaternions[face_id])
         self.translation = translations[face_id]
