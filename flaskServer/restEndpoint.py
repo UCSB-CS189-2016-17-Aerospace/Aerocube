@@ -260,4 +260,9 @@ if __name__ == "__main__":
     # Run Flask app
     # NOTE: cannot run with debug=True, as it will cause the module to re-run
     # and mess up imported files
-    app.run(debug=False, port=FlaskServerSettings.PORT(), ssl_context='adhoc')
+    ON_JETSON = True
+    if ON_JETSON:
+        context = ('server.crt', 'server.key')
+    else:
+        context = 'adhoc'
+    app.run(debug=False, port=FlaskServerSettings.PORT(), ssl_context=context)
